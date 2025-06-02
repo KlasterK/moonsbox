@@ -1,0 +1,10 @@
+output.*
+direct-screenshot.*
+out
+.vscode
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+*.prof
+*screenshot*
