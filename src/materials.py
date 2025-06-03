@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 
 import pygame
 
-from . import DEFAULT_TEMP, GameSound
+from . import DEFAULT_TEMP, GameSound, blend
 
 if TYPE_CHECKING:
     from .gamemap import GameMap
@@ -56,24 +56,59 @@ class Space(BaseMaterial, display_name='Space'):  # air
 
 
 class Sand(BaseMaterial, display_name='Sand'):
-    color = None  # for linter
     heat_capacity = 0.3  # moderate, sand stores some heat
     thermal_conductivity = 0.1  # sand transfers heat slowly
 
     def __init__(self, game_map, pos):
-        self.color = pygame.Color(0xFF, random.randint(0x99, 0xFF), 0)
+        self._is_glass = False
+        self._original_sand_color = pygame.Color(0xFF, random.randint(0x99, 0xFF), 0)
         GameSound('material_Sand').play()
 
+    @property
+    def color(self):
+        if self._is_glass or self.temp >= 1973:
+            return pygame.Color("#949677AA")
+        elif self.temp <= 400:
+            return self._original_sand_color
+        else:
+            # Linear blend between sand and glass color
+            t = (self.temp - 400) / (1973 - 400)
+            sand = self._original_sand_color
+            glass = pygame.Color("#949677AA")
+            r = int(sand.r + (glass.r - sand.r) * t)
+            g = int(sand.g + (glass.g - sand.g) * t)
+            b = int(sand.b + (glass.b - sand.b) * t)
+            a = int(sand.a + (glass.a - sand.a) * t)
+
+            return pygame.Color(r, g, b, a)
+
     def update(self, game_map, pos):
-        x, y = pos
+        if self.temp > 1973:  # 1700 *C, 3092 *F
+            if not self._is_glass:
+                self._is_glass = True
+                GameSound('convert_Sand_to_glass').play()
 
-        for remote_pos in (x, y - 1), random.choice(((x - 1, y - 1), (x + 1, y - 1))):
-            remote_dot = game_map[remote_pos]
+            x, y = pos
+            for remote_pos in (
+                (x, y - 1),
+                random.choice(((x - 1, y), (x + 1, y))),
+                random.choice(((x - 1, y - 1), (x + 1, y - 1))),
+            ):
+                remote_dot = game_map[remote_pos]
+                if isinstance(remote_dot, Space):
+                    game_map[remote_pos] = self
+                    game_map[x, y] = remote_dot
+                    break
 
-            if isinstance(remote_dot, Space):
-                game_map[remote_pos] = self
-                game_map[x, y] = remote_dot
-                break
+        elif not self._is_glass:
+            x, y = pos
+            for remote_pos in (x, y - 1), random.choice(((x - 1, y - 1), (x + 1, y - 1))):
+                remote_dot = game_map[remote_pos]
+
+                if isinstance(remote_dot, Space):
+                    game_map[remote_pos] = self
+                    game_map[x, y] = remote_dot
+                    break
 
         # if y % 2:
         #     dot = game_map[x, y - 1]
@@ -155,7 +190,10 @@ class Lava(BaseMaterial, display_name='Lava'):
 
     @property
     def color(self):
-        return pygame.Color(max(0, min(255, (self.temp - 1200) / 4 + 0xE0)), 0x33, 0)
+        mid_temp = self.temp - 1200
+        red = mid_temp / 5 + 0xFF
+        green = mid_temp / 8 + 0x10
+        return pygame.Color(max(0x44, min(255, red)), max(0, min(255, green)), 0)
 
 
 class Plus100K(BaseMaterial, display_name='+100 K'):
@@ -167,4 +205,16 @@ class Plus100K(BaseMaterial, display_name='+100 K'):
         dot = game_map[pos]
         if dot is not None:
             dot.temp += 100
+        return dot
+
+
+class Minus100K(BaseMaterial, display_name='-100 K'):
+    color = None
+    heat_capacity = None
+    thermal_conductivity = None
+
+    def __new__(cls, game_map, pos):
+        dot = game_map[pos]
+        if dot is not None:
+            dot.temp -= 100
         return dot
