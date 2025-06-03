@@ -8,3 +8,4 @@ __pycache__
 *.pyd
 *.prof
 *screenshot*
+*.prof.svg

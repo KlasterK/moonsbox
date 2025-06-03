@@ -52,7 +52,10 @@ class Renderer:
             for y in range(y_start, y_end):
                 dot = self._map[x, self._map.invy(y)]
                 original_color = mask(dot)  # mask is a function returning color for the dot
-                temp_array[x - x_start, y - y_start] = blend(bg, original_color)
+                if original_color.a == 255:
+                    temp_array[x - x_start, y - y_start] = original_color
+                elif original_color.a > 0:
+                    temp_array[x - x_start, y - y_start] = blend(bg, original_color)
 
         # Unlocking the surface
         temp_array.close()

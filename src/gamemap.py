@@ -21,13 +21,13 @@ class GameMap:
         '''Returns a dot at the given position or None if the position is out of bounds.'''
 
         # NOTE: in numpy if you using negative index, you will get the value from the end
-        if self.bounds(pos):
+        if pos[0] >= 0 and pos[0] < self.size[0] and pos[1] >= 0 and pos[1] < self.size[1]:
             return self._array[pos]
         else:
             return None
 
     def __setitem__(self, pos: tuple[int, int], value: BaseMaterial) -> None:
-        if self.bounds(pos):
+        if pos[0] >= 0 and pos[0] < self.size[0] and pos[1] >= 0 and pos[1] < self.size[1]:
             self._array[pos] = value
 
     def invy(self, y: int) -> int:

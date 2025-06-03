@@ -2,6 +2,7 @@ import math
 import random
 
 import pygame
+from profilehooks import profile
 
 from . import (
     ENABLE_FPS_LINE,

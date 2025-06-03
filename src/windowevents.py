@@ -180,8 +180,6 @@ class DrawingEventHandler(BaseEventHandler):
 
                 pygame.event.post(pygame.event.Event(pygame.USEREVENT, purpose='hold-drawing'))
 
-                print(end='.')
-
 
 class MaterialPaletteEventHandler:
     def __init__(self, game_app: 'GameApp', palette: MaterialPalette):

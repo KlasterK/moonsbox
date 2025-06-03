@@ -40,6 +40,7 @@ Some example materials you can experiment with:
 
 ## Requirements
 
+- Python 3 (I run it with Python 3.13.3)
 - pygame-ce
 - numpy
 - pillow

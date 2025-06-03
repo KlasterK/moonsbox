@@ -1,4 +1,5 @@
 import pygame
+from profilehooks import profile
 
 from .gamemap import GameMap
 
@@ -10,6 +11,7 @@ class SimulationManager:
         self._map = game_map
         self._clock = pygame.Clock()
 
+    # @profile(stdout=False, filename='SimulationManager-tick.prof')
     def tick(self, framerate: float = 0) -> None:
         '''Updates the map.'''
 
@@ -18,28 +20,22 @@ class SimulationManager:
         # Exchanging temp of neighbours
         for x in range(size_x):
             for y in range(size_y):
-                cell = self._map[x, y]
+                dot = self._map[x, y]
 
-                # Collecting neighbours
-                neighbors = []
-                for nb_relx, nb_rely in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
-                    nb_x, nb_y = x + nb_relx, y + nb_rely
+                for neighbour in (
+                    self._map[x - 1, y],
+                    self._map[x + 1, y],
+                    self._map[x, y - 1],
+                    self._map[x, y + 1],
+                ):
+                    if neighbour is not None:
+                        dot.temp += (
+                            (neighbour.temp - dot.temp)
+                            * neighbour.thermal_conductivity
+                            * dot.heat_capacity
+                        )
 
-                    if 0 <= nb_x < size_x and 0 <= nb_y < size_y:
-                        neighbor = self._map[nb_x, nb_y]
-                        neighbors.append(neighbor)
-
-                if not neighbors:
-                    continue
-
-                # Average temp
-                avg_temp = sum(n.temp for n in neighbors) / len(neighbors)
-
-                # Assigning temp
-                delta = (avg_temp - cell.temp) * cell.thermal_conductivity
-                cell.temp += delta * (1 - cell.heat_capacity)
-
-                cell.update(self._map, (x, y))
+                dot.update(self._map, (x, y))
 
         self._clock.tick(framerate)
 
