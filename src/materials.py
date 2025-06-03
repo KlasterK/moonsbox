@@ -1,6 +1,6 @@
 import abc
 import random
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import pygame
 
@@ -11,6 +11,30 @@ if TYPE_CHECKING:
 
 
 available_materials = {}
+
+_pre_generated_choices = random.choices(range(100), k=100)
+_choice_index = 0
+
+
+def _fast_choice(*selection: Any) -> Any:
+    global _choice_index
+
+    index = _pre_generated_choices[_choice_index % 100]
+    _choice_index += 1
+    return selection[index % len(selection)]
+
+
+_last_flag_index = -1
+
+
+def _unique_flag() -> int:
+    global _last_flag_index
+    _last_flag_index += 1
+    return 1 << _last_flag_index
+
+
+def _fast_isinstance(obj: Any, cls: type['BaseMaterial']) -> bool:
+    return getattr(obj, 'material_flags', 0) & cls.MATERIAL_FLAG
 
 
 class BaseMaterial(abc.ABC):
@@ -25,6 +49,10 @@ class BaseMaterial(abc.ABC):
     def __init_subclass__(cls, display_name: str = ''):
         super().__init_subclass__()
 
+        cls.MATERIAL_FLAG = cls.material_flags = _unique_flag()
+        for base in cls.__bases__:
+            cls.material_flags |= getattr(base, 'material_flags', 0)
+
         if display_name:
             available_materials[display_name] = cls
 
@@ -34,6 +62,7 @@ class BaseMaterial(abc.ABC):
         '''Color of a dot.'''
 
     temp = DEFAULT_TEMP
+    material_flags = 0
 
     @property
     @abc.abstractmethod
@@ -91,33 +120,33 @@ class Sand(BaseMaterial, display_name='Sand'):
             x, y = pos
             for remote_pos in (
                 (x, y - 1),
-                random.choice(((x - 1, y), (x + 1, y))),
-                random.choice(((x - 1, y - 1), (x + 1, y - 1))),
+                _fast_choice((x - 1, y), (x + 1, y)),
+                _fast_choice((x - 1, y - 1), (x + 1, y - 1)),
             ):
                 remote_dot = game_map[remote_pos]
-                if isinstance(remote_dot, Space):
+                if _fast_isinstance(remote_dot, Space):
                     game_map[remote_pos] = self
                     game_map[x, y] = remote_dot
                     break
 
         elif not self._is_glass:
             x, y = pos
-            for remote_pos in (x, y - 1), random.choice(((x - 1, y - 1), (x + 1, y - 1))):
+            for remote_pos in (x, y - 1), _fast_choice((x - 1, y - 1), (x + 1, y - 1)):
                 remote_dot = game_map[remote_pos]
 
-                if isinstance(remote_dot, Space):
+                if _fast_isinstance(remote_dot, Space):
                     game_map[remote_pos] = self
                     game_map[x, y] = remote_dot
                     break
 
         # if y % 2:
         #     dot = game_map[x, y - 1]
-        #     if isinstance(dot, Space):
+        #     if _fast_isinstance(dot, Space):
         #         game_map[x, y - 1] = self
         #         game_map[x, y] = dot
         # else:
         #     dot = game_map[x, y + 1]
-        #     if isinstance(dot, Space):
+        #     if _fast_isinstance(dot, Space):
         #         game_map[x, y + 1] = self
         #         game_map[x, y] = dot
 
@@ -138,18 +167,18 @@ class InertLiquid(BaseMaterial, display_name='Inert Liquid'):
         x, y = pos
 
         remote_dot = game_map[x, y + 1]
-        if isinstance(remote_dot, Sand):
+        if _fast_isinstance(remote_dot, Sand):
             game_map[x, y + 1] = self
             game_map[x, y] = remote_dot
             return
 
         for remote_pos in (
             (x, y - 1),
-            random.choice(((x - 1, y), (x + 1, y))),
-            random.choice(((x - 1, y - 1), (x + 1, y - 1))),
+            _fast_choice((x - 1, y), (x + 1, y)),
+            _fast_choice((x - 1, y - 1), (x + 1, y - 1)),
         ):
             remote_dot = game_map[remote_pos]
-            if isinstance(remote_dot, Space):
+            if _fast_isinstance(remote_dot, Space):
                 game_map[remote_pos] = self
                 game_map[x, y] = remote_dot
                 break
@@ -179,11 +208,11 @@ class Lava(BaseMaterial, display_name='Lava'):
 
             for remote_pos in (
                 (x, y - 1),
-                random.choice(((x - 1, y), (x + 1, y))),
-                random.choice(((x - 1, y - 1), (x + 1, y - 1))),
+                _fast_choice((x - 1, y), (x + 1, y)),
+                _fast_choice((x - 1, y - 1), (x + 1, y - 1)),
             ):
                 remote_dot = game_map[remote_pos]
-                if isinstance(remote_dot, Space):
+                if _fast_isinstance(remote_dot, Space):
                     game_map[remote_pos] = self
                     game_map[x, y] = remote_dot
                     break
