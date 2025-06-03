@@ -147,6 +147,7 @@ class GameSound:
                     self._sound = None
                 else:
                     self._sound.set_volume(VOLUME)
+                    _sounds_cache[name] = self._sound
 
     def play(self) -> None:
         if self._channel is None:
