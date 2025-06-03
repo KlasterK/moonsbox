@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 
 import pygame
 
-from . import DEFAULT_TEMP, GameSound, blend
+from . import DEFAULT_TEMP, GameSound
 
 if TYPE_CHECKING:
     from .gamemap import GameMap

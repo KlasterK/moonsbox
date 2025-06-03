@@ -1,11 +1,14 @@
 import abc
 from typing import TYPE_CHECKING
 
+import PIL.Image
 import pygame
 
 from . import (
     DEFAULT_WIDTH,
     DELTA_WIDTH,
+    DRAWING_IS_CIRCULAR,
+    SCREENSHOT_DOT_SIZE,
     SCREENSHOT_PATH_FACTORY,
     SCREENSHOT_TYPE_HINT,
     ZOOM_FACTOR,
@@ -64,11 +67,25 @@ class SimulationEventHandler(BaseEventHandler):
             elif e.key == pygame.K_F6:
                 self._map.fill(Space)
             elif e.key == pygame.K_F9:
-                image = self._map.take_screenshot()
-                image.show()
+                unscaled = self._map.take_screenshot()
+                scaled = unscaled.resize(
+                    (
+                        unscaled.width * SCREENSHOT_DOT_SIZE[0],
+                        unscaled.height * SCREENSHOT_DOT_SIZE[1],
+                    ),
+                    PIL.Image.Resampling.NEAREST,
+                )
+                scaled.show()
             elif e.key == pygame.K_F10:
-                image = self._map.take_screenshot()
-                image.save(SCREENSHOT_PATH_FACTORY(), SCREENSHOT_TYPE_HINT)
+                unscaled = self._map.take_screenshot()
+                scaled = unscaled.resize(
+                    (
+                        unscaled.width * SCREENSHOT_DOT_SIZE[0],
+                        unscaled.height * SCREENSHOT_DOT_SIZE[1],
+                    ),
+                    PIL.Image.Resampling.NEAREST,
+                )
+                scaled.save(SCREENSHOT_PATH_FACTORY(), SCREENSHOT_TYPE_HINT)
 
 
 class CameraEventHandler(BaseEventHandler):
@@ -98,6 +115,7 @@ class DrawingEventHandler(BaseEventHandler):
         self._pal = palette
         self._previous_pos = None
         self._width = DEFAULT_WIDTH
+        self._is_hold_drawing_event_sent = False
 
     def process_event(self, e):
         # mods = pygame.key.get_mods()
@@ -118,10 +136,13 @@ class DrawingEventHandler(BaseEventHandler):
 
             rect = pygame.Rect(0, 0, self._width, self._width)
             rect.center = abs_pos
-            self._map.draw_rect(rect, self._pal.selected_material)
+            if DRAWING_IS_CIRCULAR:
+                self._map.draw_ellipse(rect, self._pal.selected_material)
+            else:
+                self._map.draw_rect(rect, self._pal.selected_material)
             self._previous_pos = abs_pos
 
-            self._map.set_override(rect, self._pal.selected_material)
+            pygame.event.post(pygame.event.Event(pygame.USEREVENT, purpose='hold-drawing'))
 
         elif e.type == pygame.MOUSEMOTION:
             if self._previous_pos is not None:
@@ -134,15 +155,12 @@ class DrawingEventHandler(BaseEventHandler):
 
                 rect = pygame.Rect(0, 0, self._width, self._width)
                 rect.center = abs_pos
-                self._map.clear_override()
-                self._map.set_override(rect, self._pal.selected_material)
 
                 self._previous_pos = abs_pos
 
         elif (e.type == pygame.KEYUP and e.key == pygame.K_LCTRL) or (
             e.type == pygame.MOUSEBUTTONUP and e.button == pygame.BUTTON_LEFT
         ):
-            self._map.clear_override()
             self._previous_pos = None
 
         elif e.type == pygame.KEYDOWN and e.key == pygame.K_EQUALS:
@@ -150,6 +168,19 @@ class DrawingEventHandler(BaseEventHandler):
 
         elif e.type == pygame.KEYDOWN and e.key == pygame.K_MINUS:
             self._width = max(1, self._width - DELTA_WIDTH)
+
+        elif e.type == pygame.USEREVENT and e.purpose == 'hold-drawing':
+            if self._previous_pos is not None:
+                rect = pygame.Rect(0, 0, self._width, self._width)
+                rect.center = self._previous_pos
+                if DRAWING_IS_CIRCULAR:
+                    self._map.draw_ellipse(rect, self._pal.selected_material)
+                else:
+                    self._map.draw_rect(rect, self._pal.selected_material)
+
+                pygame.event.post(pygame.event.Event(pygame.USEREVENT, purpose='hold-drawing'))
+
+                print(end='.')
 
 
 class MaterialPaletteEventHandler:
@@ -169,7 +200,7 @@ class MaterialPaletteEventHandler:
 
                 elif e.key == pygame.K_RIGHT:
                     x, y = self._pal.selection_slot
-                    width = self._pal.grid_size[0]
+                    width = self._pal.whole_grid_size[0]
                     x = min(x + 1, width - 1)
                     self._pal.selection_slot = (x, y)
                     GameSound('palette_move_selection').play_override()
@@ -182,7 +213,7 @@ class MaterialPaletteEventHandler:
 
                 elif e.key == pygame.K_DOWN:
                     x, y = self._pal.selection_slot
-                    height = self._pal.grid_size[1]
+                    height = self._pal.whole_grid_size[1]
                     y = min(y + 1, height - 1)
                     self._pal.selection_slot = (x, y)
                     GameSound('palette_move_selection').play_override()
@@ -202,25 +233,39 @@ class MaterialPaletteEventHandler:
                 raise StopHandling
 
             elif e.type == pygame.MOUSEBUTTONDOWN:
-                previous_slot_pos = self._pal.selection_slot
+                if e.button == pygame.BUTTON_LEFT:
+                    previous_slot_pos = self._pal.selection_slot
 
-                for slot_pos, rect in self._pal.grid_geometry.items():
-                    if rect.collidepoint(e.pos):
-                        self._pal.selection_slot = slot_pos
-                        if slot_pos == previous_slot_pos:
-                            self._pal.hide(True)
-                            GameSound('palette_hide_confirmation').play_override()
-                        else:
-                            GameSound('palette_move_selection').play_override()
-                        break
-                else:
-                    # If no slot was clicked, hide the palette
-                    self._pal.hide(False)
-                    GameSound('palette_hide_no_confirmation').play_override()
+                    for slot_pos, rect in self._pal.grid_geometry.items():
+                        if rect.collidepoint(e.pos):
+                            self._pal.selection_slot = slot_pos
+                            if slot_pos == previous_slot_pos:
+                                self._pal.hide(True)
+                                GameSound('palette_hide_confirmation').play_override()
+                            else:
+                                GameSound('palette_move_selection').play_override()
+                            break
+                    else:
+                        # If no slot was clicked, hide the palette
+                        self._pal.hide(False)
+                        GameSound('palette_hide_no_confirmation').play_override()
+
+                raise StopHandling
+
+            elif e.type == pygame.MOUSEWHEEL:
+                height = self._pal.whole_grid_size[1]
+                self._pal.current_row -= e.y
+
+                if self._pal.current_row < 0:
+                    self._pal.current_row = 0
+                elif self._pal.current_row >= height:
+                    self._pal.current_row = height - 1
 
                 raise StopHandling
 
         else:
-            if e.type == pygame.KEYDOWN and e.key == pygame.K_TAB:
+            if (e.type == pygame.KEYDOWN and e.key == pygame.K_TAB) or (
+                e.type == pygame.MOUSEBUTTONDOWN and e.button == pygame.BUTTON_MIDDLE
+            ):
                 self._pal.show()
                 GameSound('palette_show').play_override()

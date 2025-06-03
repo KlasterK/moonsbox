@@ -4,6 +4,7 @@ import numpy as np
 import PIL.Image
 import pygame
 
+from . import DRAWING_IS_CIRCULAR
 from .materials import BaseMaterial, Space
 
 type MFactory = Callable[['GameMap', tuple[int, int]], BaseMaterial] | type[BaseMaterial]
@@ -15,15 +16,9 @@ class GameMap:
     def __init__(self, size: tuple[int, int]):
         self.size = size
         self._array = np.full(size, Space(None, None), dtype=object)
-        self._override = None, None
 
     def __getitem__(self, pos: tuple[int, int]) -> BaseMaterial | None:
         '''Returns a dot at the given position or None if the position is out of bounds.'''
-
-        # a recursion is occuring here if you override +100 K
-        # if self._override[0] is not None and self._override[0].collidepoint(pos):
-        #     # If the position is overridden, return the material from the factory
-        #     return self._override[1](self, pos)
 
         # NOTE: in numpy if you using negative index, you will get the value from the end
         if self.bounds(pos):
@@ -34,12 +29,6 @@ class GameMap:
     def __setitem__(self, pos: tuple[int, int], value: BaseMaterial) -> None:
         if self.bounds(pos):
             self._array[pos] = value
-
-    def set_override(self, area: pygame.Rect, material_factory: MFactory) -> None:
-        self._override = area, material_factory
-
-    def clear_override(self) -> None:
-        self._override = None, None
 
     def invy(self, y: int) -> int:
         '''Inverts Y axis for the given value.'''
@@ -153,14 +142,19 @@ class GameMap:
 
             points.append((current_x, current_y))
 
-        # Draw width-wide line by filling a square around each point
+        # Draw width-wide line by filling a square or disk around each point
         radius = max(0, width // 2)
         for px, py in points:
             for dx in range(-radius, radius + 1):
                 for dy in range(-radius, radius + 1):
                     tx, ty = px + dx, py + dy
-                    if self.bounds((tx, ty)):
-                        self._array[tx, ty] = material_factory(self, (tx, ty))
+                    if not self.bounds((tx, ty)):
+                        continue
+                    if DRAWING_IS_CIRCULAR:
+                        # Only fill points inside the circle
+                        if dx * dx + dy * dy > radius * radius:
+                            continue
+                    self._array[tx, ty] = material_factory(self, (tx, ty))
 
     def take_screenshot(self) -> PIL.Image.Image:
         # PIL expecting shape (y, x, channels)

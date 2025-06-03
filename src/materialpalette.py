@@ -7,14 +7,12 @@ from . import (
     PALETTE_SELECTION_INNER_COLOR,
     PALETTE_SELECTION_OUTER_COLOR,
     PALETTE_SHADOW_COLOR,
+    USER_LOCALE,
     blend,
     get_font,
     get_material_icon,
 )
 from .materials import available_materials
-
-if TYPE_CHECKING:
-    from .gameapp import GameApp
 
 
 class MaterialPalette:
@@ -31,7 +29,7 @@ class MaterialPalette:
         self._icon_size = icon_size
         self._dest = dest
         self._selected_index = 0
-        self._current_row = 0
+        self.current_row = 0
         self._is_visible = False
 
         # Prepare material buttons: (button_surface, caption, material_cls)
@@ -47,7 +45,7 @@ class MaterialPalette:
                 icon = pygame.Surface(self._icon_size, pygame.SRCALPHA)
 
             # Prepare caption (truncate if needed)
-            caption_text = MATERIAL_TRANSLATIONS.get(name, name)
+            caption_text = MATERIAL_TRANSLATIONS.get(USER_LOCALE, {}).get(name, name)
             if len(caption_text) > self._max_caption_chars:
                 caption_text = caption_text[: self._max_caption_chars - 1] + '…'
             caption_surf = self._font.render(caption_text, True, 'white')
@@ -75,13 +73,20 @@ class MaterialPalette:
             return None
 
     @property
-    def grid_size(self) -> tuple[int, int]:
-        # Calculate how many buttons fit horizontally and vertically
-        screen_w, screen_h = self._dest.get_size()
+    def whole_grid_size(self) -> tuple[int, int]:
+        # Возвращает размер полной сетки (всех материалов), а не только видимой части
         btn_w = self._icon_size[0] + self._margin
-        btn_h = self._icon_size[1] + self._font.get_height() + 4 + self._margin
-        cols = max(1, screen_w // btn_w)
-        rows = max(1, screen_h // btn_h)
+        cols = max(1, self._dest.get_width() // btn_w)
+        total_rows = (len(self._materials) + cols - 1) // cols
+        return (cols, total_rows)
+
+    @property
+    def grid_size(self) -> tuple[int, int]:
+        # Возвращает размер видимой части сетки (столько строк и столбцов помещается на экране)
+        btn_w = self._icon_size[0] + self._margin
+        btn_h = self._icon_size[1] + self._font.get_height() + self._margin
+        cols = max(1, self._dest.get_width() // btn_w)
+        rows = max(1, self._dest.get_height() // btn_h)
         return (cols, rows)
 
     @property
@@ -91,40 +96,41 @@ class MaterialPalette:
 
     @selection_slot.setter
     def selection_slot(self, value: tuple[int, int]) -> None:
-        cols, _ = self.grid_size
-        idx = (self._current_row + value[1]) * cols + value[0]
+        x, y = value
+        cols, rows = self.grid_size
+
+        if y < self.current_row:
+            self.current_row = y
+        elif y >= self.current_row + rows:
+            self.current_row = y - rows + 1
+
+        idx = y * cols + x
         if 0 <= idx < len(self._materials):
             self._selected_index = idx
             self.selected_material = self._materials[idx][2]
 
     @property
     def grid_geometry(self) -> dict[tuple[int, int], pygame.Rect]:
-        '''A dictionary with keys as slot positions
-        and values as onscreen pygame.Rect for each button.
+        '''A dictionary with keys as slot positions (col, row in visible grid)
+        and values as onscreen pygame.Rect for each visible button.
         '''
-
         cols, rows = self.grid_size
         btn_w = self._icon_size[0] + self._margin
         btn_h = self._icon_size[1] + self._font.get_height() + self._margin
-
         screen_w, screen_h = self._dest.get_size()
         total_w = cols * btn_w - self._margin
         total_h = rows * btn_h - self._margin
-
         x0 = (screen_w - total_w) // 2
         y0 = (screen_h - total_h) // 2
-
         geometry = {}
         for i in range(rows):
             for j in range(cols):
-                idx = (self._current_row + i) * cols + j
+                idx = (self.current_row + i) * cols + j
                 if idx >= len(self._materials):
                     continue
-
                 x = x0 + j * btn_w
                 y = y0 + i * btn_h
-                geometry[(j, i)] = pygame.Rect(x, y, btn_w, btn_h)
-
+                geometry[(j, i + self.current_row)] = pygame.Rect(x, y, btn_w, btn_h)
         return geometry
 
     def go_to_starting_with(self, text: str) -> None:
@@ -137,8 +143,6 @@ class MaterialPalette:
 
     def show(self) -> None:
         self._is_visible = True
-        self._selected_index = 0
-        self._current_row = 0
 
     def hide(self, confirmation: bool) -> None:
         self._is_visible = False
@@ -170,7 +174,7 @@ class MaterialPalette:
 
         for i in range(rows):
             for j in range(cols):
-                idx = (self._current_row + i) * cols + j
+                idx = (self.current_row + i) * cols + j
 
                 if idx >= len(self._materials):
                     continue

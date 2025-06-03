@@ -15,6 +15,9 @@ from . import (
     RENDER_MASKS,
     SCREEN_SIZE,
     VISIBLE_AREA,
+    WINDOW_CAPTION,
+    GameSound,
+    get_image,
 )
 from .gamemap import GameMap
 from .materialpalette import MaterialPalette
@@ -99,6 +102,8 @@ class GameApp:
             raise RuntimeError('pygame is not initialised')
 
         pygame.display.set_mode(SCREEN_SIZE, pygame.RESIZABLE)
+        pygame.display.set_caption(WINDOW_CAPTION)
+        pygame.display.set_icon(get_image('window_icon'))
 
         self._screen = pygame.display.get_surface()
 
@@ -133,6 +138,8 @@ class GameApp:
     def run(self) -> None:
         if not self._is_running:
             raise RuntimeError('game is stopped')
+
+        GameSound('stream_ambient').play()
 
         while self._is_running:
             for event in pygame.event.get():
