@@ -5,8 +5,8 @@ import PIL.Image
 import pygame
 
 from . import (
-    DEFAULT_WIDTH,
-    DELTA_WIDTH,
+    DEFAULT_DRAWING_WIDTH,
+    DELTA_DRAWING_WIDTH,
     DRAWING_IS_CIRCULAR,
     SCREENSHOT_DOT_SIZE,
     SCREENSHOT_PATH_FACTORY,
@@ -114,7 +114,7 @@ class DrawingEventHandler(BaseEventHandler):
         self._map = game_map
         self._pal = palette
         self._previous_pos = None
-        self._width = DEFAULT_WIDTH
+        self._width = DEFAULT_DRAWING_WIDTH
         self._is_hold_drawing_event_sent = False
 
     def process_event(self, e):
@@ -149,6 +149,14 @@ class DrawingEventHandler(BaseEventHandler):
                 mouse_pos = pygame.mouse.get_pos()
                 abs_pos = self._map.invy_pos(self._camera.convert_pos(mouse_pos))
 
+                # Drawing a line is slow so we won't do it if delta motion is too small
+                # min_delta = self._width // 3
+                # if (
+                #     abs(abs_pos[0] - self._previous_pos[0]) < min_delta
+                #     or abs(abs_pos[0] - self._previous_pos[0]) < min_delta
+                # ):
+                #     self._map.
+                # else:
                 self._map.draw_line(
                     self._previous_pos, abs_pos, self._width, self._pal.selected_material
                 )
@@ -164,10 +172,10 @@ class DrawingEventHandler(BaseEventHandler):
             self._previous_pos = None
 
         elif e.type == pygame.KEYDOWN and e.key == pygame.K_EQUALS:
-            self._width += DELTA_WIDTH
+            self._width += DELTA_DRAWING_WIDTH
 
         elif e.type == pygame.KEYDOWN and e.key == pygame.K_MINUS:
-            self._width = max(1, self._width - DELTA_WIDTH)
+            self._width = max(1, self._width - DELTA_DRAWING_WIDTH)
 
         elif e.type == pygame.USEREVENT and e.purpose == 'hold-drawing':
             if self._previous_pos is not None:

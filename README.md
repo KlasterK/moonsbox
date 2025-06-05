@@ -16,7 +16,7 @@ A sandbox cellular automata playground written in Python with Pygame. Inspired b
 - **LMB | Ctrl**: Draw with the selected material
 - **RMB | Shift**: Move the camera
 - **Mouse Wheel**: Zoom camera
-- **Tab**: Open the material palette
+- **MMB | Tab**: Open the material palette
 - **Arrow Keys | Mouse**: Move material selection
 - **Enter | Double LMB**: Select material to draw
 - **Esc**: Close palette or exit

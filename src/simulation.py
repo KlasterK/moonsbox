@@ -1,5 +1,5 @@
+import numba
 import pygame
-from profilehooks import profile
 
 from .gamemap import GameMap
 
@@ -7,15 +7,18 @@ from .gamemap import GameMap
 class SimulationManager:
     '''Runs physical processes of the game map.'''
 
+    @numba.jit(forceobj=True)
     def __init__(self, game_map: GameMap):
         self._map = game_map
         self._clock = pygame.Clock()
 
     # @profile(stdout=False, filename='SimulationManager-tick.prof')
+    # @numba.jit(forceobj=True)
     def tick(self, framerate: float = 0) -> None:
         '''Updates the map.'''
 
-        size_x, size_y = self._map.size
+        size_x = self._map.size[0]
+        size_y = self._map.size[1]
 
         # Exchanging temp of neighbours
         for x in range(size_x):

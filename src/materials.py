@@ -12,29 +12,32 @@ if TYPE_CHECKING:
 
 available_materials = {}
 
-_pre_generated_choices = random.choices(range(100), k=100)
-_choice_index = 0
+_pre_generated_choice2 = random.choices((0, 1), k=100)
+_choice2_index = 0
 
 
-def _fast_choice(*selection: Any) -> Any:
-    global _choice_index
-
-    index = _pre_generated_choices[_choice_index % 100]
-    _choice_index += 1
-    return selection[index % len(selection)]
-
-
-_last_flag_index = -1
+def _fast_choice2(a: Any, b: Any) -> Any:
+    global _choice2_index
+    _choice2_index += 1
+    return (a, b)[_pre_generated_choice2[_choice2_index % 100]]
+    return a
 
 
-def _unique_flag() -> int:
-    global _last_flag_index
-    _last_flag_index += 1
-    return 1 << _last_flag_index
+_last_material_flag_index = -1
+
+
+def _unique_material_flag() -> int:
+    # returns a unique bit flag for a material
+    global _last_material_flag_index
+    _last_material_flag_index += 1
+    return 1 << _last_material_flag_index
 
 
 def _fast_isinstance(obj: Any, cls: type['BaseMaterial']) -> bool:
-    return getattr(obj, 'material_flags', 0) & cls.MATERIAL_FLAG
+    try:
+        return obj.material_flags & cls.MATERIAL_FLAG
+    except AttributeError:
+        return False
 
 
 class BaseMaterial(abc.ABC):
@@ -49,7 +52,7 @@ class BaseMaterial(abc.ABC):
     def __init_subclass__(cls, display_name: str = ''):
         super().__init_subclass__()
 
-        cls.MATERIAL_FLAG = cls.material_flags = _unique_flag()
+        cls.MATERIAL_FLAG = cls.material_flags = _unique_material_flag()
         for base in cls.__bases__:
             cls.material_flags |= getattr(base, 'material_flags', 0)
 
@@ -89,6 +92,7 @@ class Sand(BaseMaterial, display_name='Sand'):
     thermal_conductivity = 0.1  # sand transfers heat slowly
 
     def __init__(self, game_map, pos):
+        self.temp = DEFAULT_TEMP
         self._is_glass = False
         self._original_sand_color = pygame.Color(0xFF, random.randint(0x99, 0xFF), 0)
         GameSound('material_Sand').play()
@@ -96,7 +100,7 @@ class Sand(BaseMaterial, display_name='Sand'):
     @property
     def color(self):
         if self._is_glass or self.temp >= 1973:
-            return pygame.Color("#949677AA")
+            return pygame.Color("#94967755")
         elif self.temp <= 400:
             return self._original_sand_color
         else:
@@ -111,6 +115,7 @@ class Sand(BaseMaterial, display_name='Sand'):
 
             return pygame.Color(r, g, b, a)
 
+    # @profile(stdout=False, filename='Sand-update.prof')
     def update(self, game_map, pos):
         if self.temp > 1973:  # 1700 *C, 3092 *F
             if not self._is_glass:
@@ -120,8 +125,8 @@ class Sand(BaseMaterial, display_name='Sand'):
             x, y = pos
             for remote_pos in (
                 (x, y - 1),
-                _fast_choice((x - 1, y), (x + 1, y)),
-                _fast_choice((x - 1, y - 1), (x + 1, y - 1)),
+                _fast_choice2((x - 1, y), (x + 1, y)),
+                _fast_choice2((x - 1, y - 1), (x + 1, y - 1)),
             ):
                 remote_dot = game_map[remote_pos]
                 if _fast_isinstance(remote_dot, Space):
@@ -131,7 +136,7 @@ class Sand(BaseMaterial, display_name='Sand'):
 
         elif not self._is_glass:
             x, y = pos
-            for remote_pos in (x, y - 1), _fast_choice((x - 1, y - 1), (x + 1, y - 1)):
+            for remote_pos in (x, y - 1), _fast_choice2((x - 1, y - 1), (x + 1, y - 1)):
                 remote_dot = game_map[remote_pos]
 
                 if _fast_isinstance(remote_dot, Space):
@@ -161,7 +166,7 @@ class InertLiquid(BaseMaterial, display_name='Inert Liquid'):
     thermal_conductivity = 0.3  # moderate transfer
 
     def __init__(self, game_map, pos):
-        self.color = pygame.Color(0, random.randint(0x66, 0x88), 0x99)
+        self.color = pygame.Color(0, random.randint(0x95, 0xBB), 0x99)
 
     def update(self, game_map, pos):
         x, y = pos
@@ -174,8 +179,8 @@ class InertLiquid(BaseMaterial, display_name='Inert Liquid'):
 
         for remote_pos in (
             (x, y - 1),
-            _fast_choice((x - 1, y), (x + 1, y)),
-            _fast_choice((x - 1, y - 1), (x + 1, y - 1)),
+            _fast_choice2((x - 1, y), (x + 1, y)),
+            _fast_choice2((x - 1, y - 1), (x + 1, y - 1)),
         ):
             remote_dot = game_map[remote_pos]
             if _fast_isinstance(remote_dot, Space):
@@ -208,8 +213,8 @@ class Lava(BaseMaterial, display_name='Lava'):
 
             for remote_pos in (
                 (x, y - 1),
-                _fast_choice((x - 1, y), (x + 1, y)),
-                _fast_choice((x - 1, y - 1), (x + 1, y - 1)),
+                _fast_choice2((x - 1, y), (x + 1, y)),
+                _fast_choice2((x - 1, y - 1), (x + 1, y - 1)),
             ):
                 remote_dot = game_map[remote_pos]
                 if _fast_isinstance(remote_dot, Space):

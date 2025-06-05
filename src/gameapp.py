@@ -1,12 +1,10 @@
 import math
-import random
 
 import pygame
-from profilehooks import profile
 
 from . import (
-    ENABLE_FPS_LINE,
-    FPS_LINE_COLOR,
+    ENABLE_FPS_COUNTER,
+    FPS_COUNTER_COLOR,
     MAP_INNER_COLOR,
     MAP_OUTER_COLOR,
     MAP_SIZE,
@@ -18,6 +16,7 @@ from . import (
     VISIBLE_AREA,
     WINDOW_CAPTION,
     GameSound,
+    get_font,
     get_image,
 )
 from .gamemap import GameMap
@@ -141,6 +140,7 @@ class GameApp:
             raise RuntimeError('game is stopped')
 
         GameSound('stream_ambient').play()
+        font = get_font()
 
         while self._is_running:
             for event in pygame.event.get():
@@ -157,15 +157,11 @@ class GameApp:
             self._renderer.render(self._camera.get_area(), self._render_mask, MAP_INNER_COLOR)
             self._pal.render()
 
-            if ENABLE_FPS_LINE:
-                # FPS improvised counter
-                pygame.draw.line(
-                    self._screen,
-                    FPS_LINE_COLOR,
-                    (0, 0),
-                    (random.randint(0, 99), random.randint(0, 99)),
+            if ENABLE_FPS_COUNTER:
+                self._screen.blit(
+                    font.render(f'TPS = {self._sim.get_tps()}', True, FPS_COUNTER_COLOR),
+                    (10, 10),
                 )
-
             pygame.display.flip()
 
     def stop(self) -> None:
