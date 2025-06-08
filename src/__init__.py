@@ -9,8 +9,8 @@ TEMP_IS_EXCHANGING = True
 DEFAULT_DRAWING_WIDTH = 1
 DELTA_DRAWING_WIDTH = 1
 ZOOM_FACTOR = 0.1
-VOLUME = 0.1
-MUSIC_VOLUME = 0.04
+VOLUME = 1
+MUSIC_VOLUME = 0  # music here is a cringe track from Half-Life so we turn it off by default
 DRAWING_IS_CIRCULAR = True
 WINDOW_CAPTION = 'moonsbox'
 

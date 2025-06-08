@@ -2,6 +2,7 @@ import abc
 import random
 from typing import TYPE_CHECKING, Any
 
+import numpy as np
 import pygame
 
 from . import DEFAULT_TEMP, GameSound
@@ -12,15 +13,24 @@ if TYPE_CHECKING:
 
 available_materials = {}
 
-_pre_generated_choice2 = random.choices((0, 1), k=100)
-_choice2_index = 0
+
+_pre_generated_choice2 = np.random.choice((np.True_, np.False_), size=1234)
+_choice2_index = -1
 
 
 def _fast_choice2(a: Any, b: Any) -> Any:
+    # return a if random.randint(0, 1) else b
     global _choice2_index
+    if _choice2_index >= 1234:
+        _choice2_index = 0
+
+    random_value = _pre_generated_choice2[_choice2_index]
     _choice2_index += 1
-    return (a, b)[_pre_generated_choice2[_choice2_index % 100]]
-    return a
+
+    if random_value:
+        return a
+    else:
+        return b
 
 
 _last_material_flag_index = -1
@@ -33,9 +43,10 @@ def _unique_material_flag() -> int:
     return 1 << _last_material_flag_index
 
 
+# increases TPS by 2 ticks
 def _fast_isinstance(obj: Any, cls: type['BaseMaterial']) -> bool:
     try:
-        return obj.material_flags & cls.MATERIAL_FLAG
+        return obj.MATERIAL_FLAGS & cls.SINGLETON_MATERIAL_FLAG
     except AttributeError:
         return False
 
@@ -52,9 +63,9 @@ class BaseMaterial(abc.ABC):
     def __init_subclass__(cls, display_name: str = ''):
         super().__init_subclass__()
 
-        cls.MATERIAL_FLAG = cls.material_flags = _unique_material_flag()
+        cls.SINGLETON_MATERIAL_FLAG = cls.MATERIAL_FLAGS = _unique_material_flag()
         for base in cls.__bases__:
-            cls.material_flags |= getattr(base, 'material_flags', 0)
+            cls.MATERIAL_FLAGS |= getattr(base, 'material_flags', 0)
 
         if display_name:
             available_materials[display_name] = cls
@@ -65,7 +76,7 @@ class BaseMaterial(abc.ABC):
         '''Color of a dot.'''
 
     temp = DEFAULT_TEMP
-    material_flags = 0
+    MATERIAL_FLAGS = 0
 
     @property
     @abc.abstractmethod
@@ -84,7 +95,7 @@ class BaseMaterial(abc.ABC):
 class Space(BaseMaterial, display_name='Space'):  # air
     color = pygame.Color(0, 0, 0, 0)
     heat_capacity = 0.3  # moderate, air easily changes temp
-    thermal_conductivity = 1  # low but not 0, air transfers heat slowly
+    thermal_conductivity = 0.01  # low but not 0, air transfers heat slowly
 
 
 class Sand(BaseMaterial, display_name='Sand'):
@@ -92,7 +103,6 @@ class Sand(BaseMaterial, display_name='Sand'):
     thermal_conductivity = 0.1  # sand transfers heat slowly
 
     def __init__(self, game_map, pos):
-        self.temp = DEFAULT_TEMP
         self._is_glass = False
         self._original_sand_color = pygame.Color(0xFF, random.randint(0x99, 0xFF), 0)
         GameSound('material_Sand').play()

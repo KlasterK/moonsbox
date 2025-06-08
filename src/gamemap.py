@@ -15,7 +15,7 @@ class GameMap:
 
     def __init__(self, size: tuple[int, int]):
         self.size = size
-        self._array = np.full(size, Space(None, None), dtype=object)
+        self._array = np.full(size, Space(None, None), dtype=np.object_)
 
     def __getitem__(self, pos: tuple[int, int]) -> BaseMaterial | None:
         '''Returns a dot at the given position or None if the position is out of bounds.'''

@@ -48,6 +48,7 @@ Some example materials you can experiment with:
 ## Running
 
 ```
+python -m pip install pygame-ce numpy pillow
 cd <PROJECT DIR>
 python -m src
 ```
