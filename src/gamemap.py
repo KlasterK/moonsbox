@@ -27,8 +27,15 @@ class GameMap:
             return None
 
     def __setitem__(self, pos: tuple[int, int], value: BaseMaterial) -> None:
+        '''Sets a dot at the given position if the position is out of bounds, noexcept.'''
+
         if pos[0] >= 0 and pos[0] < self.size[0] and pos[1] >= 0 and pos[1] < self.size[1]:
             self._array[pos] = value
+
+    def get_view(self) -> np.ndarray:
+        '''Returns a view of internal numpy array.'''
+
+        return self._array.view()
 
     def invy(self, y: int) -> int:
         '''Inverts Y axis for the given value.'''
