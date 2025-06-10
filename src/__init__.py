@@ -39,10 +39,10 @@ RENDER_MASKS = (
 )
 
 PALETTE_ICON_SIZE = 64, 64
-PALETTE_MAX_CAPTION_CHARS = 10
+PALETTE_MAX_CAPTION_CHARS = 20
 PALETTE_MARGIN = 20
 
-MAP_INNER_COLOR = pygame.Color('#00050C')
+MAP_INNER_COLOR = pygame.Color('#050000')
 MAP_OUTER_COLOR = pygame.Color('#000C05')
 PALETTE_SELECTION_OUTER_COLOR = pygame.Color("#00C3FF40")
 PALETTE_SELECTION_INNER_COLOR = pygame.Color("#008CFF20")
@@ -60,7 +60,7 @@ MATERIAL_TRANSLATIONS = {
     'ru_RU': {
         'Space': 'Стереть',
         'Sand': 'Песок',
-        'Inert Liquid': 'Жидкость',
+        'Lubricant': 'Смаз. Масло',
         'Unbreakable Wall': 'Неруш. Стена',
         'Lava': 'Лава',
     }

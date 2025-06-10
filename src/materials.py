@@ -170,7 +170,7 @@ class Sand(BaseMaterial, display_name='Sand'):
         #     game_map[pos] = Space()
 
 
-class InertLiquid(BaseMaterial, display_name='Inert Liquid'):
+class Lubricant(BaseMaterial, display_name='Lubricant'):
     color = None
     heat_capacity = 0.7  # liquids store heat well
     thermal_conductivity = 0.3  # moderate transfer
