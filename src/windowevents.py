@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 import PIL.Image
 import pygame
 
-from . import (
+from .const import (
     DEFAULT_DRAWING_WIDTH,
     DELTA_DRAWING_WIDTH,
     DRAWING_IS_CIRCULAR,
@@ -14,12 +14,12 @@ from . import (
     SCREENSHOT_PATH_FACTORY,
     SCREENSHOT_TYPE_HINT,
     ZOOM_FACTOR,
-    GameSound,
 )
 from .gamemap import GameMap
 from .materialpalette import MaterialPalette
 from .materials import Space
 from .simulation import SimulationManager
+from .util import GameSound
 
 if TYPE_CHECKING:
     from .gameapp import Camera, GameApp

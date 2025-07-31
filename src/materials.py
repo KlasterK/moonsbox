@@ -5,7 +5,8 @@ from typing import TYPE_CHECKING, Any
 import numpy as np
 import pygame
 
-from . import DEFAULT_TEMP, GameSound
+from .const import DEFAULT_TEMP
+from .util import GameSound
 
 if TYPE_CHECKING:
     from .gamemap import GameMap

@@ -4,7 +4,7 @@ from typing import Any, Callable, Literal, final
 
 import pygame
 
-from . import get_font
+from .util import get_font
 from .windowevents import BaseEventHandler, StopHandling
 
 

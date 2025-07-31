@@ -4,7 +4,7 @@ import time
 
 import pygame
 
-from . import (
+from .const import (
     DEBUG_COLOR,
     ENABLE_FPS_COUNTER,
     ENABLE_TPS_COUNTER,
@@ -19,15 +19,13 @@ from . import (
     SCREEN_SIZE,
     VISIBLE_AREA,
     WINDOW_CAPTION,
-    GameSound,
-    get_font,
-    get_image,
 )
 from .gamemap import GameMap
 from .materialpalette import MaterialPalette
 from .materials import Sand
 from .renderer import Renderer, available_render_masks
 from .simulation import SimulationManager
+from .util import GameSound, get_font, get_image
 from .windowevents import (
     CameraEventHandler,
     DrawingEventHandler,

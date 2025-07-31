@@ -4,7 +4,7 @@ import numpy as np
 import PIL.Image
 import pygame
 
-from . import DRAWING_IS_CIRCULAR
+from .const import DRAWING_IS_CIRCULAR
 from .materials import BaseMaterial, Space
 
 type MFactory = Callable[['GameMap', tuple[int, int]], BaseMaterial] | type[BaseMaterial]

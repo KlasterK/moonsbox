@@ -1,16 +1,14 @@
 import pygame
 
-from . import (
+from .const import (
     MATERIAL_TRANSLATIONS,
     PALETTE_SELECTION_INNER_COLOR,
     PALETTE_SELECTION_OUTER_COLOR,
     PALETTE_SHADOW_COLOR,
     USER_LOCALE,
-    blend,
-    get_font,
-    get_material_icon,
 )
 from .materials import available_materials
+from .util import blend, get_font, get_material_icon
 
 
 class MaterialPalette:

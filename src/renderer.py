@@ -2,9 +2,9 @@ from typing import Callable
 
 import pygame
 
-from . import blend
 from .gamemap import GameMap
 from .materials import BaseMaterial
+from .util import blend
 
 type RenderMask = Callable[[BaseMaterial], pygame.Color]
 
