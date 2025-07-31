@@ -7,7 +7,7 @@ import numpy as np
 import pygame
 
 from .const import DEFAULT_TEMP
-from .util import GameSound
+from .util import GameSound, blend
 
 if TYPE_CHECKING:
     from .gamemap import GameMap
@@ -16,23 +16,36 @@ if TYPE_CHECKING:
 available_materials = {}
 
 
-_pre_generated_choice2 = np.random.choice((np.True_, np.False_), size=1234)
-_choice2_index = -1
+_pre_generated_random = np.array(np.random.choice(range(255), size=1234), dtype=np.uint8)
+_random_index = -1
 
 
 def _fast_choice2(a: Any, b: Any) -> Any:
     # return a if random.randint(0, 1) else b
-    global _choice2_index
-    if _choice2_index >= 1234:
-        _choice2_index = 0
+    global _random_index
+    if _random_index >= 1234:
+        _random_index = 0
 
-    random_value = _pre_generated_choice2[_choice2_index]
-    _choice2_index += 1
+    random_value = _pre_generated_random[_random_index] // 127
+    _random_index += 1
 
     if random_value:
         return a
     else:
         return b
+
+
+def _fast_randbytes(bytes_count: int) -> bytearray:
+    global _random_index
+
+    result = bytearray(bytes_count)
+    for i in range(bytes_count):
+        if _random_index >= 1234:
+            _random_index = 0
+
+        result[i] = _pre_generated_random[_random_index]
+        _random_index += 1
+    return result
 
 
 def _fall_gas(this, game_map, x, y):
@@ -157,21 +170,11 @@ class Sand(BaseMaterial, display_name='Sand'):
 
     @property
     def color(self):
-        if self._is_glass or self.temp >= 1973:
-            return pygame.Color("#94967755")
-        elif self.temp <= 400:
-            return self._original_sand_color
+        t = (self.temp - 400) / (1973 - 400)
+        if self._is_glass:
+            return blend(pygame.Color("#96947755"), pygame.Color("#FF880085"), t)
         else:
-            # Linear blend between sand and glass color
-            t = (self.temp - 400) / (1973 - 400)
-            sand = self._original_sand_color
-            glass = pygame.Color("#949677AA")
-            r = int(sand.r + (glass.r - sand.r) * t)
-            g = int(sand.g + (glass.g - sand.g) * t)
-            b = int(sand.b + (glass.b - sand.b) * t)
-            a = int(sand.a + (glass.a - sand.a) * t)
-
-            return pygame.Color(r, g, b, a)
+            return blend(self._original_sand_color, pygame.Color("#FF6600AA"), t)
 
     # @profile(stdout=False, filename='Sand-update.prof')
     def update(self, game_map, x, y):
@@ -284,9 +287,9 @@ class Tap(BaseMaterial, display_name='Tap'):
             for rx, ry, dot in _von_neumann_hood(game_map, x, y, MaterialTags.MOVABLE):
                 self._generate_type = type(dot)
                 break
-        else:
+        elif _fast_randbytes(1)[0] > 0xCF:
             for rx, ry, _ in _von_neumann_hood(game_map, x, y, MaterialTags.SPACE):
-                game_map[rx, ry] = self._generate_type(game_map, (rx, ry))
+                game_map[rx, ry] = self._generate_type(game_map, rx, ry)
 
 
 class Propane(BaseMaterial, display_name='Propane'):
@@ -297,3 +300,26 @@ class Propane(BaseMaterial, display_name='Propane'):
 
     def update(self, game_map, x, y):
         _fall_gas(self, game_map, x, y)
+
+
+class Fire(BaseMaterial, display_name='Fire'):
+    heat_capacity = 0  # fire cannot store heat
+    thermal_conductivity = 1  # very high
+    temp = 1200  # something near 1000 *C
+    tags = MaterialTags.GAS  # not a gas, but acts like a gas
+    _death_counter = 0
+
+    def update(self, game_map, x, y):
+        if self._death_counter > 10:
+            game_map[x, y] = Space(game_map, x, y)
+            if game_map[x, y].tags & MaterialTags.GAS:
+                print('WTF?', x, y)
+        self._death_counter += 1
+        _fall_gas(self, game_map, x, y)
+
+    @property
+    def color(self):
+        mid_temp = self.temp - 1200
+        red = mid_temp / 5 + 0xFF
+        green = mid_temp / 8 + 0x10
+        return pygame.Color(max(0x44, min(255, red)), max(0, min(255, green)), 0)
