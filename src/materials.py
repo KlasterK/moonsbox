@@ -35,22 +35,17 @@ def _fast_choice2(a: Any, b: Any) -> Any:
         return b
 
 
-_last_material_flag_index = -1
-
-
-def _unique_material_flag() -> int:
-    # returns a unique bit flag for a material
-    global _last_material_flag_index
-    _last_material_flag_index += 1
-    return 1 << _last_material_flag_index
-
-
-# increases TPS by 2 ticks
-def _fast_isinstance(obj: Any, cls: type['BaseMaterial']) -> bool:
-    try:
-        return obj.MATERIAL_FLAGS & cls.SINGLETON_MATERIAL_FLAG
-    except AttributeError:
-        return False
+def _fall_gas(this, game_map, x, y):
+    for remote_pos in (
+        (x, y + 1),
+        _fast_choice2((x - 1, y), (x + 1, y)),
+        _fast_choice2((x - 1, y + 1), (x + 1, y + 1)),
+    ):
+        remote_dot = game_map[remote_pos]
+        if remote_dot is not None and remote_dot.tags & MaterialTags.SPACE:
+            game_map[remote_pos] = this
+            game_map[x, y] = remote_dot
+            break
 
 
 def _fall_liquid(this, game_map, x, y):
@@ -240,6 +235,7 @@ class Plus100K(BaseMaterial, display_name='+100 K'):
     color = None
     heat_capacity = None
     thermal_conductivity = None
+    tags = MaterialTags.NULL
 
     def __new__(cls, game_map, pos):
         dot = game_map[pos]
@@ -270,6 +266,25 @@ class BlackHole(BaseMaterial, display_name='Black Hole'):
     def update(self, game_map, pos):
         for rx, ry, _ in _von_neumann_hood(game_map, *pos, MaterialTags.MOVABLE):
             game_map[rx, ry] = Space(game_map, (rx, ry))
+
+
+class Tap(BaseMaterial, display_name='Tap'):
+    color = pygame.Color("#67a046")
+    heat_capacity = 0.2  # factors like Lava got
+    thermal_conductivity = 0.6
+    tags = MaterialTags.SOLID
+
+    def __init__(self, game_map, pos):
+        self._generate_type = None
+
+    def update(self, game_map, pos):
+        if self._generate_type is None:
+            for rx, ry, dot in _von_neumann_hood(game_map, *pos, MaterialTags.MOVABLE):
+                self._generate_type = type(dot)
+                break
+        else:
+            for rx, ry, _ in _von_neumann_hood(game_map, *pos, MaterialTags.SPACE):
+                game_map[rx, ry] = self._generate_type(game_map, (rx, ry))
 
 
 class Propane(BaseMaterial, display_name='Propane'):
