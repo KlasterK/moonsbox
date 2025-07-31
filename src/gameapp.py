@@ -134,11 +134,10 @@ class GameApp:
         )
         self._pal.selected_material = Sand
 
-        idle_style = Stylesheet(bg_color='#00cc00')
-        hovered_style = idle_style.copy(bg_color='#006600')
-        pressed_style = hovered_style.copy(bg_color='#009900')
+        idle_style = Stylesheet(bg_color="#7C6423", spacing=5)
+        hovered_style = idle_style.copy(bg_color="#63511F")
 
-        self._buttons = ButtonContainer(idle_style, hovered_style, pressed_style)
+        self._buttons = ButtonContainer(idle_style, hovered_style, hovered_style)
         self._buttons.add(
             AnchoredPosition(10, 10),
             image=get_image('materials_palette_btn_icon'),
