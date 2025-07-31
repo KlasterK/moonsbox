@@ -1,5 +1,6 @@
+import abc
 import copy
-import dataclasses
+from dataclasses import dataclass, field
 from typing import Any, Callable, Literal, final
 
 import pygame
@@ -8,11 +9,11 @@ from .util import get_font
 from .windowevents import BaseEventHandler, StopHandling
 
 
-@dataclasses.dataclass
+@dataclass
 class Stylesheet:
     bg_color: pygame.Color = '#ffffff'
     fg_color: pygame.Color = '#000000'
-    font: pygame.Font = dataclasses.field(default_factory=get_font)
+    font: pygame.Font = field(default_factory=get_font)
     bg_image: pygame.Surface | None = None
     bg_position: Literal['top', 'left', 'bottom', 'right', 'center'] = 'center'
     spacing: float = 0
@@ -21,7 +22,7 @@ class Stylesheet:
         return copy.replace(self, **changes)
 
 
-@dataclasses.dataclass
+@dataclass
 class AnchoredPosition:
     x: float
     y: float
@@ -59,12 +60,11 @@ class PushButton(BaseEventHandler):
 
     def __init__(
         self,
-        *,
-        text='',
-        pos=None,
         idle_style,
         hovered_style=None,
         pressed_style=None,
+        pos=None,
+        text='',
     ):
         self._on_click_cbs = []
         self._cur_style = idle_style
@@ -167,15 +167,67 @@ class PushButton(BaseEventHandler):
         elif e.type == pygame.MOUSEBUTTONDOWN and e.button == pygame.BUTTON_LEFT:
             if self.get_rect().collidepoint(e.pos):
                 self._cur_style = self.pressed_style
+                for cb in self._on_click_cbs:
+                    cb()
 
         elif e.type == pygame.MOUSEBUTTONUP and e.button == pygame.BUTTON_LEFT:
             if self._cur_style is self.pressed_style:
                 if self.get_rect().collidepoint(e.pos):
                     self._cur_style = self.hovered_style
-                    for cb in self._on_click_cbs:
-                        cb()
                 else:
                     self._cur_style = self.idle_style
 
         if self._cur_style is self.pressed_style:
             raise StopHandling
+
+
+class ButtonContainer(BaseEventHandler):
+    def __init__(self, idle_style, hovered_style, pressed_style):
+        self._btns = {}
+        self._id_counter = 0
+        self.idle_style = idle_style
+        self.hovered_style = hovered_style
+        self.pressed_style = pressed_style
+
+    def __contains__(self, id):
+        return id in self._btns.keys()
+
+    def __getitem__(self, id: str) -> PushButton:
+        return self._btns[id]
+
+    def add(
+        self,
+        pos: AnchoredPosition | None = None,
+        text: str = '',
+        image: pygame.Surface | None = None,
+        cb: Callable | None = None,
+        id: str | None = None,
+        **init_kwargs,
+    ) -> str:
+        if id is None:
+            id = f'#{self._id_counter}'
+            self._id_counter += 1
+        btn = PushButton(
+            self.idle_style.copy(bg_image=image),
+            self.hovered_style.copy(bg_image=image),
+            self.pressed_style.copy(bg_image=image),
+            pos,
+            text,
+        )
+        if cb is not None:
+            btn.connect_on_click(cb)
+        self._btns[id] = btn
+
+    def remove(self, id: str) -> None:
+        del self._btns[id]
+
+    def render(self, dst: pygame.Surface) -> None:
+        for btn in self._btns.values():
+            btn.render(dst)
+
+    def process_event(self, e):
+        for btn in self._btns.values():
+            try:
+                btn.process_event(e)
+            except StopHandling:
+                break

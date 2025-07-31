@@ -25,6 +25,7 @@ from .materialpalette import MaterialPalette
 from .materials import Sand
 from .renderer import Renderer, available_render_masks
 from .simulation import SimulationManager
+from .ui import AnchoredPosition, ButtonContainer, Stylesheet
 from .util import GameSound, get_font, get_image
 from .windowevents import (
     CameraEventHandler,
@@ -133,8 +134,20 @@ class GameApp:
         )
         self._pal.selected_material = Sand
 
+        idle_style = Stylesheet(bg_color='#00cc00')
+        hovered_style = idle_style.copy(bg_color='#006600')
+        pressed_style = hovered_style.copy(bg_color='#009900')
+
+        self._buttons = ButtonContainer(idle_style, hovered_style, pressed_style)
+        self._buttons.add(
+            AnchoredPosition(10, 10),
+            image=get_image('materials_palette_btn_icon'),
+            cb=lambda: {self._pal.show(), GameSound('palette.show').play_override()},
+        )
+
         self._event_handlers = (
             MaterialPaletteEventHandler(self, self._pal),
+            self._buttons,
             GameAppEventHandler(self),
             SimulationEventHandler(self._map, self._sim),
             CameraEventHandler(self._camera),
@@ -168,6 +181,8 @@ class GameApp:
             if self._is_rendering:
                 self._renderer.render(self._camera.get_area(), self._render_mask, MAP_INNER_COLOR)
                 self._pal.render()
+                if not self._pal.is_visible():
+                    self._buttons.render(self._screen)
 
             if ENABLE_TPS_COUNTER:
                 self._screen.blit(
