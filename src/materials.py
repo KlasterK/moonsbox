@@ -52,6 +52,29 @@ def _fast_isinstance(obj: Any, cls: type['BaseMaterial']) -> bool:
         return False
 
 
+def _fall_liquid(this, game_map, x, y):
+    for remote_pos in (
+        (x, y - 1),
+        _fast_choice2((x - 1, y), (x + 1, y)),
+        _fast_choice2((x - 1, y - 1), (x + 1, y - 1)),
+    ):
+        remote_dot = game_map[remote_pos]
+        if _fast_isinstance(remote_dot, Space):
+            game_map[remote_pos] = this
+            game_map[x, y] = remote_dot
+            break
+
+
+def _fall_sand(this, game_map, x, y):
+    for remote_pos in (x, y - 1), _fast_choice2((x - 1, y - 1), (x + 1, y - 1)):
+        remote_dot = game_map[remote_pos]
+
+        if _fast_isinstance(remote_dot, Space):
+            game_map[remote_pos] = this
+            game_map[x, y] = remote_dot
+            break
+
+
 class BaseMaterial(abc.ABC):
     '''Abstract base class for materials.'''
 
@@ -132,43 +155,10 @@ class Sand(BaseMaterial, display_name='Sand'):
             if not self._is_glass:
                 self._is_glass = True
                 GameSound('convert.Sand_to_glass').play()
-
-            x, y = pos
-            for remote_pos in (
-                (x, y - 1),
-                _fast_choice2((x - 1, y), (x + 1, y)),
-                _fast_choice2((x - 1, y - 1), (x + 1, y - 1)),
-            ):
-                remote_dot = game_map[remote_pos]
-                if _fast_isinstance(remote_dot, Space):
-                    game_map[remote_pos] = self
-                    game_map[x, y] = remote_dot
-                    break
+            _fall_liquid(self, game_map, *pos)
 
         elif not self._is_glass:
-            x, y = pos
-            for remote_pos in (x, y - 1), _fast_choice2((x - 1, y - 1), (x + 1, y - 1)):
-                remote_dot = game_map[remote_pos]
-
-                if _fast_isinstance(remote_dot, Space):
-                    game_map[remote_pos] = self
-                    game_map[x, y] = remote_dot
-                    break
-
-        # if y % 2:
-        #     dot = game_map[x, y - 1]
-        #     if _fast_isinstance(dot, Space):
-        #         game_map[x, y - 1] = self
-        #         game_map[x, y] = dot
-        # else:
-        #     dot = game_map[x, y + 1]
-        #     if _fast_isinstance(dot, Space):
-        #         game_map[x, y + 1] = self
-        #         game_map[x, y] = dot
-
-        # self._death_counter += 1
-        # if self._death_counter > 1000:
-        #     game_map[pos] = Space()
+            _fall_sand(self, game_map, *pos)
 
 
 class Lubricant(BaseMaterial, display_name='Lubricant'):
@@ -188,16 +178,7 @@ class Lubricant(BaseMaterial, display_name='Lubricant'):
             game_map[x, y] = remote_dot
             return
 
-        for remote_pos in (
-            (x, y - 1),
-            _fast_choice2((x - 1, y), (x + 1, y)),
-            _fast_choice2((x - 1, y - 1), (x + 1, y - 1)),
-        ):
-            remote_dot = game_map[remote_pos]
-            if _fast_isinstance(remote_dot, Space):
-                game_map[remote_pos] = self
-                game_map[x, y] = remote_dot
-                break
+        _fall_liquid(self, game_map, *pos)
 
 
 class UnbreakableWall(BaseMaterial, display_name='Unbreakable Wall'):
@@ -220,18 +201,7 @@ class Lava(BaseMaterial, display_name='Lava'):
 
     def update(self, game_map, pos):
         if self.temp > 400:  # 127 *C, 260 *F
-            x, y = pos
-
-            for remote_pos in (
-                (x, y - 1),
-                _fast_choice2((x - 1, y), (x + 1, y)),
-                _fast_choice2((x - 1, y - 1), (x + 1, y - 1)),
-            ):
-                remote_dot = game_map[remote_pos]
-                if _fast_isinstance(remote_dot, Space):
-                    game_map[remote_pos] = self
-                    game_map[x, y] = remote_dot
-                    break
+            _fall_liquid(self, game_map, *pos)
 
     @property
     def color(self):
@@ -263,3 +233,15 @@ class Minus100K(BaseMaterial, display_name='-100 K'):
         if dot is not None:
             dot.temp -= 100
         return dot
+
+
+class BlackHole(BaseMaterial, display_name='Black Hole'):
+    color = pygame.Color("#1F1F1F")
+    heat_capacity = 0
+    thermal_conductivity = 0
+
+    def update(self, game_map, pos):
+        for rx, ry in ((1, 0), (0, 1), (-1, 0), (0, -1)):
+            rpos = pos[0] + rx, pos[1] + ry
+            if not _fast_isinstance(game_map[rpos], BlackHole):
+                game_map[rpos] = Space(game_map, rpos)
