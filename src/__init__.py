@@ -1,4 +1,6 @@
+import dataclasses
 import locale
+import random
 import time
 from pathlib import Path
 
@@ -10,40 +12,20 @@ DEFAULT_DRAWING_WIDTH = 1
 DELTA_DRAWING_WIDTH = 1
 ZOOM_FACTOR = 0.1
 VOLUME = 1
-MUSIC_VOLUME = 0  # music here is a cringe track from Half-Life so we turn it off by default
+MUSIC_VOLUME = 0
 DRAWING_IS_CIRCULAR = True
 WINDOW_CAPTION = 'moonsbox'
 
-SCREEN_SIZE = 300, 300
+SCREEN_SIZE = 400, 400
 MAP_SIZE = 100, 100
 VISIBLE_AREA = pygame.Rect(-20, -20, 140, 140)
-RENDER_MASKS = (
-    # Normal color mask
-    (lambda dot: dot.color),
-    # R = temperature, G = B = grayscale
-    (
-        lambda dot: pygame.Color(
-            max(0, min(255, dot.temp - DEFAULT_TEMP + 0x7F)),
-            grayscale := (dot.color.r + dot.color.g + dot.color.b) / 3,
-            grayscale,
-        )
-    ),
-    # R = temperature (wider range), G = B = grayscale
-    (
-        lambda dot: pygame.Color(
-            max(0, min(255, (dot.temp - DEFAULT_TEMP) / 50 + 0x7F)),
-            grayscale := (dot.color.r + dot.color.g + dot.color.b) / 3,
-            grayscale,
-        )
-    ),
-)
 
 PALETTE_ICON_SIZE = 64, 64
 PALETTE_MAX_CAPTION_CHARS = 20
 PALETTE_MARGIN = 20
 
-MAP_INNER_COLOR = pygame.Color('#050000')
-MAP_OUTER_COLOR = pygame.Color('#000C05')
+MAP_INNER_COLOR = pygame.Color('#000000')
+MAP_OUTER_COLOR = pygame.Color("#001A0B")
 PALETTE_SELECTION_OUTER_COLOR = pygame.Color("#00C3FF40")
 PALETTE_SELECTION_INNER_COLOR = pygame.Color("#008CFF20")
 PALETTE_SHADOW_COLOR = pygame.Color('#000000CC')
@@ -52,8 +34,10 @@ FONT_SIZE = 15
 FONT_NAME_OR_PATH = 'Sans'
 FONT_IS_SYSFONT = True
 
-ENABLE_FPS_COUNTER = True
-FPS_COUNTER_COLOR = pygame.Color('#00FF00')
+ENABLE_VSYNC = True
+ENABLE_FPS_COUNTER = False
+ENABLE_TPS_COUNTER = False
+DEBUG_COLOR = pygame.Color('#00FF00')
 
 USER_LOCALE = locale.getdefaultlocale()[0]
 MATERIAL_TRANSLATIONS = {
@@ -119,53 +103,6 @@ def get_material_icon(name: str) -> pygame.Surface | None:
     return get_image('materials/' + name)
 
 
-_sound_channels = {}
-_sounds_cache = {}
-
-
-class GameSound:
-    def __init__(self, name: str):
-        channel, _ = name.split('_', 1)
-
-        if channel == 'stream':
-            self._channel = None
-            pygame.mixer_music.load(ASSETS_ROOT / 'sounds' / name)
-            pygame.mixer_music.set_volume(MUSIC_VOLUME)
-        else:
-            if channel not in _sound_channels:
-                channel_id = len(_sound_channels)
-                pygame.mixer.set_num_channels(channel_id + 1)
-            else:
-                channel_id = _sound_channels[channel]
-            self._channel = pygame.mixer.Channel(channel_id)
-
-            if name in _sounds_cache:
-                self._sound = _sounds_cache[name]
-            else:
-                try:
-                    self._sound = pygame.Sound(ASSETS_ROOT / 'sounds' / name)
-                except IOError:
-                    self._sound = None
-                else:
-                    self._sound.set_volume(VOLUME)
-                    _sounds_cache[name] = self._sound
-
-    def play(self) -> None:
-        if self._channel is None:
-            pygame.mixer_music.play(-1)
-        else:
-            if not self._channel.get_busy() and self._sound is not None:
-                self._channel.play(self._sound)
-
-    def play_override(self) -> None:
-        if self._channel is None:
-            pygame.mixer_music.stop()
-            pygame.mixer_music.play(-1)
-        elif self._sound is not None:
-            self._channel.stop()
-            self._channel.play(self._sound)
-
-
 def get_font() -> pygame.font.Font:
     """Returns a pygame.font.Font object for the given size."""
 
@@ -173,3 +110,126 @@ def get_font() -> pygame.font.Font:
         return pygame.font.SysFont(FONT_NAME_OR_PATH, FONT_SIZE)
     else:
         return pygame.font.Font(FONT_NAME_OR_PATH, FONT_SIZE)
+
+
+# from profilehooks import profile
+# @profile(stdout=False, filename='GameSound.prof')
+class GameSound:
+    _channels: dict[str, int] = {}
+    _sound_cache: dict[str, list[pygame.mixer.Sound]] = {}
+    _sequential_indices: dict[str, int] = {}
+    _failed_sound_paths: set[Path] = set()
+    _sequential_cache: dict[str, Path] = {}
+
+    # from profilehooks import profile
+    # @profile(stdout=False, filename='GameSound-__init__.prof')
+    def __init__(self, pattern: str):
+        # category ('+' param)* '.' sound_name ('.' extension)?
+        prefix, _, _ = pattern.partition('.')
+        category, *params = prefix.split('+')
+
+        self._is_stream = category == 'stream'
+        self._sound = None
+        self._is_sequential = 'sequential' in params
+
+        if pattern in GameSound._sequential_cache:
+            self._sound_variants = GameSound._sequential_cache[pattern]
+        else:
+            sound_dir = ASSETS_ROOT / 'sounds'
+            variants = sound_dir.glob(pattern + '.*')
+            if not variants:
+                GameSound._sequential_cache[pattern] = []
+                return
+            GameSound._sequential_cache[pattern] = self._sound_variants = (
+                sorted(variants) if self._is_sequential else list(variants)
+            )
+
+        if self._is_sequential:
+            if pattern not in self._sequential_indices:
+                self._current_index = self._sequential_indices[pattern] = 0
+            else:
+                self._current_index = self._sequential_indices[pattern]
+        else:
+            self._current_index = None
+
+        if self._sound_variants:
+            self._sound_path = (
+                self._sound_variants[self._current_index % len(self._sound_variants)]
+                if self._is_sequential
+                else random.choice(self._sound_variants)
+            )
+
+        if self._is_stream:
+            self._channel = None
+            self._load_stream()
+        else:
+            self._init_channel(category)
+            self._load_sound()
+
+    def _init_channel(self, category) -> None:
+        if category not in GameSound._channels:
+            channel_id = len(GameSound._channels)
+            pygame.mixer.set_num_channels(channel_id + 1)
+            GameSound._channels[category] = channel_id
+            self._channel = pygame.mixer.Channel(channel_id)
+        else:
+            self._channel = pygame.mixer.Channel(GameSound._channels[category])
+
+    def _load_stream(self) -> None:
+        if not self._sound_variants or self._sound_path in self._failed_sound_paths:
+            return
+
+        try:
+            pygame.mixer.music.load(str(self._sound_path))
+            pygame.mixer.music.set_volume(MUSIC_VOLUME)
+        except pygame.error:
+            self._failed_sound_paths.add(self._sound_path)
+
+    def _load_sound(self) -> None:
+        if not self._sound_variants or self._sound_path in self._failed_sound_paths:
+            return
+
+        if self._sound_path in GameSound._sound_cache:
+            self._sound = GameSound._sound_cache[self._sound_path]
+        else:
+            try:
+                self._sound = pygame.mixer.Sound(str(self._sound_path))
+                self._sound.set_volume(VOLUME)
+                GameSound._sound_cache[self._sound_path] = self._sound
+            except pygame.error:
+                self._failed_sound_paths.add(self._sound_path)
+                self._sound = GameSound._sound_cache[self._sound_path] = None
+
+    def play(self):
+        if self._is_stream:
+            pygame.mixer.music.play(-1)
+            return
+
+        if self._sound is None or not self._channel or self._channel.get_busy():
+            return
+
+        self._channel.play(self._sound)
+
+        if self._is_sequential:
+            self._current_index += 1
+            self._sequential_indices[self._sound_path] = self._current_index % len(
+                self._sound_variants
+            )
+
+    def play_override(self) -> None:
+        if self._is_stream:
+            pygame.mixer.music.stop()
+            pygame.mixer.music.play(-1)
+            return
+
+        if self._sound is None or not self._channel:
+            return
+
+        self._channel.stop()
+        self._channel.play(self._sound)
+
+        if self._is_sequential:
+            self._current_index += 1
+            self._sequential_indices[self._sound_path] = self._current_index % len(
+                self._sound_variants
+            )
