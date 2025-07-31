@@ -27,6 +27,7 @@ A sandbox cellular automata playground written in Python with Pygame. Inspired b
 - **F9**: Show map screenshot
 - **F10**: Save map screenshot
 - **+ | -**: Change brush size
+- **R**: Pause rendering to speed up simulation
 
 ## Materials
 

@@ -105,7 +105,7 @@ class Sand(BaseMaterial, display_name='Sand'):
     def __init__(self, game_map, pos):
         self._is_glass = False
         self._original_sand_color = pygame.Color(0xFF, random.randint(0x99, 0xFF), 0)
-        GameSound('material_Sand').play()
+        GameSound('material.Sand').play()
 
     @property
     def color(self):
@@ -130,7 +130,7 @@ class Sand(BaseMaterial, display_name='Sand'):
         if self.temp > 1973:  # 1700 *C, 3092 *F
             if not self._is_glass:
                 self._is_glass = True
-                GameSound('convert_Sand_to_glass').play()
+                GameSound('convert.Sand_to_glass').play()
 
             x, y = pos
             for remote_pos in (
@@ -215,7 +215,7 @@ class Lava(BaseMaterial, display_name='Lava'):
     temp = 1200  # 927 *C, 1700 *F
 
     def __init__(self, game_map, pos):
-        GameSound('material_Lava').play()
+        GameSound('material.Lava').play()
 
     def update(self, game_map, pos):
         if self.temp > 400:  # 127 *C, 260 *F

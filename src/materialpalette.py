@@ -72,7 +72,8 @@ class MaterialPalette:
 
     @property
     def whole_grid_size(self) -> tuple[int, int]:
-        # Возвращает размер полной сетки (всех материалов), а не только видимой части
+        '''Size of the whole materials grid.'''
+
         btn_w = self._icon_size[0] + self._margin
         cols = max(1, self._dest.get_width() // btn_w)
         total_rows = (len(self._materials) + cols - 1) // cols
@@ -80,7 +81,8 @@ class MaterialPalette:
 
     @property
     def grid_size(self) -> tuple[int, int]:
-        # Возвращает размер видимой части сетки (столько строк и столбцов помещается на экране)
+        '''Size of visible part of the materials grid.'''
+
         btn_w = self._icon_size[0] + self._margin
         btn_h = self._icon_size[1] + self._font.get_height() + self._margin
         cols = max(1, self._dest.get_width() // btn_w)
@@ -89,6 +91,8 @@ class MaterialPalette:
 
     @property
     def selection_slot(self) -> tuple[int, int]:
+        '''Coords of currently selected material slot.'''
+
         cols, _ = self.grid_size
         return (self._selected_index % cols, self._selected_index // cols)
 
@@ -112,6 +116,7 @@ class MaterialPalette:
         '''A dictionary with keys as slot positions (col, row in visible grid)
         and values as onscreen pygame.Rect for each visible button.
         '''
+
         cols, rows = self.grid_size
         btn_w = self._icon_size[0] + self._margin
         btn_h = self._icon_size[1] + self._font.get_height() + self._margin
@@ -132,6 +137,8 @@ class MaterialPalette:
         return geometry
 
     def go_to_starting_with(self, text: str) -> None:
+        '''Finds any material with name starting with text, and selects it if any.'''
+
         text = text.lower()
 
         for i, (_, name, _) in enumerate(self._materials):
@@ -143,6 +150,8 @@ class MaterialPalette:
         self._is_visible = True
 
     def hide(self, confirmation: bool) -> None:
+        '''Hides palette. If confirmation, then changes selected_material.'''
+
         self._is_visible = False
         if confirmation and self._materials:
             self.selected_material = self._materials[self._selected_index][2]

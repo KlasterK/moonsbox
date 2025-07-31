@@ -1,11 +1,12 @@
 output.*
 direct-screenshot.*
-out
-.vscode
-__pycache__
+/out/
+.vscode/
+__pycache__/
 *.pyc
 *.pyo
 *.pyd
 *.prof
 *screenshot*
 *.prof.svg
+/assets/**/--*

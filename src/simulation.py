@@ -67,8 +67,6 @@ class SimulationManager:
                 dot_below = dot
                 dot.update(self._map, (x, y))
 
-        # np.apply_over_axes()
-
         self._clock.tick(framerate)
 
     def get_tps(self):
