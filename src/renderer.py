@@ -47,10 +47,12 @@ class Renderer:
         # Creating a pixel array to do fast pixel manipulation
         temp_array = pygame.PixelArray(self._temp_surface)
 
+        view = self._map.get_view()
+
         # Iterating through the map
         for x in range(x_start, x_end):
             for y in range(y_start, y_end):
-                dot = self._map[x, self._map.invy(y)]
+                dot = view[x, self._map.invy(y)]
                 original_color = mask(dot)  # mask is a function returning color for the dot
                 if original_color.a == 255:
                     temp_array[x - x_start, y - y_start] = original_color
@@ -87,40 +89,19 @@ class Renderer:
         return self._clock.get_fps()
 
 
-# class Renderer:
-#     '''Runs rendering a physical model onto a surface.'''
+available_render_masks = []
 
-#     def __init__(self, game_map: GameMap, dest: pygame.Surface):
-#         self._map = game_map
-#         self._dest = dest
-#         self._render_surface = pygame.Surface(game_map.size)
 
-#     def render(self, visible_area: pygame.Rect, mask: RenderMask, bg: pygame.Color):
-#         w, h = self._map.size
+def add_render_mask(func: RenderMask | None = None):
+    def decorate(func):
+        available_render_masks.append(func)
 
-#         left = max(0, visible_area.left)
-#         top = max(0, visible_area.top)
+    if func is None:
+        return decorate
+    else:
+        decorate(func)
 
-#         # Размеры области:
-#         width = min(w - left, visible_area.width)
-#         height = min(h - top, visible_area.height)
 
-#         render_area = pygame.Rect(left, top, width, height)
-#         # render_area = pygame.Rect(
-#         #     max(0, visible_area.left),
-#         #     max(0, visible_area.top),
-#         #     min(w, visible_area.left + w),
-#         #     min(h, visible_area.top + h),
-#         # )
-#         array = pygame.PixelArray(self._render_surface)
-
-#         for x in range(render_area.left, render_area.right):
-#             for y in range(render_area.top, render_area.bottom):
-#                 dot = self._map[x, y, '~y']
-#                 if dot is not None:
-#                     array[x, y] = mask(dot)
-
-#         sub = self._render_surface.subsurface(render_area)
-#         sub_scaled = pygame.transform.scale(sub, visible_area.size)
-#         self._dest.fill(bg)
-#         self._dest.blit(sub_scaled, visible_area.topleft)
+@add_render_mask
+def _normal(dot):
+    return dot.color

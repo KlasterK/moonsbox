@@ -8,6 +8,8 @@ from . import (
     DEFAULT_DRAWING_WIDTH,
     DELTA_DRAWING_WIDTH,
     DRAWING_IS_CIRCULAR,
+    ENABLE_VSYNC,
+    SCREEN_SIZE,
     SCREENSHOT_DOT_SIZE,
     SCREENSHOT_PATH_FACTORY,
     SCREENSHOT_TYPE_HINT,
@@ -53,6 +55,25 @@ class GameAppEventHandler(BaseEventHandler):
 
             elif e.key == pygame.K_F1:
                 self._app.next_render_mask()
+
+            elif e.key == pygame.K_r:
+                self._app.set_rendering(False)
+                if ENABLE_VSYNC:
+                    pygame.display.set_mode(
+                        SCREEN_SIZE,
+                        pygame.RESIZABLE | pygame.DOUBLEBUF | pygame.HWSURFACE | pygame.HWACCEL,
+                        vsync=0,
+                    )
+
+        elif e.type == pygame.KEYUP:
+            if e.key == pygame.K_r:
+                self._app.set_rendering(True)
+                if ENABLE_VSYNC:
+                    pygame.display.set_mode(
+                        SCREEN_SIZE,
+                        pygame.RESIZABLE | pygame.DOUBLEBUF | pygame.HWSURFACE | pygame.HWACCEL,
+                        vsync=1,
+                    )
 
 
 class SimulationEventHandler(BaseEventHandler):
@@ -177,7 +198,7 @@ class DrawingEventHandler(BaseEventHandler):
         elif e.type == pygame.KEYDOWN and e.key == pygame.K_MINUS:
             self._width = max(1, self._width - DELTA_DRAWING_WIDTH)
 
-        elif e.type == pygame.USEREVENT and e.purpose == 'hold-drawing':
+        elif e.type == pygame.USEREVENT and getattr(e, 'purpose', None) == 'hold-drawing':
             if self._previous_pos is not None:
                 rect = pygame.Rect(0, 0, self._width, self._width)
                 rect.center = self._previous_pos
@@ -189,7 +210,7 @@ class DrawingEventHandler(BaseEventHandler):
                 pygame.event.post(pygame.event.Event(pygame.USEREVENT, purpose='hold-drawing'))
 
 
-class MaterialPaletteEventHandler:
+class MaterialPaletteEventHandler(BaseEventHandler):
     def __init__(self, game_app: 'GameApp', palette: MaterialPalette):
         self._app = game_app
         self._pal = palette
@@ -202,39 +223,39 @@ class MaterialPaletteEventHandler:
                     x, y = self._pal.selection_slot
                     x = max(x - 1, 0)
                     self._pal.selection_slot = (x, y)
-                    GameSound('palette_move_selection').play_override()
+                    GameSound('palette.move_selection').play_override()
 
                 elif e.key == pygame.K_RIGHT:
                     x, y = self._pal.selection_slot
                     width = self._pal.whole_grid_size[0]
                     x = min(x + 1, width - 1)
                     self._pal.selection_slot = (x, y)
-                    GameSound('palette_move_selection').play_override()
+                    GameSound('palette.move_selection').play_override()
 
                 elif e.key == pygame.K_UP:
                     x, y = self._pal.selection_slot
                     y = max(y - 1, 0)
                     self._pal.selection_slot = (x, y)
-                    GameSound('palette_move_selection').play_override()
+                    GameSound('palette.move_selection').play_override()
 
                 elif e.key == pygame.K_DOWN:
                     x, y = self._pal.selection_slot
                     height = self._pal.whole_grid_size[1]
                     y = min(y + 1, height - 1)
                     self._pal.selection_slot = (x, y)
-                    GameSound('palette_move_selection').play_override()
+                    GameSound('palette.move_selection').play_override()
 
                 elif e.key == pygame.K_RETURN:
                     self._pal.hide(True)
-                    GameSound('palette_hide_confirmation').play_override()
+                    GameSound('palette.hide_confirmation').play_override()
 
                 elif e.key == pygame.K_ESCAPE:
                     self._pal.hide(False)
-                    GameSound('palette_hide_no_confirmation').play_override()
+                    GameSound('palette.hide_no_confirmation').play_override()
 
                 elif e.unicode and e.unicode.isalpha():
                     self._pal.go_to_starting_with(e.unicode)
-                    GameSound('palette_move_selection').play_override()
+                    GameSound('palette.move_selection').play_override()
 
                 raise StopHandling
 
@@ -247,14 +268,14 @@ class MaterialPaletteEventHandler:
                             self._pal.selection_slot = slot_pos
                             if slot_pos == previous_slot_pos:
                                 self._pal.hide(True)
-                                GameSound('palette_hide_confirmation').play_override()
+                                GameSound('palette.hide_confirmation').play_override()
                             else:
-                                GameSound('palette_move_selection').play_override()
+                                GameSound('palette.move_selection').play_override()
                             break
                     else:
                         # If no slot was clicked, hide the palette
                         self._pal.hide(False)
-                        GameSound('palette_hide_no_confirmation').play_override()
+                        GameSound('palette.hide_no_confirmation').play_override()
 
                 raise StopHandling
 
@@ -274,4 +295,4 @@ class MaterialPaletteEventHandler:
                 e.type == pygame.MOUSEBUTTONDOWN and e.button == pygame.BUTTON_MIDDLE
             ):
                 self._pal.show()
-                GameSound('palette_show').play_override()
+                GameSound('palette.show').play_override()

@@ -1,17 +1,21 @@
 import math
+import threading
+import time
 
 import pygame
 
 from . import (
+    DEBUG_COLOR,
     ENABLE_FPS_COUNTER,
-    FPS_COUNTER_COLOR,
+    ENABLE_TPS_COUNTER,
+    ENABLE_VSYNC,
+    FONT_SIZE,
     MAP_INNER_COLOR,
     MAP_OUTER_COLOR,
     MAP_SIZE,
     PALETTE_ICON_SIZE,
     PALETTE_MARGIN,
     PALETTE_MAX_CAPTION_CHARS,
-    RENDER_MASKS,
     SCREEN_SIZE,
     VISIBLE_AREA,
     WINDOW_CAPTION,
@@ -22,7 +26,7 @@ from . import (
 from .gamemap import GameMap
 from .materialpalette import MaterialPalette
 from .materials import Sand
-from .renderer import Renderer
+from .renderer import Renderer, available_render_masks
 from .simulation import SimulationManager
 from .windowevents import (
     CameraEventHandler,
@@ -101,7 +105,11 @@ class GameApp:
         if not pygame.get_init():
             raise RuntimeError('pygame is not initialised')
 
-        pygame.display.set_mode(SCREEN_SIZE, pygame.RESIZABLE)
+        pygame.display.set_mode(
+            SCREEN_SIZE,
+            pygame.RESIZABLE | pygame.DOUBLEBUF | pygame.HWSURFACE | pygame.HWACCEL,
+            vsync=ENABLE_VSYNC,
+        )
         pygame.display.set_caption(WINDOW_CAPTION)
         pygame.display.set_icon(get_image('window_icon'))
 
@@ -109,13 +117,14 @@ class GameApp:
 
         self._is_running = True
         self._is_paused = False
+        self._is_rendering = True
 
         self._map = GameMap(MAP_SIZE)
         self._sim = SimulationManager(self._map)
 
         self._camera = Camera(self._screen, self._map, VISIBLE_AREA)
         self._renderer = Renderer(self._map, self._screen)
-        self._render_mask = RENDER_MASKS[0]
+        self._render_mask = available_render_masks[0]
         self._render_mask_index = 0
 
         self._pal = MaterialPalette(
@@ -134,13 +143,17 @@ class GameApp:
             DrawingEventHandler(self._camera, self._map, self._pal),
         )
 
+    # from profilehooks import profile
     # @profile(stdout=False, filename='GameApp-run.prof')
     def run(self) -> None:
         if not self._is_running:
             raise RuntimeError('game is stopped')
 
-        GameSound('stream_ambient').play()
+        GameSound('stream.ambient').play()
         font = get_font()
+
+        tps_pos = 10, 10
+        fps_pos = 10, 10 + FONT_SIZE + 5 if ENABLE_TPS_COUNTER else 10
 
         while self._is_running:
             for event in pygame.event.get():
@@ -154,14 +167,19 @@ class GameApp:
                 self._sim.tick()
 
             self._screen.fill(MAP_OUTER_COLOR)
-            self._renderer.render(self._camera.get_area(), self._render_mask, MAP_INNER_COLOR)
-            self._pal.render()
+            if self._is_rendering:
+                self._renderer.render(self._camera.get_area(), self._render_mask, MAP_INNER_COLOR)
+                self._pal.render()
 
+            if ENABLE_TPS_COUNTER:
+                self._screen.blit(
+                    font.render(f"TPS = {self._sim.get_tps():.2f}", True, DEBUG_COLOR), tps_pos
+                )
             if ENABLE_FPS_COUNTER:
                 self._screen.blit(
-                    font.render(f'TPS = {self._sim.get_tps()}', True, FPS_COUNTER_COLOR),
-                    (10, 10),
+                    font.render(f"FPS = {self._renderer.get_fps():.2f}", True, DEBUG_COLOR), fps_pos
                 )
+
             pygame.display.flip()
 
     def stop(self) -> None:
@@ -177,5 +195,11 @@ class GameApp:
         return self._is_paused
 
     def next_render_mask(self) -> None:
-        self._render_mask_index = (self._render_mask_index + 1) % len(RENDER_MASKS)
-        self._render_mask = RENDER_MASKS[self._render_mask_index]
+        self._render_mask_index = (self._render_mask_index + 1) % len(available_render_masks)
+        self._render_mask = available_render_masks[self._render_mask_index]
+
+    def is_rendering(self) -> bool:
+        return self._is_rendering
+
+    def set_rendering(self, value: bool) -> None:
+        self._is_rendering = value
