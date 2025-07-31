@@ -15,7 +15,7 @@ class GameMap:
 
     def __init__(self, size: tuple[int, int]):
         self.size = size
-        self._array = np.full(size, Space(None, None), dtype=np.object_)
+        self._array = np.full(size, Space.create(), dtype=np.object_)
 
     def __getitem__(self, pos: tuple[int, int]) -> BaseMaterial | None:
         '''Returns a dot at the given position or None if the position is out of bounds.'''
@@ -63,7 +63,7 @@ class GameMap:
 
         for x in range(self.size[0]):
             for y in range(self.size[1]):
-                self._array[x, y] = material_factory(self, (x, y))
+                self._array[x, y] = material_factory(self, x, y)
 
     def draw_rect(self, area: pygame.Rect, material_factory: MFactory) -> None:
         '''Fills a rectangle on the map with the given material.'''
@@ -76,7 +76,7 @@ class GameMap:
 
         for x in range(x_start, x_end):
             for y in range(y_start, y_end):
-                self._array[x, y] = material_factory(self, (x, y))
+                self._array[x, y] = material_factory(self, x, y)
 
     def draw_ellipse(self, area: pygame.Rect, material_factory: MFactory) -> None:
         '''Draws an ellipse on the map with the given material.'''
@@ -98,7 +98,7 @@ class GameMap:
         for x in range(rows):
             for y in range(cols):
                 if mask[x, y]:
-                    self._array[x, y] = material_factory(self, (x, y))
+                    self._array[x, y] = material_factory(self, x, y)
 
     def draw_line(
         self,
@@ -161,18 +161,12 @@ class GameMap:
                         # Only fill points inside the circle
                         if dx * dx + dy * dy > radius * radius:
                             continue
-                    self._array[tx, ty] = material_factory(self, (tx, ty))
+                    self._array[tx, ty] = material_factory(self, tx, ty)
 
     def take_screenshot(self) -> PIL.Image.Image:
         # PIL expecting shape (y, x, channels)
         w, h = self.size
         image_buffer = np.ndarray((h, w, 4), dtype=np.uint8)
-
-        # for i, dot in enumerate(self._old.flat):
-        #     image_buffer[i * 4 + 0] = dot.color.r
-        #     image_buffer[i * 4 + 1] = dot.color.g
-        #     image_buffer[i * 4 + 2] = dot.color.b
-        #     image_buffer[i * 4 + 3] = dot.color.a
 
         for x in range(w):
             for y in range(h):

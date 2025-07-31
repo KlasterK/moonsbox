@@ -99,10 +99,7 @@ class MaterialTags(Flag):
 class BaseMaterial(abc.ABC):
     '''Abstract base class for materials.'''
 
-    def __new__(cls, game_map, pos: tuple[int, int] | None):
-        return super().__new__(cls)
-
-    def __init__(self, game_map, pos: tuple[int, int] | None):
+    def __init__(self, game_map, x, y):
         pass
 
     def __init_subclass__(cls, display_name: str = ''):
@@ -132,7 +129,7 @@ class BaseMaterial(abc.ABC):
     def tags(self) -> MaterialTags:
         '''Tags of a dot.'''
 
-    def update(self, game_map: 'GameMap', pos: tuple[int, int]) -> None:
+    def update(self, game_map: 'GameMap', x: int, y: int) -> None:
         '''Updates physical processes of a dot.'''
 
 
@@ -142,13 +139,18 @@ class Space(BaseMaterial, display_name='Space'):  # air
     thermal_conductivity = 0.01  # low but not 0, air transfers heat slowly
     tags = MaterialTags.SPACE
 
+    @classmethod
+    def create(self):
+        '''Pure method to create Space instances without game map or coordinates.'''
+        return Space(None, None, None)
+
 
 class Sand(BaseMaterial, display_name='Sand'):
     heat_capacity = 0.3  # moderate, sand stores some heat
     thermal_conductivity = 0.1  # sand transfers heat slowly
     tags = MaterialTags.BULK
 
-    def __init__(self, game_map, pos):
+    def __init__(self, game_map, x, y):
         self._is_glass = False
         self._original_sand_color = pygame.Color(0xFF, random.randint(0x99, 0xFF), 0)
         GameSound('material.Sand').play()
@@ -172,15 +174,15 @@ class Sand(BaseMaterial, display_name='Sand'):
             return pygame.Color(r, g, b, a)
 
     # @profile(stdout=False, filename='Sand-update.prof')
-    def update(self, game_map, pos):
+    def update(self, game_map, x, y):
         if self.temp > 1973:  # 1700 *C, 3092 *F
             if not self._is_glass:
                 self._is_glass = True
                 GameSound('convert.Sand_to_glass').play()
-            _fall_liquid(self, game_map, *pos)
+            _fall_liquid(self, game_map, x, y)
 
         elif not self._is_glass:
-            _fall_sand(self, game_map, *pos)
+            _fall_sand(self, game_map, x, y)
 
 
 class Lubricant(BaseMaterial, display_name='Lubricant'):
@@ -189,11 +191,11 @@ class Lubricant(BaseMaterial, display_name='Lubricant'):
     thermal_conductivity = 0.3  # moderate transfer
     tags = MaterialTags.LIQUID
 
-    def __init__(self, game_map, pos):
+    def __init__(self, game_map, x, y):
         self.color = pygame.Color(0, random.randint(0x95, 0xBB), 0x99)
 
-    def update(self, game_map, pos):
-        _fall_liquid(self, game_map, *pos)
+    def update(self, game_map, x, y):
+        _fall_liquid(self, game_map, x, y)
 
 
 class UnbreakableWall(BaseMaterial, display_name='Unbreakable Wall'):
@@ -202,7 +204,7 @@ class UnbreakableWall(BaseMaterial, display_name='Unbreakable Wall'):
     thermal_conductivity = 0  # does not transfer heat
     tags = MaterialTags.SOLID
 
-    def update(self, game_map, pos):
+    def update(self, game_map, x, y):
         # Unbreakable wall does not change
         pass
 
@@ -212,12 +214,12 @@ class Lava(BaseMaterial, display_name='Lava'):
     thermal_conductivity = 0.6  # transfers heat well
     temp = 1200  # 927 *C, 1700 *F
 
-    def __init__(self, game_map, pos):
+    def __init__(self, game_map, x, y):
         GameSound('material.Lava').play()
 
-    def update(self, game_map, pos):
+    def update(self, game_map, x, y):
         if self.temp > 400:  # 127 *C, 260 *F
-            _fall_liquid(self, game_map, *pos)
+            _fall_liquid(self, game_map, x, y)
 
     @property
     def color(self):
@@ -237,8 +239,8 @@ class Plus100K(BaseMaterial, display_name='+100 K'):
     thermal_conductivity = None
     tags = MaterialTags.NULL
 
-    def __new__(cls, game_map, pos):
-        dot = game_map[pos]
+    def __new__(cls, game_map, x, y):
+        dot = game_map[x, y]
         if dot is not None:
             dot.temp += 100
         return dot
@@ -250,8 +252,8 @@ class Minus100K(BaseMaterial, display_name='-100 K'):
     thermal_conductivity = None
     tags = MaterialTags.NULL
 
-    def __new__(cls, game_map, pos):
-        dot = game_map[pos]
+    def __new__(cls, game_map, x, y):
+        dot = game_map[x, y]
         if dot is not None:
             dot.temp -= 100
         return dot
@@ -263,9 +265,9 @@ class BlackHole(BaseMaterial, display_name='Black Hole'):
     thermal_conductivity = 0
     tags = MaterialTags.SOLID
 
-    def update(self, game_map, pos):
-        for rx, ry, _ in _von_neumann_hood(game_map, *pos, MaterialTags.MOVABLE):
-            game_map[rx, ry] = Space(game_map, (rx, ry))
+    def update(self, game_map, x, y):
+        for rx, ry, _ in _von_neumann_hood(game_map, x, y, MaterialTags.MOVABLE):
+            game_map[rx, ry] = Space(game_map, rx, ry)
 
 
 class Tap(BaseMaterial, display_name='Tap'):
@@ -274,16 +276,16 @@ class Tap(BaseMaterial, display_name='Tap'):
     thermal_conductivity = 0.6
     tags = MaterialTags.SOLID
 
-    def __init__(self, game_map, pos):
+    def __init__(self, game_map, x, y):
         self._generate_type = None
 
-    def update(self, game_map, pos):
+    def update(self, game_map, x, y):
         if self._generate_type is None:
-            for rx, ry, dot in _von_neumann_hood(game_map, *pos, MaterialTags.MOVABLE):
+            for rx, ry, dot in _von_neumann_hood(game_map, x, y, MaterialTags.MOVABLE):
                 self._generate_type = type(dot)
                 break
         else:
-            for rx, ry, _ in _von_neumann_hood(game_map, *pos, MaterialTags.SPACE):
+            for rx, ry, _ in _von_neumann_hood(game_map, x, y, MaterialTags.SPACE):
                 game_map[rx, ry] = self._generate_type(game_map, (rx, ry))
 
 
@@ -293,5 +295,5 @@ class Propane(BaseMaterial, display_name='Propane'):
     thermal_conductivity = 0.01
     tags = MaterialTags.GAS
 
-    def update(self, game_map, pos):
-        _fall_gas(self, game_map, *pos)
+    def update(self, game_map, x, y):
+        _fall_gas(self, game_map, x, y)
