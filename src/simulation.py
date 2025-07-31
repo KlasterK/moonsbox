@@ -2,6 +2,7 @@ import numpy as np
 import pygame
 
 from .gamemap import GameMap
+from .materials import BaseMaterial, MaterialTags
 
 
 class SimulationManager:
@@ -16,7 +17,6 @@ class SimulationManager:
 
         size_x = self._map.size[0]
         size_y = self._map.size[1]
-        # upper_line = self._map
 
         view = self._map.get_view()
 
@@ -24,14 +24,7 @@ class SimulationManager:
         for x in range(size_x):
             dot_below = None
             for y in range(size_y):
-                dot = view[x, y]
-
-                # for neighbour in (
-                #     view[x - 1, y],
-                #     view[x + 1, y],
-                #     dot_below,
-                #     view[x, y + 1],
-                # ):
+                dot: BaseMaterial = view[x, y]
 
                 if dot_below is not None:
                     dot.temp += (
@@ -65,7 +58,22 @@ class SimulationManager:
                     )
 
                 dot_below = dot
-                dot.update(self._map, (x, y))
+                if not dot.tags & MaterialTags.GAS:
+                    dot.update(self._map, (x, y))
+
+        # We need to update gases separately, because the updating is going upwards,
+        # and gas with y=0 will raise, then the same gas, now with y=1 will raise,
+        # and it is on the top.
+        tags_map = np.array([[dot.tags.value for dot in row] for row in view], dtype=np.uint8)
+        # Create mask of gases
+        gas_mask = tags_map & MaterialTags.GAS.value
+        # Getting indices of gas dots
+        x_coords, y_coords = np.where(gas_mask)
+        sorted_indices = np.argsort(-y_coords)  # Reversing downwards the indices
+
+        for idx in sorted_indices:
+            x, y = x_coords[idx], y_coords[idx]
+            view[x, y].update(self._map, (x, y))
 
         self._clock.tick(framerate)
 
