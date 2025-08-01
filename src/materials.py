@@ -16,36 +16,37 @@ if TYPE_CHECKING:
 available_materials = {}
 
 
-_pre_generated_random = np.array(np.random.choice(range(255), size=1234), dtype=np.uint8)
-_random_index = -1
+_pre_generated_random = np.array(np.random.random(size=1234), dtype=np.float64)
+_random_index = 0
 
 
 def _fast_choice2(a: Any, b: Any) -> Any:
-    # return a if random.randint(0, 1) else b
     global _random_index
-    if _random_index >= 1234:
+    if _random_index >= _pre_generated_random.shape[0]:
         _random_index = 0
 
-    random_value = _pre_generated_random[_random_index] // 127
+    random_value = _pre_generated_random[_random_index]
     _random_index += 1
 
-    if random_value:
-        return a
-    else:
-        return b
+    return a if random_value > 0.5 else b
 
 
-def _fast_randbytes(bytes_count: int) -> bytearray:
+def _fast_randint(a: int, b: int) -> int:
+    if a > b:
+        a, b = b, a
+
     global _random_index
+    if _random_index >= _pre_generated_random.shape[0]:
+        _random_index = 0
 
-    result = bytearray(bytes_count)
-    for i in range(bytes_count):
-        if _random_index >= 1234:
-            _random_index = 0
+    random_value = _pre_generated_random[_random_index]
+    _random_index += 1
 
-        result[i] = _pre_generated_random[_random_index]
-        _random_index += 1
-    return result
+    # Scaling the value to needed range
+    result = a + int(random_value * (b - a + 1))
+
+    # Guarantee being in range (needed because of rounding)
+    return min(b, max(a, result))
 
 
 def _fall_gas(this, game_map, x, y):
@@ -153,9 +154,9 @@ class Space(BaseMaterial, display_name='Space'):  # air
     tags = MaterialTags.SPACE
 
     @classmethod
-    def create(self):
+    def create(cls):
         '''Pure method to create Space instances without game map or coordinates.'''
-        return Space(None, None, None)
+        return cls(None, None, None)
 
 
 class Sand(BaseMaterial, display_name='Sand'):
@@ -287,7 +288,7 @@ class Tap(BaseMaterial, display_name='Tap'):
             for rx, ry, dot in _von_neumann_hood(game_map, x, y, MaterialTags.MOVABLE):
                 self._generate_type = type(dot)
                 break
-        elif _fast_randbytes(1)[0] > 0xCF:
+        elif _fast_randint(1, 6) == 6:
             for rx, ry, _ in _von_neumann_hood(game_map, x, y, MaterialTags.SPACE):
                 game_map[rx, ry] = self._generate_type(game_map, rx, ry)
 
@@ -295,31 +296,36 @@ class Tap(BaseMaterial, display_name='Tap'):
 class Propane(BaseMaterial, display_name='Propane'):
     color = pygame.Color("#385DA345")
     heat_capacity = 0.3  # factors like Space got
-    thermal_conductivity = 0.01
+    thermal_conductivity = 0.5
     tags = MaterialTags.GAS
 
     def update(self, game_map, x, y):
+        if self.temp > 700:  # ~500 *C
+            game_map[x, y] = Fire(game_map, x, y)
+            for rx, ry, _ in _von_neumann_hood(game_map, x, y, MaterialTags.GAS):
+                game_map[rx, ry] = Fire(game_map, rx, ry)
+
         _fall_gas(self, game_map, x, y)
 
 
 class Fire(BaseMaterial, display_name='Fire'):
     heat_capacity = 0  # fire cannot store heat
     thermal_conductivity = 1  # very high
-    temp = 1200  # something near 1000 *C
-    tags = MaterialTags.GAS  # not a gas, but acts like a gas
-    _death_counter = 0
+    tags = MaterialTags.GAS
+
+    def __init__(self, game_map, x, y):
+        self.temp = _fast_randint(800, 1200)  # near 600..1000*C
 
     def update(self, game_map, x, y):
-        if self._death_counter > 10:
+        self.temp -= 20
+
+        if self.temp <= 800:
             game_map[x, y] = Space(game_map, x, y)
-            if game_map[x, y].tags & MaterialTags.GAS:
-                print('WTF?', x, y)
-        self._death_counter += 1
+            return
+
         _fall_gas(self, game_map, x, y)
 
     @property
     def color(self):
-        mid_temp = self.temp - 1200
-        red = mid_temp / 5 + 0xFF
-        green = mid_temp / 8 + 0x10
-        return pygame.Color(max(0x44, min(255, red)), max(0, min(255, green)), 0)
+        factor = (self.temp - 800) / (1200 - 800)
+        return blend(pygame.Color('#ff000044'), pygame.Color("#FFff00"), factor)
