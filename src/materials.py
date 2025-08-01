@@ -99,6 +99,14 @@ def _von_neumann_hood(game_map, x, y, tags):
             yield *idx, dot
 
 
+def _moore_hood(game_map, x, y, tags):
+    for rx, ry in (1, 0), (-1, 0), (0, 1), (0, -1), (1, 1), (-1, -1), (1, -1), (-1, 1):
+        idx = x + rx, y + ry
+        dot = game_map[idx]
+        if dot is not None and game_map[idx].tags & tags:
+            yield *idx, dot
+
+
 class MaterialTags(Flag):
     NULL = 0
     SOLID = auto()
@@ -291,6 +299,10 @@ class Tap(BaseMaterial, display_name='Tap'):
         elif _fast_randint(1, 6) == 6:
             for rx, ry, _ in _von_neumann_hood(game_map, x, y, MaterialTags.SPACE):
                 game_map[rx, ry] = self._generate_type(game_map, rx, ry)
+        elif _fast_randint(1, 30) == 16:  # exchange tap's generate type to other taps
+            for _, _, dot in _moore_hood(game_map, x, y, MaterialTags.SOLID):
+                if hasattr(dot, '_generate_type'):  # we could create a separate tag for taps
+                    dot._generate_type = self._generate_type
 
 
 class Propane(BaseMaterial, display_name='Propane'):

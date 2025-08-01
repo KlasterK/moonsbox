@@ -21,7 +21,7 @@ A sandbox cellular automata playground written in Python with Pygame. Inspired b
 - **Enter | Double LMB**: Select material to draw
 - **Esc**: Close palette or exit
 - **Space**: Pause simulation
-- **F1**: Change mask
+- **F1**: Change render mask (normal/thermal)
 - **F5**: Step simulation
 - **F6**: Clean map
 - **F9**: Show map screenshot
