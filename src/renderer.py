@@ -2,6 +2,7 @@ from typing import Callable
 
 import pygame
 
+from .const import DEFAULT_TEMP
 from .gamemap import GameMap
 from .materials import BaseMaterial
 from .util import blend
@@ -105,3 +106,11 @@ def add_render_mask(func: RenderMask | None = None):
 @add_render_mask
 def _normal(dot):
     return dot.color
+
+
+@add_render_mask
+def _thermal(dot):
+    # Simple thermal imagination, where R=temp, G=B=grayscale
+    grayscale = (dot.color.r + dot.color.g + dot.color.b) / 3
+    red = max(0, min(255, dot.temp - DEFAULT_TEMP + 0x7F))
+    return pygame.Color(red, grayscale, grayscale)
