@@ -158,7 +158,9 @@ class BaseMaterial(abc.ABC):
 class Space(BaseMaterial, display_name='Space'):  # air
     color = pygame.Color(0, 0, 0, 0)
     heat_capacity = 0.3  # moderate, air easily changes temp
-    thermal_conductivity = 0.01  # low but not 0, air transfers heat slowly
+    thermal_conductivity = (
+        0.001  # we need VERY LOW value so the atmosphere won't immediately heat up
+    )
     tags = MaterialTags.SPACE
 
     @classmethod
@@ -197,17 +199,29 @@ class Sand(BaseMaterial, display_name='Sand'):
             _fall_sand(self, game_map, x, y)
 
 
-class Lubricant(BaseMaterial, display_name='Lubricant'):
-    color = None
+class Water(BaseMaterial, display_name='Water'):
     heat_capacity = 0.7  # liquids store heat well
     thermal_conductivity = 0.3  # moderate transfer
-    tags = MaterialTags.LIQUID
 
     def __init__(self, game_map, x, y):
-        self.color = pygame.Color(0, random.randint(0x95, 0xBB), 0x99)
+        self._liquid_color = pygame.Color(0, random.randint(0x95, 0xBB), 0x99)
 
     def update(self, game_map, x, y):
-        _fall_liquid(self, game_map, x, y)
+        if self.temp < 373:
+            _fall_liquid(self, game_map, x, y)
+        else:
+            _fall_gas(self, game_map, x, y)
+            # hack to make clouds rain
+            if y == game_map.size[1] - 1:
+                self.temp -= 10
+
+    @property
+    def color(self):
+        return self._liquid_color if self.temp < 373 else pygame.Color("#28BBC53D")
+
+    @property
+    def tags(self):
+        return MaterialTags.LIQUID if self.temp < 373 else MaterialTags.GAS
 
 
 class UnbreakableWall(BaseMaterial, display_name='Unbreakable Wall'):
@@ -223,7 +237,7 @@ class UnbreakableWall(BaseMaterial, display_name='Unbreakable Wall'):
 
 class Lava(BaseMaterial, display_name='Lava'):
     heat_capacity = 0.2  # hot, but doesn't store much
-    thermal_conductivity = 0.6  # transfers heat well
+    thermal_conductivity = 0.8  # transfers heat well
     temp = 1200  # 927 *C, 1700 *F
 
     def __init__(self, game_map, x, y):
