@@ -43,10 +43,20 @@ MATERIAL_TRANSLATIONS = {
     'ru_RU': {
         'Space': 'Стереть',
         'Sand': 'Песок',
-        'Lubricant': 'Смаз. Масло',
+        'Water': 'Вода',
         'Unbreakable Wall': 'Неруш. Стена',
         'Lava': 'Лава',
-    }
+        '+100 K': '+100 °C',
+        '-100 K': '-100 °C',
+        'Black Hole': 'Чёрная Дыра',
+        'Tap': 'Кран',
+        'Propane': 'Пропан',
+        'Fire': 'Огонь',
+    },
+    'en_US': {
+        '+100 K': '+180 °F',
+        '-100 K': '-180 °F',
+    },
 }
 
 ASSETS_ROOT = Path('./assets')

@@ -271,7 +271,7 @@ class Lava(BaseMaterial, display_name='Lava'):
         return MaterialTags.LIQUID if self.temp > 400 else MaterialTags.SOLID
 
 
-class Plus100K(BaseMaterial, display_name='+100 K'):
+class Plus100K(BaseMaterial, display_name='+100 °C'):
     color = None
     heat_capacity = None
     thermal_conductivity = None
@@ -284,7 +284,7 @@ class Plus100K(BaseMaterial, display_name='+100 K'):
         return dot
 
 
-class Minus100K(BaseMaterial, display_name='-100 K'):
+class Minus100K(BaseMaterial, display_name='-100 °C'):
     color = None
     heat_capacity = None
     thermal_conductivity = None
