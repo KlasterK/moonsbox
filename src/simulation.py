@@ -1,6 +1,7 @@
 import numpy as np
 import pygame
 
+from .const import TEMP_IS_EXCHANGING
 from .gamemap import GameMap
 from .materials import BaseMaterial, MaterialTags
 
@@ -26,36 +27,37 @@ class SimulationManager:
             for y in range(size_y):
                 dot: BaseMaterial = view[x, y]
 
-                if dot_below is not None:
-                    dot.temp += (
-                        (dot_below.temp - dot.temp)
-                        * dot_below.thermal_conductivity
-                        * dot.heat_capacity
-                    )
+                if TEMP_IS_EXCHANGING:
+                    if dot_below is not None:
+                        dot.temp += (
+                            (dot_below.temp - dot.temp)
+                            * dot_below.thermal_conductivity
+                            * dot.heat_capacity
+                        )
 
-                if x > 0:
-                    neighbour = view[x - 1, y]
-                    dot.temp += (
-                        (neighbour.temp - dot.temp)
-                        * neighbour.thermal_conductivity
-                        * dot.heat_capacity
-                    )
+                    if x > 0:
+                        neighbour = view[x - 1, y]
+                        dot.temp += (
+                            (neighbour.temp - dot.temp)
+                            * neighbour.thermal_conductivity
+                            * dot.heat_capacity
+                        )
 
-                if x < size_x - 1:
-                    neighbour = view[x + 1, y]
-                    dot.temp += (
-                        (neighbour.temp - dot.temp)
-                        * neighbour.thermal_conductivity
-                        * dot.heat_capacity
-                    )
+                    if x < size_x - 1:
+                        neighbour = view[x + 1, y]
+                        dot.temp += (
+                            (neighbour.temp - dot.temp)
+                            * neighbour.thermal_conductivity
+                            * dot.heat_capacity
+                        )
 
-                if y < size_y - 1:
-                    neighbour = view[x, y + 1]
-                    dot.temp += (
-                        (neighbour.temp - dot.temp)
-                        * neighbour.thermal_conductivity
-                        * dot.heat_capacity
-                    )
+                    if y < size_y - 1:
+                        neighbour = view[x, y + 1]
+                        dot.temp += (
+                            (neighbour.temp - dot.temp)
+                            * neighbour.thermal_conductivity
+                            * dot.heat_capacity
+                        )
 
                 dot_below = dot
                 if not dot.tags & MaterialTags.GAS:

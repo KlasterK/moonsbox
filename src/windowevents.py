@@ -8,6 +8,7 @@ from .const import (
     DEFAULT_DRAWING_WIDTH,
     DELTA_DRAWING_WIDTH,
     DRAWING_IS_CIRCULAR,
+    DRAWING_IS_DESTRUCTIVE,
     ENABLE_VSYNC,
     SCREEN_SIZE,
     SCREENSHOT_DOT_SIZE,
@@ -17,7 +18,7 @@ from .const import (
 )
 from .gamemap import GameMap
 from .materialpalette import MaterialPalette
-from .materials import Space
+from .materials import MaterialTags, Space
 from .simulation import SimulationManager
 from .util import GameSound
 
@@ -138,6 +139,15 @@ class DrawingEventHandler(BaseEventHandler):
         self._width = DEFAULT_DRAWING_WIDTH
         self._is_hold_drawing_event_sent = False
 
+    def _material_factory(self, game_map, x, y):
+        ready_dot = self._pal.selected_material(game_map, x, y)
+
+        if ready_dot.tags & MaterialTags.SPACE:
+            return ready_dot
+        elif not DRAWING_IS_DESTRUCTIVE and not game_map[x, y].tags & MaterialTags.SPACE:
+            return game_map[x, y]
+        return ready_dot
+
     def process_event(self, e):
         # mods = pygame.key.get_mods()
         # buttons = pygame.mouse.get_pressed(3)
@@ -158,9 +168,9 @@ class DrawingEventHandler(BaseEventHandler):
             rect = pygame.Rect(0, 0, self._width, self._width)
             rect.center = abs_pos
             if DRAWING_IS_CIRCULAR:
-                self._map.draw_ellipse(rect, self._pal.selected_material)
+                self._map.draw_ellipse(rect, self._material_factory)
             else:
-                self._map.draw_rect(rect, self._pal.selected_material)
+                self._map.draw_rect(rect, self._material_factory)
             self._previous_pos = abs_pos
 
             pygame.event.post(pygame.event.Event(pygame.USEREVENT, purpose='hold-drawing'))
@@ -179,7 +189,11 @@ class DrawingEventHandler(BaseEventHandler):
                 #     self._map.
                 # else:
                 self._map.draw_line(
-                    self._previous_pos, abs_pos, self._width, self._pal.selected_material
+                    self._previous_pos,
+                    abs_pos,
+                    self._width,
+                    self._material_factory,
+                    'round' if DRAWING_IS_CIRCULAR else 'square',
                 )
 
                 rect = pygame.Rect(0, 0, self._width, self._width)
@@ -203,9 +217,9 @@ class DrawingEventHandler(BaseEventHandler):
                 rect = pygame.Rect(0, 0, self._width, self._width)
                 rect.center = self._previous_pos
                 if DRAWING_IS_CIRCULAR:
-                    self._map.draw_ellipse(rect, self._pal.selected_material)
+                    self._map.draw_ellipse(rect, self._material_factory)
                 else:
-                    self._map.draw_rect(rect, self._pal.selected_material)
+                    self._map.draw_rect(rect, self._material_factory)
 
                 pygame.event.post(pygame.event.Event(pygame.USEREVENT, purpose='hold-drawing'))
 

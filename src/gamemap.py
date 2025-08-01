@@ -1,10 +1,9 @@
-from typing import Callable
+from typing import Callable, Literal
 
 import numpy as np
 import PIL.Image
 import pygame
 
-from .const import DRAWING_IS_CIRCULAR
 from .materials import BaseMaterial, Space
 
 type MFactory = Callable[['GameMap', tuple[int, int]], BaseMaterial] | type[BaseMaterial]
@@ -106,6 +105,7 @@ class GameMap:
         end: tuple[int, int],
         width: int,
         material_factory: MFactory,
+        ends: Literal['square', 'round'],
     ) -> None:
         '''Draws a line with the given width on the map with the given material.'''
 
@@ -157,7 +157,7 @@ class GameMap:
                     tx, ty = px + dx, py + dy
                     if not self.bounds((tx, ty)):
                         continue
-                    if DRAWING_IS_CIRCULAR:
+                    if ends == 'round':
                         # Only fill points inside the circle
                         if dx * dx + dy * dy > radius * radius:
                             continue
