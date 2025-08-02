@@ -35,7 +35,7 @@ class MaterialPalette:
             # Prepare icon
             icon = get_image('materials/' + name, self._icon_size, 'smooth')
             if icon is None:
-                icon = pygame.Surface(self._icon_size).convert_alpha()
+                icon = pygame.Surface(self._icon_size, pygame.SRCALPHA).convert_alpha()
 
             # Prepare caption (truncate if needed)
             caption_text = MATERIAL_TRANSLATIONS.get(USER_LOCALE, {}).get(name, name)
