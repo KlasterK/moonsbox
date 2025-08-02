@@ -1,5 +1,6 @@
 import random
 from pathlib import Path
+from typing import Literal
 
 import pygame
 
@@ -31,26 +32,28 @@ def blend(bg: pygame.Color, fg: pygame.Color, alpha: float | None = None) -> pyg
 _images_cache = {}
 
 
-def get_image(name: str) -> pygame.Surface | None:
+def get_image(
+    name: str,
+    scale_to: tuple[int, int] | None = None,
+    scale_type: Literal['smooth', 'pixel'] = 'pixel',
+) -> pygame.Surface | None:
     if name in _images_cache:
-        return _images_cache[name]
+        image = _images_cache[name]
+    else:
+        icon_path = ASSETS_ROOT / name
+        try:
+            image = pygame.image.load(icon_path).convert_alpha()
+        except IOError:
+            return None
+        _images_cache[name] = image
 
-    icon_path = ASSETS_ROOT / name
+    if scale_to is None:
+        return image
 
-    try:
-        image = pygame.image.load(icon_path).convert_alpha()
-    except IOError:
-        return None
-
-    _images_cache[name] = image
-    return image
-
-
-def get_material_icon(name: str) -> pygame.Surface | None:
-    """Returns a pygame.Surface for the material icon, or None if not found."""
-
-    return get_image('materials/' + name)
-
+    if scale_type == 'smooth':
+        return pygame.transform.smoothscale(image, scale_to)
+    else:
+        return pygame.transform.scale(image, scale_to)
 
 def get_font() -> pygame.font.Font:
     """Returns a pygame.font.Font object for the given size."""

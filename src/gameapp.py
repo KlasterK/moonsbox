@@ -140,7 +140,7 @@ class GameApp:
         self._buttons = ButtonContainer(idle_style, hovered_style, hovered_style)
         self._buttons.add(
             AnchoredPosition(10, 10),
-            image=get_image('materials_palette_btn_icon'),
+            image=get_image('materials_palette_btn_icon', (64, 64), 'smooth'),
             cb=lambda: {self._pal.show(), GameSound('palette.show').play_override()},
         )
 

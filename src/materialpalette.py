@@ -8,7 +8,7 @@ from .const import (
     USER_LOCALE,
 )
 from .materials import available_materials
-from .util import blend, get_font, get_material_icon
+from .util import blend, get_font, get_image
 
 
 class MaterialPalette:
@@ -33,12 +33,9 @@ class MaterialPalette:
 
         for name, material_cls in available_materials.items():
             # Prepare icon
-            icon = get_material_icon(name)
-
-            if icon:
-                icon = pygame.transform.smoothscale(icon, self._icon_size)
-            else:
-                icon = pygame.Surface(self._icon_size, pygame.SRCALPHA)
+            icon = get_image('materials/' + name, self._icon_size, 'smooth')
+            if icon is None:
+                icon = pygame.Surface(self._icon_size).convert_alpha()
 
             # Prepare caption (truncate if needed)
             caption_text = MATERIAL_TRANSLATIONS.get(USER_LOCALE, {}).get(name, name)
