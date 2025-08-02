@@ -158,15 +158,8 @@ class BaseMaterial(abc.ABC):
 class Space(BaseMaterial, display_name='Space'):  # air
     color = pygame.Color(0, 0, 0, 0)
     heat_capacity = 0.3  # moderate, air easily changes temp
-    thermal_conductivity = (
-        0.001  # we need VERY LOW value so the atmosphere won't immediately heat up
-    )
+    thermal_conductivity = 1 # max value
     tags = MaterialTags.SPACE
-
-    @classmethod
-    def create(cls):
-        '''Pure method to create Space instances without game map or coordinates.'''
-        return cls(None, None, None)
 
 
 class Sand(BaseMaterial, display_name='Sand'):

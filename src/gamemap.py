@@ -14,8 +14,14 @@ class GameMap:
 
     def __init__(self, size: tuple[int, int]):
         self.size = size
-        self._array = np.full(size, Space.create(), dtype=np.object_)
+        # Do not put BaseMaterial instance as a default
+        # If you do, the value will be shared between ALL the positions
+        self._array = np.full(size, None, dtype=np.object_)
 
+        for x in range(self.size[0]):
+            for y in range(self.size[1]):
+                self._array[x, y] = Space(self, x, y)
+    
     def __getitem__(self, pos: tuple[int, int]) -> BaseMaterial | None:
         '''Returns a dot at the given position or None if the position is out of bounds.'''
 
