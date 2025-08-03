@@ -25,7 +25,7 @@ from .materialpalette import MaterialPalette
 from .materials import Sand
 from .renderer import Renderer, available_render_masks
 from .simulation import SimulationManager
-from .ui import AnchoredPosition, ButtonContainer, Stylesheet
+from .ui import HBoxLayout, Ruleset, Selector, SizePolicy, Stylesheet, Button
 from .util import GameSound, get_font, get_image
 from .windowevents import (
     CameraEventHandler,
@@ -106,7 +106,7 @@ class GameApp:
 
         pygame.display.set_mode(
             SCREEN_SIZE,
-            pygame.RESIZABLE | pygame.DOUBLEBUF | pygame.HWSURFACE | pygame.HWACCEL,
+            pygame.RESIZABLE | pygame.DOUBLEBUF | pygame.HWSURFACE | pygame.HWACCEL | pygame.SRCALPHA,
             vsync=ENABLE_VSYNC,
         )
         pygame.display.set_caption(WINDOW_CAPTION)
@@ -134,19 +134,43 @@ class GameApp:
         )
         self._pal.selected_material = Sand
 
-        idle_style = Stylesheet(bg_color="#7C6423", spacing=5)
-        hovered_style = idle_style.copy(bg_color="#63511F")
-
-        self._buttons = ButtonContainer(idle_style, hovered_style, hovered_style)
-        self._buttons.add(
-            AnchoredPosition(10, 10),
-            image=get_image('materials_palette_btn_icon', (64, 64), 'smooth'),
-            cb=lambda: {self._pal.show(), GameSound('palette.show').play_override()},
+        style = Stylesheet(
+            Selector(
+                class_name='Button',
+                ruleset=Ruleset(
+                    bg_color='#7C6423'
+                ),
+            ),
+            Selector(
+                class_name='Button',
+                pseudo_class='hover',
+                ruleset=Ruleset(
+                    bg_color='#63511F',
+                ),
+            ),
+            Selector(
+                class_name='Button',
+                pseudo_class='pressed',
+                ruleset=Ruleset(
+                    bg_color="#A98930"
+                ),
+            )
         )
+            
+        self._master_layout = HBoxLayout(style=style)
+        self._master_layout.capture_surface = self._screen
+        btn_materials = Button(parent=self._master_layout, image=get_image('materials_palette_btn_icon'))
+        btn_materials.size_policy = SizePolicy(-1, -1, 'fixed', 'fixed')
+
+        @btn_materials.add_cb
+        def cb(_, old):
+            if btn_materials.pseudo_class == 'hover' and old == 'pressed':
+                GameSound('palette.show').play_override()
+                self._pal.show()
 
         self._event_handlers = (
             MaterialPaletteEventHandler(self, self._pal),
-            self._buttons,
+            self._master_layout,
             GameAppEventHandler(self),
             SimulationEventHandler(self._map, self._sim),
             CameraEventHandler(self._camera),
@@ -181,7 +205,7 @@ class GameApp:
                 self._renderer.render(self._camera.get_area(), self._render_mask, MAP_INNER_COLOR)
                 self._pal.render()
                 if not self._pal.is_visible():
-                    self._buttons.render(self._screen)
+                    self._master_layout.draw(self._screen)
 
             if ENABLE_TPS_COUNTER:
                 self._screen.blit(
