@@ -1,4 +1,6 @@
-from typing import Callable, Literal
+import pickle
+from io import BytesIO
+from typing import IO, Callable, Literal
 
 import numpy as np
 import PIL.Image
@@ -184,3 +186,19 @@ class GameMap:
                 image_buffer[y, x, 3] = color.a
 
         return PIL.Image.fromarray(image_buffer, 'RGBA')
+
+    def dump(self, file: BytesIO) -> None:
+        info = {
+            'application': 'moonsbox',
+            'version': 1,
+            'array': self._array,
+        }
+        pickle.dump(info, file)
+
+    def load(self, file: BytesIO) -> None:
+        info = pickle.load(file)
+        if info['version'] != 1:
+            raise ValueError('save is incompatible with this version')
+
+        self._array = info['array']
+        self.size = self._array.shape
