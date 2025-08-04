@@ -25,7 +25,7 @@ from .materialpalette import MaterialPalette
 from .materials import Sand
 from .renderer import Renderer, available_render_masks
 from .simulation import SimulationManager
-from .ui import HBoxLayout, Ruleset, Selector, SizePolicy, Stylesheet, Button
+from .ui import Button, HBoxLayout, Ruleset, Selector, SizePolicy, Stylesheet
 from .util import GameSound, get_font, get_image
 from .windowevents import (
     CameraEventHandler,
@@ -106,7 +106,7 @@ class GameApp:
 
         pygame.display.set_mode(
             SCREEN_SIZE,
-            pygame.RESIZABLE | pygame.DOUBLEBUF | pygame.HWSURFACE | pygame.HWACCEL | pygame.SRCALPHA,
+            pygame.RESIZABLE | pygame.DOUBLEBUF | pygame.HWSURFACE | pygame.HWACCEL,
             vsync=ENABLE_VSYNC,
         )
         pygame.display.set_caption(WINDOW_CAPTION)
@@ -137,34 +137,32 @@ class GameApp:
         style = Stylesheet(
             Selector(
                 class_name='Button',
-                ruleset=Ruleset(
-                    bg_color='#7C6423'
-                ),
+                ruleset=Ruleset(bg_color='#7C6423'),
             ),
             Selector(
                 class_name='Button',
-                pseudo_class='hover',
+                pseudo='hover',
                 ruleset=Ruleset(
                     bg_color='#63511F',
                 ),
             ),
             Selector(
                 class_name='Button',
-                pseudo_class='pressed',
-                ruleset=Ruleset(
-                    bg_color="#A98930"
-                ),
-            )
+                pseudo='pressed',
+                ruleset=Ruleset(bg_color="#A98930"),
+            ),
         )
-            
+
         self._master_layout = HBoxLayout(style=style)
         self._master_layout.capture_surface = self._screen
-        btn_materials = Button(parent=self._master_layout, image=get_image('materials_palette_btn_icon'))
+        btn_materials = Button(
+            parent=self._master_layout, image=get_image('materials_palette_btn_icon')
+        )
         btn_materials.size_policy = SizePolicy(-1, -1, 'fixed', 'fixed')
 
         @btn_materials.add_cb
         def cb(_, old):
-            if btn_materials.pseudo_class == 'hover' and old == 'pressed':
+            if btn_materials.pseudo == 'hover' and old == 'pressed':
                 GameSound('palette.show').play_override()
                 self._pal.show()
 
