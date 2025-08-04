@@ -10,3 +10,4 @@ __pycache__/
 *screenshot*
 *.prof.svg
 /assets/**/--*
+*.kk-save

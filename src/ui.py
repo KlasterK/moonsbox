@@ -243,10 +243,7 @@ class Container(Widget):
             return
 
         for child in reversed(self._children):  # lastly added widgets will get events first
-            try:
-                child.process_event(e)
-            except StopHandling:
-                break
+            child.process_event(e)  # may raise StopHandling
 
     def draw(self, dst):
         if not self.is_visible:
@@ -404,21 +401,22 @@ class Subwindow(Container):
             and self._title_rect.collidepoint(e.pos)
         ):
             self._is_title_captured = True
+            raise StopHandling
+
         elif e.type == pygame.MOUSEBUTTONUP and e.button == pygame.BUTTON_LEFT:
             self._is_title_captured = False
+
         elif e.type == pygame.MOUSEMOTION and self._is_title_captured:
             for widget in (self, *self._children):
                 rect = widget.get_rect()
                 widget.set_rect(x=rect.x + e.rel[0], y=rect.y + e.rel[1])
+            raise StopHandling
 
         if 'pos' in e.dict and not self._content_rect.collidepoint(e.pos):
             return  # hack to prevent forwarding events to clipped parts of children
 
         for widget in reversed(self._children):  # lastly added widgets will get events first
-            try:
-                widget.process_event(e)
-            except StopHandling:
-                break
+            widget.process_event(e)  # may raise StopHandling
 
 
 class Label(Widget):
@@ -535,17 +533,18 @@ class Button(Label):
                 self.pseudo = 'hover'
             elif self.pseudo == 'hover' and not col:
                 self.pseudo = ''
+            elif self.pseudo == 'pressed':
+                raise StopHandling
 
         elif e.type == pygame.MOUSEBUTTONDOWN and e.button == pygame.BUTTON_LEFT:
             if self.get_rect().collidepoint(e.pos):
                 self.pseudo = 'pressed'
+                raise StopHandling
 
         elif e.type == pygame.MOUSEBUTTONUP and e.button == pygame.BUTTON_LEFT:
             if self.pseudo == 'pressed':
                 if self.get_rect().collidepoint(e.pos):
                     self.pseudo = 'hover'
+                    raise StopHandling
                 else:
                     self.pseudo = ''
-
-        if self.pseudo == 'pressed':
-            raise StopHandling

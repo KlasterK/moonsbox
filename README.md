@@ -42,6 +42,7 @@ Some example materials you can experiment with:
 ## Requirements
 
 - Python 3 (I run it with Python 3.13.3)
+- tkinter (tk in PyPI)
 - pygame-ce
 - numpy
 - pillow
@@ -49,7 +50,7 @@ Some example materials you can experiment with:
 ## Running
 
 ```
-python -m pip install pygame-ce numpy pillow
+python -m pip install tk pygame-ce numpy pillow
 cd <PROJECT DIR>
 python -m src
 ```

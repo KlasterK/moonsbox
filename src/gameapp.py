@@ -1,8 +1,12 @@
 import math
 import threading
 import time
+import traceback
 
 import pygame
+import pygame._sdl2
+import tkinter
+import tkinter.filedialog
 
 from .const import (
     DEBUG_COLOR,
@@ -25,7 +29,7 @@ from .materialpalette import MaterialPalette
 from .materials import Sand
 from .renderer import Renderer, available_render_masks
 from .simulation import SimulationManager
-from .ui import Button, HBoxLayout, Ruleset, Selector, SizePolicy, Stylesheet
+from .ui import Button, HBoxLayout, Ruleset, Selector, SizePolicy, Stylesheet, Container, Subwindow
 from .util import GameSound, get_font, get_image
 from .windowevents import (
     CameraEventHandler,
@@ -152,23 +156,100 @@ class GameApp:
                 ruleset=Ruleset(bg_color="#A98930"),
             ),
         )
+        self._ui = Container(None, style)
+        self._ui.capture_surface = self._screen
+        layout = HBoxLayout(self._ui)
+        self._ui.set_central_widget(layout)
 
-        self._master_layout = HBoxLayout(style=style)
-        self._master_layout.capture_surface = self._screen
-        btn_materials = Button(
-            parent=self._master_layout, image=get_image('materials_palette_btn_icon')
-        )
+        btn_materials = Button(parent=layout, image=get_image('materials_palette_btn_icon'))
         btn_materials.size_policy = SizePolicy(-1, -1, 'fixed', 'fixed')
 
         @btn_materials.add_cb
-        def cb(_, old):
+        def _(_, old):
             if btn_materials.pseudo == 'hover' and old == 'pressed':
                 GameSound('palette.show').play_override()
                 self._pal.show()
 
+        btn_saving = Button(parent=layout, image=get_image('saving_btn_icon'))
+        btn_saving.size_policy = SizePolicy(-1, -1, 'fixed', 'fixed')
+
+        @btn_saving.add_cb
+        def _(_, old):
+            if btn_saving.pseudo == 'hover' and old == 'pressed':
+                w, h = self._screen.size
+                sub = Subwindow('Saving', self._ui)
+                sub.set_rect(w=w / 2, h=h / 5, centerx=w / 2, centery=h / 2)
+                layout = HBoxLayout(sub)
+                sub.set_central_widget(layout)
+
+                btn_load = Button('Load', parent=layout)
+                btn_save = Button('Save', parent=layout)
+                btn_close = Button('Cancel', parent=layout)
+
+                @btn_load.add_cb
+                def _(_, old):
+                    if btn_load.pseudo == 'hover' and old == 'pressed':
+                        root = tkinter.Tk()
+                        root.withdraw()
+
+                        try:
+                            # TODO: make own native file dialog opening system.
+                            file = tkinter.filedialog.askopenfile(
+                                'rb',
+                                filetypes=(('Moonsbox Save', '*.kk-save'), ('All Files', '*.*')),
+                            )
+                            if file is not None:
+                                with file:
+                                    self._map.load(file)
+                        except Exception:
+                            pygame._sdl2.messagebox(
+                                'Load Error',
+                                f'Failed to load the save!'
+                                '\nIf you are not a programmer, then do not be afraid of'
+                                ' the following text and ignore it.'
+                                f'\n\n{traceback.format_exc()}',
+                                error=True,
+                            )
+
+                        sub.parent = None  # should delete the subwindow
+                        root.destroy()
+
+                @btn_save.add_cb
+                def _(_, old):
+                    if btn_save.pseudo == 'hover' and old == 'pressed':
+                        root = tkinter.Tk()
+                        root.withdraw()
+
+                        try:
+                            file = tkinter.filedialog.asksaveasfile(
+                                'wb',
+                                filetypes=(('Moonsbox Save', '*.kk-save'), ('All Files', '*.*')),
+                                defaultextension='.kk-save',
+                            )
+                            if file is not None:
+                                with file:
+                                    self._map.dump(file)
+                        except Exception:
+                            pygame._sdl2.messagebox(
+                                'Save Error',
+                                f'Failed to save the map!'
+                                '\nIf you are not a programmer, then do not be afraid of'
+                                ' the following text and ignore it.'
+                                f'\n\n{traceback.format_exc()}',
+                                error=True,
+                            )
+
+                        sub.parent = None
+                        root.destroy()
+
+                @btn_close.add_cb
+                def _(_, old):
+                    if btn_close.pseudo == 'hover' and old == 'pressed':
+                        sub.parent = None
+
         self._event_handlers = (
             MaterialPaletteEventHandler(self, self._pal),
-            self._master_layout,
+            self._ui,
             GameAppEventHandler(self),
             SimulationEventHandler(self._map, self._sim),
             CameraEventHandler(self._camera),
@@ -203,7 +284,7 @@ class GameApp:
                 self._renderer.render(self._camera.get_area(), self._render_mask, MAP_INNER_COLOR)
                 self._pal.render()
                 if not self._pal.is_visible():
-                    self._master_layout.draw(self._screen)
+                    self._ui.draw(self._screen)
 
             if ENABLE_TPS_COUNTER:
                 self._screen.blit(

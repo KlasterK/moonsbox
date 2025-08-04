@@ -23,7 +23,7 @@ class GameMap:
         for x in range(self.size[0]):
             for y in range(self.size[1]):
                 self._array[x, y] = Space(self, x, y)
-    
+
     def __getitem__(self, pos: tuple[int, int]) -> BaseMaterial | None:
         '''Returns a dot at the given position or None if the position is out of bounds.'''
 
@@ -199,6 +199,10 @@ class GameMap:
         info = pickle.load(file)
         if info['version'] != 1:
             raise ValueError('save is incompatible with this version')
+        if not isinstance(info['array'], np.ndarray):
+            raise ValueError('save is not a moonsbox save')
+        if len(info['array'].shape) != 2:
+            raise ValueError('save is not a moonsbox save')
 
         self._array = info['array']
         self.size = self._array.shape
