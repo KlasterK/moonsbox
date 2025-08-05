@@ -15,17 +15,22 @@ and their interactions in a pixel world.
 - **Highly customizable**: Tune your sandbox changing constants or assets
 
 ## Plans
-- Move consts to a config file. (✓)
+
+- Move const.py to a config file. (✓)
 - Get rid of tkinter.filedialog dependency and make our own opener of native file dialog. (✓)
+- Make capturing system for the game on top of FFMPEG.
 - Make the first release of the game.
-- Add alternative to keyboard controls in form of widgets.
-- Add full touchscreen support.
-- Make a release for Android.
-- Add visual config editing and all widgets are needed for it.
+- Spread the game.
+- Create a chat for the game.
 - Start developing native (C++) version of gamemap.py.
 - Native version of simulation.py.
 - Native version of renderer.py.
 - Native version of materials.py (but keep support of Python-written classes).
+- Add more materials.
+- Add alternative to keyboard controls in form of widgets.
+- Add full touchscreen support.
+- Make a release for Android.
+- Add visual config editing and all widgets are needed for it.
 - Add more and more materials.
 
 ## Controls
@@ -56,7 +61,19 @@ and their interactions in a pixel world.
 ## Running
 
 ```
-python -m pip install tk pygame-ce numpy pillow
+# If your platform is not Windows, it's recommended to have tkinter:
+python -c "import tkinter" # checks if tkinter is here
+# If you don't have one and not using Windows, then if you open file dialogs, you have to enter
+# text into console.
+
+# Getting ready
+python -m pip install pygame-ce numpy pillow
 cd <PROJECT DIR>
+
+# Settings are at ./user/config.toml
+notepad user\config.toml # if you have Windows
+nano user/config.toml # if you have GNU nano
+
+# Running
 python -m src
 ```
