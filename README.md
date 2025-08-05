@@ -16,7 +16,7 @@ and their interactions in a pixel world.
 
 ## Plans
 - Move consts to a config file.
-- Get rid of tkinter.filedialog dependency and make our own opener of native file dialog.
+- Get rid of tkinter.filedialog dependency and make our own opener of native file dialog. (✓)
 - Make the first release of the game.
 - Add alternative to keyboard controls in form of widgets.
 - Add full touchscreen support.
@@ -49,7 +49,6 @@ and their interactions in a pixel world.
 ## Requirements
 
 - Python 3 (I run it with Python 3.13.3)
-- tkinter (tk in PyPI)
 - pygame-ce
 - numpy
 - pillow

@@ -1,6 +1,7 @@
+import collections.abc
 import pickle
 from io import BytesIO
-from typing import IO, Callable, Literal
+from typing import Callable, Literal
 
 import numpy as np
 import PIL.Image
@@ -193,16 +194,27 @@ class GameMap:
             'version': 1,
             'array': self._array,
         }
-        pickle.dump(info, file)
+        try:
+            pickle.dump(info, file)
+        except pickle.PickleError:
+            raise ValueError('failed to pickle save') from e
 
     def load(self, file: BytesIO) -> None:
-        info = pickle.load(file)
-        if info['version'] != 1:
+        try:
+            info = pickle.load(file)
+        except pickle.PickleError as e:
+            raise ValueError('failed to unpickle save') from e
+        if info.get('application', None) != 'moonsbox':
+            raise ValueError('save is not a moonsbox save')
+        if (
+            not isinstance(info.get('version', None), collections.abc.Sequence)
+            or '1.1' not in info['version']
+        ):
             raise ValueError('save is incompatible with this version')
-        if not isinstance(info['array'], np.ndarray):
-            raise ValueError('save is not a moonsbox save')
+        if not isinstance(info.get('array', None), np.ndarray):
+            raise ValueError('save is invalid')
         if len(info['array'].shape) != 2:
-            raise ValueError('save is not a moonsbox save')
+            raise ValueError('save is invalid')
 
         self._array = info['array']
         self.size = self._array.shape

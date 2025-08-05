@@ -1,12 +1,7 @@
 import math
-import threading
-import time
 import traceback
 
 import pygame
-import pygame._sdl2
-import tkinter
-import tkinter.filedialog
 
 from .const import (
     DEBUG_COLOR,
@@ -29,7 +24,16 @@ from .materialpalette import MaterialPalette
 from .materials import Sand
 from .renderer import Renderer, available_render_masks
 from .simulation import SimulationManager
-from .ui import Button, HBoxLayout, Ruleset, Selector, SizePolicy, Stylesheet, Container, Subwindow
+from .ui import (
+    Button,
+    HBoxLayout,
+    Ruleset,
+    Selector,
+    SizePolicy,
+    Stylesheet,
+    Container,
+    Subwindow,
+)
 from .util import GameSound, get_font, get_image
 from .windowevents import (
     CameraEventHandler,
@@ -39,6 +43,7 @@ from .windowevents import (
     SimulationEventHandler,
     StopHandling,
 )
+from . import nativedialog
 
 
 class Camera:
@@ -189,58 +194,38 @@ class GameApp:
                 @btn_load.add_cb
                 def _(_, old):
                     if btn_load.pseudo == 'hover' and old == 'pressed':
-                        root = tkinter.Tk()
-                        root.withdraw()
-
                         try:
-                            # TODO: make own native file dialog opening system.
-                            file = tkinter.filedialog.askopenfile(
-                                'rb',
-                                filetypes=(('Moonsbox Save', '*.kk-save'), ('All Files', '*.*')),
-                            )
-                            if file is not None:
-                                with file:
+                            file_types = {'Moonsbox Save': '*.kk-save', 'All Files': '*.*'}
+                            file_name = nativedialog.ask_open_file('Load Save', file_types)
+                            if file_name:
+                                with open(file_name, 'rb') as file:
                                     self._map.load(file)
-                        except Exception:
-                            pygame._sdl2.messagebox(
+                        except (IOError, ValueError) as e:
+                            nativedialog.inform(
                                 'Load Error',
-                                f'Failed to load the save!'
-                                '\nIf you are not a programmer, then do not be afraid of'
-                                ' the following text and ignore it.'
-                                f'\n\n{traceback.format_exc()}',
-                                error=True,
+                                f'Failed to load the save!\nSystem info: {e!s}',
+                                'warning',
                             )
-
-                        sub.parent = None  # should delete the subwindow
-                        root.destroy()
+                        finally:
+                            sub.parent = None  # should delete the subwindow
 
                 @btn_save.add_cb
                 def _(_, old):
                     if btn_save.pseudo == 'hover' and old == 'pressed':
-                        root = tkinter.Tk()
-                        root.withdraw()
-
                         try:
-                            file = tkinter.filedialog.asksaveasfile(
-                                'wb',
-                                filetypes=(('Moonsbox Save', '*.kk-save'), ('All Files', '*.*')),
-                                defaultextension='.kk-save',
-                            )
-                            if file is not None:
-                                with file:
-                                    self._map.dump(file)
-                        except Exception:
-                            pygame._sdl2.messagebox(
+                            file_types = {'Moonsbox Save': '*.kk-save', 'All Files': '*.*'}
+                            file_name = nativedialog.ask_save_file('Save Map', file_types)
+                            if file_name:
+                                with open(file_name, 'wb') as file:
+                                    self._map.load(file)
+                        except (IOError, ValueError) as e:
+                            nativedialog.inform(
                                 'Save Error',
-                                f'Failed to save the map!'
-                                '\nIf you are not a programmer, then do not be afraid of'
-                                ' the following text and ignore it.'
-                                f'\n\n{traceback.format_exc()}',
-                                error=True,
+                                f'Failed to save the map!\nSystem info: {e!s}',
+                                'warning',
                             )
-
-                        sub.parent = None
-                        root.destroy()
+                        finally:
+                            sub.parent = None
 
                 @btn_close.add_cb
                 def _(_, old):
