@@ -1,15 +1,32 @@
 # moonsbox
 
-A sandbox cellular automata playground written in Python with Pygame. Inspired by classic falling sand games, especially SmellyMoo's sand:box, moonsbox lets you experiment with different materials and their interactions in a pixel world.
+A sandbox cellular automata playground written in Python with Pygame. Inspired by classic falling 
+sand games, especially SmellyMoo's sand:box, moonsbox lets you experiment with different materials
+and their interactions in a pixel world.
 
 ## Features
 
 - **Material palette**: Choose materials with a visual palette (keyboard/mouse navigation supported)
-- **Heat simulation**: Materials exchange temperature based on heat capacity and thermal conductivity
-- **Sound effects**: Each material can play sounds on interaction
+- **Heat simulation**: Materials exchange temperature based on heat capacity and 
+                       thermal conductivity
+- **Sound effects**: Some materials can play sounds on interaction
 - **Resizable window**: The simulation area and camera can be zoomed and panned
-- **Screenshot**: Save or view the current simulation as an image
+- **Saving & Screenshot**: Share some funny situations with your friends using saves or screenshots
 - **Highly customizable**: Tune your sandbox changing constants or assets
+
+## Plans
+- Move consts to a config file.
+- Get rid of tkinter.filedialog dependency and make our own opener of native file dialog.
+- Make the first release of the game.
+- Add alternative to keyboard controls in form of widgets.
+- Add full touchscreen support.
+- Make a release for Android.
+- Add visual config editing and all widgets are needed for it.
+- Start developing native (C++) version of gamemap.py.
+- Native version of simulation.py.
+- Native version of renderer.py.
+- Native version of materials.py (but keep support of Python-written classes).
+- Add more and more materials.
 
 ## Controls
 
@@ -28,16 +45,6 @@ A sandbox cellular automata playground written in Python with Pygame. Inspired b
 - **F10**: Save map screenshot
 - **+ | -**: Change brush size
 - **R**: Pause rendering to speed up simulation
-
-## Materials
-
-Some example materials you can experiment with:
-
-- **Sand**: Falls and piles up, turns into glass if heated.
-- **Lava**: Hot, flows and heats up surroundings. Gets solid if colded.
-- **±100 K**: Increases/decreases temperature of dot.
-
-> The full list of available materials is shown in the material palette in the app.
 
 ## Requirements
 
