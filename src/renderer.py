@@ -2,7 +2,7 @@ from typing import Callable
 
 import pygame
 
-from .const import DEFAULT_TEMP
+from .config import DEFAULT_TEMP
 from .gamemap import GameMap
 from .materials import BaseMaterial
 from .util import blend

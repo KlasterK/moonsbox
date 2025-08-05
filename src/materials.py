@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, Any
 import numpy as np
 import pygame
 
-from .const import DEFAULT_TEMP
+from .config import DEFAULT_TEMP
 from .util import GameSound, blend
 
 if TYPE_CHECKING:
@@ -158,7 +158,7 @@ class BaseMaterial(abc.ABC):
 class Space(BaseMaterial, display_name='Space'):  # air
     color = pygame.Color(0, 0, 0, 0)
     heat_capacity = 0.3  # moderate, air easily changes temp
-    thermal_conductivity = 1 # max value
+    thermal_conductivity = 1  # max value
     tags = MaterialTags.SPACE
 
 

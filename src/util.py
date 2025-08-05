@@ -4,7 +4,7 @@ from typing import Literal
 
 import pygame
 
-from .const import ASSETS_ROOT, FONT_IS_SYSFONT, FONT_NAME_OR_PATH, FONT_SIZE, MUSIC_VOLUME, VOLUME
+from .config import ASSETS_ROOT, FONT_IS_SYSFONT, FONT_NAME_OR_PATH, FONT_SIZE, MUSIC_VOLUME, VOLUME
 
 
 def blend(bg: pygame.Color, fg: pygame.Color, alpha: float | None = None) -> pygame.Color:
@@ -54,6 +54,7 @@ def get_image(
         return pygame.transform.smoothscale(image, scale_to)
     else:
         return pygame.transform.scale(image, scale_to)
+
 
 def get_font() -> pygame.font.Font:
     """Returns a pygame.font.Font object for the given size."""

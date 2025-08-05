@@ -15,7 +15,7 @@ and their interactions in a pixel world.
 - **Highly customizable**: Tune your sandbox changing constants or assets
 
 ## Plans
-- Move consts to a config file.
+- Move consts to a config file. (✓)
 - Get rid of tkinter.filedialog dependency and make our own opener of native file dialog. (✓)
 - Make the first release of the game.
 - Add alternative to keyboard controls in form of widgets.

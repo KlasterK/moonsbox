@@ -1,7 +1,7 @@
 import numpy as np
 import pygame
 
-from .const import TEMP_IS_EXCHANGING
+from .config import TEMP_IS_EXCHANGING
 from .gamemap import GameMap
 from .materials import BaseMaterial, MaterialTags
 

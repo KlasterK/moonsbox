@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 import PIL.Image
 import pygame
 
-from .const import (
+from .config import (
     DEFAULT_DRAWING_WIDTH,
     DELTA_DRAWING_WIDTH,
     DRAWING_IS_CIRCULAR,

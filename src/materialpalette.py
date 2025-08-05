@@ -1,6 +1,6 @@
 import pygame
 
-from .const import (
+from .config import (
     MATERIAL_TRANSLATIONS,
     PALETTE_SELECTION_INNER_COLOR,
     PALETTE_SELECTION_OUTER_COLOR,

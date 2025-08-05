@@ -3,7 +3,7 @@ import traceback
 
 import pygame
 
-from .const import (
+from .config import (
     DEBUG_COLOR,
     ENABLE_FPS_COUNTER,
     ENABLE_TPS_COUNTER,
@@ -196,7 +196,7 @@ class GameApp:
                     if btn_load.pseudo == 'hover' and old == 'pressed':
                         try:
                             file_types = {'Moonsbox Save': '*.kk-save', 'All Files': '*.*'}
-                            file_name = nativedialog.ask_open_file('Load Save', file_types)
+                            file_name = nativedialog.ask_open_file('Load Save', file_types, 'user')
                             if file_name:
                                 with open(file_name, 'rb') as file:
                                     self._map.load(file)
@@ -214,7 +214,7 @@ class GameApp:
                     if btn_save.pseudo == 'hover' and old == 'pressed':
                         try:
                             file_types = {'Moonsbox Save': '*.kk-save', 'All Files': '*.*'}
-                            file_name = nativedialog.ask_save_file('Save Map', file_types)
+                            file_name = nativedialog.ask_save_file('Save Map', file_types, 'user')
                             if file_name:
                                 with open(file_name, 'wb') as file:
                                     self._map.load(file)
