@@ -1,8 +1,10 @@
+from pathlib import Path
+import shutil
 from typing import Callable
 
 import pygame
 
-from .config import DEFAULT_TEMP
+from .config import DEFAULT_TEMP, CAPTURE_PATH_FACTORY, CAPTURE_DOT_SIZE
 from .gamemap import GameMap
 from .materials import BaseMaterial
 from .util import blend
@@ -18,6 +20,9 @@ class Renderer:
         self._dest = dest
         self._clock = pygame.time.Clock()
         self._temp_surface = pygame.Surface((0, 0))
+        self._is_capturing = False
+        self._capture_path = None
+        self._frame_idx = 0
 
     # @profile(stdout=False, filename='Renderer-render.prof')
     def render(
@@ -81,6 +86,13 @@ class Renderer:
             int(inner_bottom - inner_top),
         )
 
+        # If capturing, save the frame
+        # TODO: render the whole map when capturing even if the visible area is too small
+        if self._is_capturing:
+            capture_path = self._capture_path / f'frame_{self._frame_idx:06d}.png'
+            pygame.image.save(self._temp_surface, capture_path)
+            self._frame_idx += 1
+
         # Scale the inner temp surface to the correct size and blit
         scaled_inner = pygame.transform.scale(self._temp_surface, blit_rect.size)
         self._dest.blit(scaled_inner, blit_rect.topleft)
@@ -88,6 +100,24 @@ class Renderer:
 
     def get_fps(self) -> float:
         return self._clock.get_fps()
+
+    # more explicit API than @property
+    def begin_capturing(self) -> None:
+        self._capture_path = Path(CAPTURE_PATH_FACTORY())
+        if self._capture_path.is_file():  # also check for existing
+            self._capture_path.unlink(missing_ok=False)
+        elif self._capture_path.is_dir():  # same
+            shutil.rmtree(self._capture_path, ignore_errors=False)
+
+        self._capture_path.mkdir(parents=True, exist_ok=False)
+        self._is_capturing = True
+        self._frame_idx = 0
+
+    def end_capturing(self) -> None:
+        self._is_capturing = False
+
+    def is_capturing(self) -> bool:
+        return self._is_capturing
 
 
 available_render_masks = []
@@ -111,6 +141,7 @@ def _normal(dot):
 @add_render_mask
 def _thermal(dot):
     # Simple thermal imagination, where R=temp, G=B=grayscale
+    # TODO: implement more complex and handy thermal rendering
     grayscale = (dot.color.r + dot.color.g + dot.color.b) / 3
     red = max(0, min(255, dot.temp - DEFAULT_TEMP + 0x7F))
     return pygame.Color(red, grayscale, grayscale)

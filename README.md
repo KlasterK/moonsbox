@@ -50,6 +50,7 @@ and their interactions in a pixel world.
 - **F10**: Save map screenshot
 - **+ | -**: Change brush size
 - **R**: Pause rendering to speed up simulation
+- **Alt + F12**: Begin or end capturing (see Running to convert capture to a video)
 
 ## Requirements
 
@@ -76,4 +77,12 @@ nano user/config.toml # if you have GNU nano
 
 # Running
 python -m src
+
+# Converting a capture to a video
+# Requires FFMPEG!
+ffmpeg -i <CAPTURE DIR>/frame_%06d.png [<further args>]
+# Create a video with 60 FPS, x264 codec, scaled to 400x400 (but still pixelated):
+ffmpeg -i ./capture_2025-08-05_17-02-33/frame_%06d.png -framerate 60 -vcodec libx264 \
+       -sws_flags neighbor -s 400x400 ./testcapt.mp4
+rm -rf ./capture_2025-08-05_17-02-33/
 ```

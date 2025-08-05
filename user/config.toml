@@ -29,5 +29,7 @@ ENABLE_TPS_COUNTER = false
 DEBUG_COLOR = "#00FF00"
 USER_LOCALE = "auto"
 ASSETS_ROOT = "./assets"
+SCREENSHOT_PATH_FACTORY = "./screenshot_%Y-%m-%d_%H-%M-%S.png"
 SCREENSHOT_TYPE_HINT = "PNG"
 SCREENSHOT_DOT_SIZE = [1, 1]
+CAPTURE_PATH_FACTORY = "./capture_%Y-%m-%d_%H-%M-%S/"

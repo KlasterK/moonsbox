@@ -11,3 +11,5 @@ __pycache__/
 *.prof.svg
 /assets/**/--*
 *.kk-save
+/build/
+*capture*

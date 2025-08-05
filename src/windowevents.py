@@ -24,6 +24,7 @@ from .util import GameSound
 
 if TYPE_CHECKING:
     from .gameapp import Camera, GameApp
+    from .renderer import Renderer
 
 
 class StopHandling(Exception):
@@ -310,3 +311,15 @@ class MaterialPaletteEventHandler(BaseEventHandler):
             ):
                 self._pal.show()
                 GameSound('palette.show').play_override()
+
+
+class CapturingEventHandler(BaseEventHandler):
+    def __init__(self, rnd: 'Renderer'):
+        self._rnd = rnd
+
+    def process_event(self, e):
+        if e.type == pygame.KEYDOWN and e.key == pygame.K_F12 and e.mod & pygame.KMOD_ALT:
+            if not self._rnd.is_capturing():
+                self._rnd.begin_capturing()
+            else:
+                self._rnd.end_capturing()

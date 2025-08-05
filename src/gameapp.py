@@ -37,6 +37,7 @@ from .ui import (
 from .util import GameSound, get_font, get_image
 from .windowevents import (
     CameraEventHandler,
+    CapturingEventHandler,
     DrawingEventHandler,
     GameAppEventHandler,
     MaterialPaletteEventHandler,
@@ -239,6 +240,7 @@ class GameApp:
             SimulationEventHandler(self._map, self._sim),
             CameraEventHandler(self._camera),
             DrawingEventHandler(self._camera, self._map, self._pal),
+            CapturingEventHandler(self._renderer),
         )
 
     # from profilehooks import profile

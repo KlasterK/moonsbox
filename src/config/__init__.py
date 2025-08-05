@@ -42,15 +42,17 @@ def get_locale(val):
     return val
 
 
-def get_screenshot_factory():
-    return lambda: time.strftime('./screenshot_%Y-%m-%d_%H-%M-%S.png')
+def get_path_factory(val):
+    if isinstance(val, str):
+        return lambda: time.strftime(val)
+    raise ValueError(f"Invalid path factory: {val}")
 
 
 # Load user config
 def load_config():
     defaults = ConfigDefaults()
     try:
-        user_cfg = toml.load(Path('user', 'config.toml'))
+        user_cfg = toml.load('user/config.toml')
     except Exception:
         user_cfg = {}
 
@@ -86,8 +88,8 @@ def load_config():
                 return default
         if key == "USER_LOCALE":
             return get_locale(val)
-        if key == "SCREENSHOT_PATH_FACTORY":
-            return get_screenshot_factory()
+        if key in ("SCREENSHOT_PATH_FACTORY", 'CAPTURE_PATH_FACTORY'):
+            return get_path_factory(val)
         return val
 
     # Build config namespace
