@@ -53,7 +53,7 @@ GetOpenFileNameW = commdlg.GetOpenFileNameW
 GetOpenFileNameW.restype = wintypes.BOOL
 GetOpenFileNameW.argtypes = [ctypes.POINTER(OPENFILENAMEW)]
 
-GetSaveFileNameW = commdlg.GetOpenFileNameW
+GetSaveFileNameW = commdlg.GetSaveFileNameW
 GetSaveFileNameW.restype = wintypes.BOOL
 GetSaveFileNameW.argtypes = [ctypes.POINTER(OPENFILENAMEW)]
 
