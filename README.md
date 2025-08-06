@@ -21,7 +21,7 @@ and their interactions in a pixel world.
 - Move const.py to a config file. (✓)
 - Get rid of tkinter.filedialog dependency and make our own opener of native file dialog. (✓)
 - Make capturing system for the game on top of FFMPEG. (✓)
-- Make the first release of the game.
+- Make the first release of the game. (✓)
 - Spread the game.
 - Create a chat for the game.
 - Start developing native (C++) version of gamemap.py.
