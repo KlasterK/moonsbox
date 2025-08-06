@@ -4,7 +4,7 @@ from typing import Callable
 
 import pygame
 
-from .config import DEFAULT_TEMP, CAPTURE_PATH_FACTORY, CAPTURE_DOT_SIZE
+from .config import DEFAULT_TEMP, CAPTURE_PATH_FACTORY
 from .gamemap import GameMap
 from .materials import BaseMaterial
 from .util import blend

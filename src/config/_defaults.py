@@ -66,3 +66,4 @@ class ConfigDefaults:
     SCREENSHOT_TYPE_HINT: str = 'PNG'
     SCREENSHOT_DOT_SIZE: tuple = (1, 1)
     CAPTURE_PATH_FACTORY: callable = lambda: time.strftime('./capture_%Y-%m-%d_%H-%M-%S/')
+    PALETTE_MOUSE_SELECTION_REQUIRES_DBL_CLICK: bool = True

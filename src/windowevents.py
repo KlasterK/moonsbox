@@ -15,6 +15,7 @@ from .config import (
     SCREENSHOT_PATH_FACTORY,
     SCREENSHOT_TYPE_HINT,
     ZOOM_FACTOR,
+    PALETTE_MOUSE_SELECTION_REQUIRES_DBL_CLICK,
 )
 from .gamemap import GameMap
 from .materialpalette import MaterialPalette
@@ -281,11 +282,15 @@ class MaterialPaletteEventHandler(BaseEventHandler):
                     for slot_pos, rect in self._pal.grid_geometry.items():
                         if rect.collidepoint(e.pos):
                             self._pal.selection_slot = slot_pos
-                            if slot_pos == previous_slot_pos:
+
+                            if (
+                                PALETTE_MOUSE_SELECTION_REQUIRES_DBL_CLICK
+                                and slot_pos != previous_slot_pos
+                            ):
+                                GameSound('palette.move_selection').play_override()
+                            else:
                                 self._pal.hide(True)
                                 GameSound('palette.hide_confirmation').play_override()
-                            else:
-                                GameSound('palette.move_selection').play_override()
                             break
                     else:
                         # If no slot was clicked, hide the palette
