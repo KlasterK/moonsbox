@@ -1,5 +1,7 @@
 # moonsbox
 
+![Gameplay Demo](doc-resources/moonsbox-map-preview.gif)
+
 A sandbox cellular automata playground written in Python with Pygame. Inspired by classic falling 
 sand games, especially SmellyMoo's sand:box, moonsbox lets you experiment with different materials
 and their interactions in a pixel world.
@@ -12,13 +14,13 @@ and their interactions in a pixel world.
 - **Sound effects**: Some materials can play sounds on interaction
 - **Resizable window**: The simulation area and camera can be zoomed and panned
 - **Saving & Screenshot**: Share some funny situations with your friends using saves or screenshots
-- **Highly customizable**: Tune your sandbox changing constants or assets
+- **Highly customizable**: Tune your sandbox changing TOML config or assets
 
 ## Plans
 
 - Move const.py to a config file. (✓)
 - Get rid of tkinter.filedialog dependency and make our own opener of native file dialog. (✓)
-- Make capturing system for the game on top of FFMPEG.
+- Make capturing system for the game on top of FFMPEG. (✓)
 - Make the first release of the game.
 - Spread the game.
 - Create a chat for the game.
@@ -58,6 +60,7 @@ and their interactions in a pixel world.
 - pygame-ce
 - numpy
 - pillow
+- toml
 
 ## Running
 
@@ -68,7 +71,7 @@ python -c "import tkinter" # checks if tkinter is here
 # text into console.
 
 # Getting ready
-python -m pip install pygame-ce numpy pillow
+python -m pip install pygame-ce numpy pillow toml
 cd <PROJECT DIR>
 
 # Settings are at ./user/config.toml
