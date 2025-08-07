@@ -40,6 +40,7 @@ class OPENFILENAMEW(ctypes.Structure):
         ofn.lpstrInitialDir = initial_dir
         ofn.lpstrTitle = title
         ofn.Flags = flags
+        ofn.lpstrFilter = filter
         return ofn
 
 

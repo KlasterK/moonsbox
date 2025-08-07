@@ -204,7 +204,7 @@ class GameApp:
                         except (IOError, ValueError) as e:
                             nativedialog.inform(
                                 'Load Error',
-                                f'Failed to load the save!\nSystem info: {e!s}',
+                                f'Failed to load the save!\nSystem info: {type(e).__name__}: {e!s}',
                                 'warning',
                             )
                         finally:
@@ -218,11 +218,11 @@ class GameApp:
                             file_name = nativedialog.ask_save_file('Save Map', file_types, 'user')
                             if file_name:
                                 with open(file_name, 'wb') as file:
-                                    self._map.load(file)
+                                    self._map.dump(file)
                         except (IOError, ValueError) as e:
                             nativedialog.inform(
                                 'Save Error',
-                                f'Failed to save the map!\nSystem info: {e!s}',
+                                f'Failed to save the map!\nSystem info: {type(e).__name__}: {e!s}',
                                 'warning',
                             )
                         finally:

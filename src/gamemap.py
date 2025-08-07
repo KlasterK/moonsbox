@@ -191,7 +191,7 @@ class GameMap:
     def dump(self, file: BytesIO) -> None:
         info = {
             'application': 'moonsbox',
-            'version': 1,
+            'version': '1.1',
             'array': self._array,
         }
         try:
