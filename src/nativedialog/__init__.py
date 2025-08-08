@@ -63,19 +63,32 @@ def ask_save_file(
     title: str,
     file_types: dict[str, str],
     initial_dir: str = '.',
+    default_extension: str = '',
 ) -> str:
     if _IMPL:
-        return impl_ask_save_file(title, file_types, initial_dir)
+        return impl_ask_save_file(title, file_types, initial_dir, default_extension)
 
     yes = ask_yes_no(
         title=f'{title} - Save File Warning',
-        text='We could not find any way to show a native file dialog,'
-        'so we are going to use console input to get file path.'
-        '\nIf you are unable to get into console, then the application'
-        ' will freeze FOREVER.'
-        '\n\nCurrent working directory:'
-        f'\n{os.getcwd()}'
-        '\n\nFile types:\n' + '\n'.join(f'{k} ({v})' for k, v in file_types) + '\n\nProceed?',
+        text=(
+            'We could not find any way to show a native file dialog,'
+            'so we are going to use console input to get file path.'
+            '\nIf you are unable to get into console, then the application'
+            ' will freeze FOREVER.'
+            '\n\nCurrent working directory:'
+            f'\n{os.getcwd()}'
+            '\n\nFile types:\n'
+            + '\n'.join(f'{k} ({v})' for k, v in file_types)
+            + f'\n\nDefault extension: {default_extension}'
+            if default_extension
+            else '' + '\n\nProceed?'
+        ),
         kind='warning',
     )
-    return input(f'{title} - enter file path: ') if yes else ''
+    if not yes:
+        return ''
+
+    fp = input(f'{title} - enter file path: ')
+    if '.' not in fp:
+        fp += default_extension
+    return fp

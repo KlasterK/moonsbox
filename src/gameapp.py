@@ -181,57 +181,62 @@ class GameApp:
 
         @btn_saving.add_cb
         def _(_, old):
-            if btn_saving.pseudo == 'hover' and old == 'pressed':
-                w, h = self._screen.size
-                sub = Subwindow('Saving', self._ui)
-                sub.set_rect(w=w / 2, h=h / 5, centerx=w / 2, centery=h / 2)
-                layout = HBoxLayout(sub)
-                sub.set_central_widget(layout)
+            if btn_saving.pseudo != 'hover' or old != 'pressed':
+                return
+            w, h = self._screen.size
+            sub = Subwindow('Saving', self._ui)
+            sub.set_rect(w=w / 2, h=h / 5, centerx=w / 2, centery=h / 2)
+            layout = HBoxLayout(sub)
+            sub.set_central_widget(layout)
 
-                btn_load = Button('Load', parent=layout)
-                btn_save = Button('Save', parent=layout)
-                btn_close = Button('Cancel', parent=layout)
+            btn_load = Button('Load', parent=layout)
+            btn_save = Button('Save', parent=layout)
+            btn_close = Button('Cancel', parent=layout)
 
-                @btn_load.add_cb
-                def _(_, old):
-                    if btn_load.pseudo == 'hover' and old == 'pressed':
-                        try:
-                            file_types = {'Moonsbox Save': '*.kk-save', 'All Files': '*.*'}
-                            file_name = nativedialog.ask_open_file('Load Save', file_types, 'user')
-                            if file_name:
-                                with open(file_name, 'rb') as file:
-                                    self._map.load(file)
-                        except (IOError, ValueError) as e:
-                            nativedialog.inform(
-                                'Load Error',
-                                f'Failed to load the save!\nSystem info: {type(e).__name__}: {e!s}',
-                                'warning',
-                            )
-                        finally:
-                            sub.parent = None  # should delete the subwindow
+            @btn_load.add_cb
+            def _(_, old):
+                if btn_save.pseudo != 'hover' or old != 'pressed':
+                    return
+                try:
+                    file_types = {'Moonsbox Save': '*.kk-save', 'All Files': '*.*'}
+                    file_name = nativedialog.ask_open_file('Load Save', file_types, 'user')
+                    if file_name:
+                        with open(file_name, 'rb') as file:
+                            self._map.load(file)
+                except (IOError, ValueError) as e:
+                    nativedialog.inform(
+                        'Load Error',
+                        f'Failed to load the save!\nSystem info: {type(e).__name__}: {e!s}',
+                        'warning',
+                    )
+                finally:
+                    sub.parent = None  # should delete the subwindow
 
-                @btn_save.add_cb
-                def _(_, old):
-                    if btn_save.pseudo == 'hover' and old == 'pressed':
-                        try:
-                            file_types = {'Moonsbox Save': '*.kk-save', 'All Files': '*.*'}
-                            file_name = nativedialog.ask_save_file('Save Map', file_types, 'user')
-                            if file_name:
-                                with open(file_name, 'wb') as file:
-                                    self._map.dump(file)
-                        except (IOError, ValueError) as e:
-                            nativedialog.inform(
-                                'Save Error',
-                                f'Failed to save the map!\nSystem info: {type(e).__name__}: {e!s}',
-                                'warning',
-                            )
-                        finally:
-                            sub.parent = None
+            @btn_save.add_cb
+            def _(_, old):
+                if btn_save.pseudo != 'hover' or old != 'pressed':
+                    return
+                try:
+                    file_types = {'Moonsbox Save': '*.kk-save', 'All Files': '*.*'}
+                    file_name = nativedialog.ask_save_file(
+                        'Save Map', file_types, 'user', '.kk-save'
+                    )
+                    if file_name:
+                        with open(file_name, 'wb') as file:
+                            self._map.dump(file)
+                except (IOError, ValueError) as e:
+                    nativedialog.inform(
+                        'Save Error',
+                        f'Failed to save the map!\nSystem info: {type(e).__name__}: {e!s}',
+                        'warning',
+                    )
+                finally:
+                    sub.parent = None
 
-                @btn_close.add_cb
-                def _(_, old):
-                    if btn_close.pseudo == 'hover' and old == 'pressed':
-                        sub.parent = None
+            @btn_close.add_cb
+            def _(_, old):
+                if btn_close.pseudo == 'hover' and old == 'pressed':
+                    sub.parent = None
 
         self._event_handlers = (
             MaterialPaletteEventHandler(self, self._pal),

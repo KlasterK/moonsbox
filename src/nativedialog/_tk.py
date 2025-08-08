@@ -13,11 +13,11 @@ def impl_ask_open_file(title, file_types, initial_dir):
     return file_path if file_path else ''
 
 
-def impl_ask_save_file(title, file_types, initial_dir):
+def impl_ask_save_file(title, file_types, initial_dir, def_ext):
     root = tk.Tk()
     root.withdraw()
 
     file_path = filedialog.asksaveasfilename(
-        title=title, initialdir=initial_dir, filetypes=file_types
+        title=title, initialdir=initial_dir, filetypes=file_types, defaultextension=def_ext
     )
     return file_path if file_path else ''
