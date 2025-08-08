@@ -39,7 +39,7 @@ class ConfigDefaults:
     ENABLE_FPS_COUNTER: bool = False
     ENABLE_TPS_COUNTER: bool = False
     DEBUG_COLOR: pygame.Color = field(default_factory=lambda: pygame.Color('#00FF00'))
-    USER_LOCALE: str = field(default_factory=lambda: locale.getdefaultlocale()[0])
+    USER_LOCALE: str = field(default_factory=lambda: locale.getlocale()[0])
     MATERIAL_TRANSLATIONS: dict = field(
         default_factory=lambda: {
             'ru_RU': {
