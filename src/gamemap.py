@@ -5,7 +5,6 @@ from io import BytesIO
 from typing import Callable, Literal
 
 import numpy as np
-import PIL.Image
 import pygame
 
 from .materials import BaseMaterial, Space
