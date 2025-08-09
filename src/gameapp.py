@@ -22,7 +22,7 @@ from .config import (
 from .gamemap import GameMap
 from .materialpalette import MaterialPalette
 from .materials import Sand
-from .renderer import Renderer
+from .renderer import Renderer, available_render_masks
 from .simulation import SimulationManager
 from .ui import (
     Button,
@@ -126,12 +126,15 @@ class GameApp:
 
         self._is_running = True
         self._is_paused = False
+        self._is_rendering = True
 
         self._map = GameMap(MAP_SIZE)
         self._sim = SimulationManager(self._map)
 
         self._camera = Camera(self._screen, self._map, VISIBLE_AREA)
-        self._renderer = Renderer(self._map, self._screen, MAP_INNER_COLOR)
+        self._renderer = Renderer(self._map, self._screen)
+        self._render_mask = available_render_masks[0]
+        self._render_mask_index = 0
 
         self._pal = MaterialPalette(
             PALETTE_ICON_SIZE,
@@ -245,6 +248,8 @@ class GameApp:
             CapturingEventHandler(self._renderer),
         )
 
+    # from profilehooks import profile
+    # @profile(stdout=False, filename='GameApp-run.prof')
     def run(self) -> None:
         if not self._is_running:
             raise RuntimeError('game is stopped')
@@ -267,10 +272,11 @@ class GameApp:
                 self._sim.tick()
 
             self._screen.fill(MAP_OUTER_COLOR)
-            self._renderer.render(self._camera.get_area())
-            self._pal.render()
-            if not self._pal.is_visible():
-                self._ui.draw(self._screen)
+            if self._is_rendering:
+                self._renderer.render(self._camera.get_area(), self._render_mask, MAP_INNER_COLOR)
+                self._pal.render()
+                if not self._pal.is_visible():
+                    self._ui.draw(self._screen)
 
             if ENABLE_TPS_COUNTER:
                 self._screen.blit(
@@ -294,3 +300,13 @@ class GameApp:
 
     def is_paused(self) -> bool:
         return self._is_paused
+
+    def next_render_mask(self) -> None:
+        self._render_mask_index = (self._render_mask_index + 1) % len(available_render_masks)
+        self._render_mask = available_render_masks[self._render_mask_index]
+
+    def is_rendering(self) -> bool:
+        return self._is_rendering
+
+    def set_rendering(self, value: bool) -> None:
+        self._is_rendering = value
