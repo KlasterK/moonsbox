@@ -2,6 +2,7 @@ import collections.abc
 import copy
 import pickle
 from io import BytesIO
+import sys
 from typing import Callable, Literal
 
 import numpy as np
@@ -31,8 +32,7 @@ class GameMap:
         # NOTE: in numpy if you using negative index, you will get the value from the end
         if pos[0] >= 0 and pos[0] < self.size[0] and pos[1] >= 0 and pos[1] < self.size[1]:
             return self._array[pos]
-        else:
-            return None
+        return None
 
     def __setitem__(self, pos: tuple[int, int], value: BaseMaterial) -> None:
         '''Sets a dot at the given position if the position is out of bounds, noexcept.'''
@@ -190,7 +190,7 @@ class GameMap:
             raise ValueError('save is incompatible with this version')
 
         if not isinstance(info.get('lists', None), collections.abc.Sequence):
-            raise ValueError('save is invalid (no array key)')
+            raise ValueError('save is invalid (no lists key)')
 
         try:
             arr = np.array(info['lists'], dtype=np.object_)
@@ -206,3 +206,10 @@ class GameMap:
         # Inject GameMap dependency into dots
         for dot in self._array.flat:
             dot.map = self
+
+
+try:
+    # from .opt_gamemap import GameMap
+    pass
+except ImportError:
+    pass
