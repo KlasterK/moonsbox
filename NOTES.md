@@ -3,7 +3,6 @@
 ## Simulation
 
 1. Space is air here.
-
 2. Here we call heat capacity how willingly a point changes (gives or takes) its temperature.
    And if the heat capacity is high, then the temperature of the point is harder to change. 
    If the heat capacity is zero, then the point immediately takes or gives away all the heat that 

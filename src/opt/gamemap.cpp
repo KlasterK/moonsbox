@@ -1,6 +1,7 @@
+// #include <pybind11/common.h>
 #include <pybind11/pybind11.h>
 #include <pybind11/pytypes.h>
-#include <functional>
+#include <pybind11/stl.h>
 
 namespace py = pybind11;
 using namespace py::literals;
@@ -17,21 +18,28 @@ std::array<int, 4> pygame_rect_to_xywh(py::object rect)
     };
 }
 
-class GameMap {
+class GameMap 
+{
 public:
     GameMap(Point size) 
     {
-        auto materials = py::module_::import(".materials");
+        auto materials = py::module_::import("src.materials"); // hack
         m_space_class = materials.attr("Space");
+        m_base_material_class = materials.attr("BaseMaterial");
         resize(size);
     }
 
-    py::object get(Point pos) const
+    Point get_size()
+    {
+        return m_size;
+    }
+
+    py::object get_at(Point pos) const
     {
         return bounds(pos) ? m_data[_index(pos)] : py::none();
     }
 
-    void set(Point pos, py::object value) 
+    void set_at(Point pos, py::object value) 
     {
         if (bounds(pos)) 
             m_data[_index(pos)] = value;
@@ -63,7 +71,7 @@ public:
     {
         for (int y = 0; y < m_size[1]; ++y)
             for (int x = 0; x < m_size[0]; ++x)
-                m_data[_index(x, y)] = material_factory(*this, x, y);
+                m_data[_index({x, y})] = material_factory(*this, x, y);
     }
 
     void draw_rect(py::object area, py::object material_factory) 
@@ -105,7 +113,7 @@ public:
                 long long x_x0_sq = (x - x0) * (x - x0);
                 long long y_y0_sq = (y - y0) * (y - y0);
                 long long left_cmp = b_sq * x_x0_sq + a_sq * y_y0_sq;
-                if(left_cmp < right_cmp) material_factory(*this, x, y);
+                if(left_cmp <= right_cmp) material_factory(*this, x, y);
             }
         }
     }
@@ -113,8 +121,8 @@ public:
     // TODO: implement more efficient line drawing (this one is just translation from Python)
     void draw_line(Point start, Point end, int width, py::object material_factory, std::string ends) 
     {
-        int delta_x = std::abs(start[0], end[0]);
-        int delta_y = std::abs(start[1], end[1]);
+        int delta_x = std::abs(start[0] - end[0]);
+        int delta_y = std::abs(start[1] - end[1]);
 
         int current_x = start[0];
         int current_y = end[0];
@@ -127,7 +135,7 @@ public:
         if (delta_x > delta_y) 
         {
             double error = delta_x / 2.0;
-            while (current_x != x1) 
+            while (current_x != end[0]) 
             {
                 points.push_back({current_x, current_y});
                 current_x += step_x;
@@ -143,7 +151,7 @@ public:
         else 
         {
             double error = delta_y / 2.0;
-            while (current_y != y1) 
+            while (current_y != end[1]) 
             {
                 points.push_back({current_x, current_y});
                 current_y += step_y;
@@ -179,49 +187,76 @@ public:
         }
     }
 
-    py::object dump() 
+    py::object dump(py::object file) 
     {
+        // NOTE: internal format is columns-first, but external is rows-first
+        py::list lists;
+        for(int x{}; x < m_size[0]; ++x)
+        {
+            py::list sublist;
+            for(int y{}; y < m_size[1]; ++y)
+            {
+                sublist.append(m_data[_index({x, y})]);
+            }
+            lists.append(sublist);
+        }
+
         py::dict info;
         info["application"] = "moonsbox";
         info["version"] = py::make_tuple("1.0.1-alpha");
-        // Convert m_data to numpy array
-        py::module np = py::module_::import("numpy");
-        py::tuple shape = py::make_tuple(m_size[0], m_size[1]);
-        py::object arr = np.attr("empty")(shape, "object");
-        for (int x = 0; x < m_size[0]; ++x) {
-            for (int y = 0; y < m_size[1]; ++y) {
-                arr[x][y] = m_data[_index(x, y)];
-            }
-        }
-        info["array"] = arr;
+        info["lists"] = lists;
         py::module pickle = py::module_::import("pickle");
-        return pickle.attr("dumps")(info);
+        return pickle.attr("dump")(info, file);
     }
 
-    void load(py::object bytes_obj) {
-        py::module pickle = py::module_::import("pickle");
-        py::object info = pickle.attr("loads")(bytes_obj);
-        if (!info.contains("application") || info["application"].cast<std::string>() != "moonsbox") {
-            throw std::runtime_error("save is not a moonsbox save");
+    void load(py::object file)  
+    {
+        // TODO: add more checks
+        py::dict info;
+        try 
+        {
+            py::module pickle = py::module_::import("pickle");
+            info = pickle.attr("load")(file);
         }
-        if (!info.contains("version") || info["version"].cast<std::string>().find("1.1") == std::string::npos) {
-            throw std::runtime_error("save is incompatible with this version");
+        catch(const py::builtin_exception &e)
+        {
+            throw py::value_error("failed to unpickle save");
         }
-        if (!info.contains("array")) {
-            throw std::runtime_error("save is invalid");
+
+        if (!info.contains("application") 
+            || info["application"].cast<std::string>() != "moonsbox"
+        ) throw py::value_error("save is not a moonsbox save (wrong application)");
+
+        if (!info.contains("version") 
+            || !info["version"].cast<py::sequence>().contains("1.0.1-alpha")
+        ) throw py::value_error("save is incompatible with this version");
+
+        if (!info.contains("lists"))
+            throw py::value_error("save is invalid (no lists key)");
+
+        py::sequence lists = info["lists"];
+        int shape_y = lists.size();
+        if(shape_y <= 0)
+            throw py::value_error("save is invalid (empty map)");
+        int shape_x = lists[0].cast<py::sequence>().size();
+        if(shape_x <= 0)
+            throw py::value_error("save is invalid (empty map)");
+
+        // Firsly, check everything
+        for(auto sublist_uncasted : lists)
+        {
+            auto subseq = sublist_uncasted.cast<py::sequence>();
+            if(subseq.size() != shape_x)
+                throw py::value_error("save is invalid (non-straight shape)");
         }
-        py::object arr = info["array"];
-        py::tuple shape = arr.attr("shape");
-        if (shape.size() != 2) {
-            throw std::runtime_error("save is invalid");
-        }
-        int sx = shape[0].cast<int>();
-        int sy = shape[1].cast<int>();
-        m_size = {sx, sy};
-        m_data.resize(sx * sy, py::none());
-        for (int x = 0; x < sx; ++x) {
-            for (int y = 0; y < sy; ++y) {
-                m_data[_index(x, y)] = arr[x][y];
+
+        resize({shape_x, shape_y});
+        for(int x{}; x < shape_x; ++x)
+        {
+            auto subseq = lists[x].cast<py::sequence>();
+            for(int y{}; y < shape_y; ++y)
+            {
+                m_data[_index({x, y})] = subseq[y];
             }
         }
     }
@@ -229,7 +264,7 @@ public:
 private:
     std::vector<py::object> m_data;
     Point m_size;
-    py::object m_space_class;
+    py::object m_space_class, m_base_material_class;
 
     int _index(Point pos) const 
     {
@@ -242,8 +277,9 @@ PYBIND11_MODULE(opt_gamemap, m)
 {
     py::class_<GameMap>(m, "GameMap")
         .def(py::init<Point>())
-        .def("get", &GameMap::get)
-        .def("set", &GameMap::set)
+        .def("__getitem__", &GameMap::get_at)
+        .def("__setitem__", &GameMap::set_at)
+        .def_property("size", &GameMap::get_size, nullptr)
         .def("invy", &GameMap::invy)
         .def("invy_pos", &GameMap::invy_pos)
         .def("bounds", &GameMap::bounds)
