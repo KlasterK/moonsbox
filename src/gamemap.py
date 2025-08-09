@@ -40,6 +40,11 @@ class GameMap:
         if pos[0] >= 0 and pos[0] < self.size[0] and pos[1] >= 0 and pos[1] < self.size[1]:
             self._array[pos] = value
 
+    def get_view(self) -> np.ndarray:
+        '''Returns a numpy view to internal array.'''
+
+        return self._array.view()
+
     def invy(self, y: int) -> int:
         '''Inverts Y axis for the given value.'''
 
