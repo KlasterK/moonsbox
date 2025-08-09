@@ -9,7 +9,7 @@ import pygame
 
 from .materials import BaseMaterial, Space
 
-type MFactory = Callable[['GameMap', tuple[int, int]], BaseMaterial] | type[BaseMaterial]
+type MFactory = Callable[['GameMap', int, int], BaseMaterial] | type[BaseMaterial]
 
 
 class GameMap:
@@ -39,11 +39,6 @@ class GameMap:
 
         if pos[0] >= 0 and pos[0] < self.size[0] and pos[1] >= 0 and pos[1] < self.size[1]:
             self._array[pos] = value
-
-    def get_view(self) -> np.ndarray:
-        '''Returns a view of internal numpy array.'''
-
-        return self._array.view()
 
     def invy(self, y: int) -> int:
         '''Inverts Y axis for the given value.'''
@@ -172,31 +167,17 @@ class GameMap:
                             continue
                     self._array[tx, ty] = material_factory(self, tx, ty)
 
-    def take_screenshot(self) -> PIL.Image.Image:
-        # PIL expecting shape (y, x, channels)
-        w, h = self.size
-        image_buffer = np.ndarray((h, w, 4), dtype=np.uint8)
-
-        for x in range(w):
-            for y in range(h):
-                color = self._array[x, self.invy(y)].color
-
-                image_buffer[y, x, 0] = color.r
-                image_buffer[y, x, 1] = color.g
-                image_buffer[y, x, 2] = color.b
-                image_buffer[y, x, 3] = color.a
-
-        return PIL.Image.fromarray(image_buffer, 'RGBA')
+    COMPAT_SAVE_VERSIONS = ('1.0.1-alpha',)
 
     def dump(self, file: BytesIO) -> None:
         info = {
             'application': 'moonsbox',
-            'version': '1.1',
-            'array': self._array,
+            'version': GameMap.COMPAT_SAVE_VERSIONS,
+            'lists': self._array.tolist(),
         }
         try:
             pickle.dump(info, file)
-        except pickle.PickleError:
+        except pickle.PickleError as e:
             raise ValueError('failed to pickle save') from e
 
     def load(self, file: BytesIO) -> None:
@@ -204,17 +185,28 @@ class GameMap:
             info = pickle.load(file)
         except pickle.PickleError as e:
             raise ValueError('failed to unpickle save') from e
+
+        if not isinstance(info, collections.abc.Mapping):
+            raise ValueError('save is not a moonsbox save (not a dict)')
+
         if info.get('application', None) != 'moonsbox':
-            raise ValueError('save is not a moonsbox save')
-        if (
-            not isinstance(info.get('version', None), collections.abc.Sequence)
-            or '1.1' not in info['version']
+            raise ValueError('save is not a moonsbox save (wrong application)')
+
+        if not isinstance(info.get('version', None), collections.abc.Sequence) or all(
+            v not in GameMap.COMPAT_SAVE_VERSIONS for v in info['version']
         ):
             raise ValueError('save is incompatible with this version')
-        if not isinstance(info.get('array', None), np.ndarray):
-            raise ValueError('save is invalid')
-        if len(info['array'].shape) != 2:
-            raise ValueError('save is invalid')
 
-        self._array = info['array']
+        if not isinstance(info.get('lists', None), collections.abc.Sequence):
+            raise ValueError('save is invalid (no array key)')
+
+        try:
+            arr = np.array(info['lists'], dtype=np.object_)
+        except ValueError as e:
+            raise ValueError('save is invalid (cannot convert lists to numpy array)') from e
+
+        if len(arr.shape) != 2:
+            raise ValueError('save is invalid (array is not 2D)')
+
+        self._array = arr
         self.size = self._array.shape

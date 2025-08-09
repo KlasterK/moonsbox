@@ -2,7 +2,6 @@
 from PyInstaller.utils.hooks import collect_data_files, collect_submodules
 import os
 
-# Основные настройки
 a = Analysis(
     ['pyinst_launcher.py'],
     pathex=[os.getcwd()],
@@ -29,7 +28,6 @@ a = Analysis(
     noarchive=False,
 )
 
-# Настройки для exe
 pyz = PYZ(a.pure, a.zipped_data, cipher=None)
 
 exe = EXE(

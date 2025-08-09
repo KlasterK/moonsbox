@@ -11,9 +11,6 @@ from .config import (
     DRAWING_IS_DESTRUCTIVE,
     ENABLE_VSYNC,
     SCREEN_SIZE,
-    SCREENSHOT_DOT_SIZE,
-    SCREENSHOT_PATH_FACTORY,
-    SCREENSHOT_TYPE_HINT,
     ZOOM_FACTOR,
     PALETTE_MOUSE_SELECTION_REQUIRES_DBL_CLICK,
 )
@@ -56,28 +53,6 @@ class GameAppEventHandler(BaseEventHandler):
             elif e.key == pygame.K_SPACE:  # `~ key
                 self._app.set_paused(not self._app.is_paused())
 
-            elif e.key == pygame.K_F1:
-                self._app.next_render_mask()
-
-            elif e.key == pygame.K_r:
-                self._app.set_rendering(False)
-                if ENABLE_VSYNC:
-                    pygame.display.set_mode(
-                        SCREEN_SIZE,
-                        pygame.RESIZABLE | pygame.DOUBLEBUF | pygame.HWSURFACE | pygame.HWACCEL,
-                        vsync=0,
-                    )
-
-        elif e.type == pygame.KEYUP:
-            if e.key == pygame.K_r:
-                self._app.set_rendering(True)
-                if ENABLE_VSYNC:
-                    pygame.display.set_mode(
-                        SCREEN_SIZE,
-                        pygame.RESIZABLE | pygame.DOUBLEBUF | pygame.HWSURFACE | pygame.HWACCEL,
-                        vsync=1,
-                    )
-
 
 class SimulationEventHandler(BaseEventHandler):
     def __init__(self, game_map: GameMap, simulation_manager: SimulationManager):
@@ -88,28 +63,9 @@ class SimulationEventHandler(BaseEventHandler):
         if e.type == pygame.KEYDOWN:
             if e.key == pygame.K_F5:
                 self._sim.tick()
+
             elif e.key == pygame.K_F6:
                 self._map.fill(Space)
-            elif e.key == pygame.K_F9:
-                unscaled = self._map.take_screenshot()
-                scaled = unscaled.resize(
-                    (
-                        unscaled.width * SCREENSHOT_DOT_SIZE[0],
-                        unscaled.height * SCREENSHOT_DOT_SIZE[1],
-                    ),
-                    PIL.Image.Resampling.NEAREST,
-                )
-                scaled.show()
-            elif e.key == pygame.K_F10:
-                unscaled = self._map.take_screenshot()
-                scaled = unscaled.resize(
-                    (
-                        unscaled.width * SCREENSHOT_DOT_SIZE[0],
-                        unscaled.height * SCREENSHOT_DOT_SIZE[1],
-                    ),
-                    PIL.Image.Resampling.NEAREST,
-                )
-                scaled.save(SCREENSHOT_PATH_FACTORY(), SCREENSHOT_TYPE_HINT)
 
 
 class CameraEventHandler(BaseEventHandler):
@@ -323,8 +279,34 @@ class CapturingEventHandler(BaseEventHandler):
         self._rnd = rnd
 
     def process_event(self, e):
-        if e.type == pygame.KEYDOWN and e.key == pygame.K_F12 and e.mod & pygame.KMOD_ALT:
-            if not self._rnd.is_capturing():
-                self._rnd.begin_capturing()
-            else:
-                self._rnd.end_capturing()
+        if e.type == pygame.KEYDOWN:
+            if e.key == pygame.K_F12 and e.mod & pygame.KMOD_ALT:
+                if not self._rnd.is_capturing():
+                    self._rnd.begin_capturing()
+                else:
+                    self._rnd.end_capturing()
+
+            elif e.key == pygame.K_r:
+                self._rnd.is_paused = True
+                if ENABLE_VSYNC:
+                    pygame.display.set_mode(
+                        SCREEN_SIZE,
+                        pygame.RESIZABLE | pygame.DOUBLEBUF | pygame.HWSURFACE | pygame.HWACCEL,
+                        vsync=0,
+                    )
+
+            elif e.key == pygame.K_F10:
+                self._rnd.take_screenshot()
+
+            elif e.key == pygame.K_v:
+                self._rnd.next_render_mask()
+
+        elif e.type == pygame.KEYUP:
+            if e.key == pygame.K_r:
+                self._rnd.is_paused = False
+                if ENABLE_VSYNC:
+                    pygame.display.set_mode(
+                        SCREEN_SIZE,
+                        pygame.RESIZABLE | pygame.DOUBLEBUF | pygame.HWSURFACE | pygame.HWACCEL,
+                        vsync=1,
+                    )
