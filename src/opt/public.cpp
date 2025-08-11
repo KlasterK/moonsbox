@@ -3,6 +3,8 @@
 #include <pybind11/stl.h>
 #include <pybind11/numpy.h>
 
+import gamemap;
+
 PYBIND11_MODULE(opt, m)
 {
     py::class_<GameMap>(m, "GameMap")
