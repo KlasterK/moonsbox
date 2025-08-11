@@ -215,9 +215,3 @@ class GameMap:
 
         self._array = arr
         self.size = self._array.shape
-
-try:
-    # from .opt_gamemap import GameMap
-    pass
-except ImportError:
-    pass
