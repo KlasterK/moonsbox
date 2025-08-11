@@ -1,22 +1,13 @@
+module;
 #include <pybind11/pybind11.h>
 #include <pybind11/pytypes.h>
 #include <pybind11/stl.h>
-#include <pybind11/numpy.h>
+export module gamemap;
 
 namespace py = pybind11;
 using namespace py::literals;
 
-using Point = std::array<int, 2>;
-
-std::array<int, 4> pygame_rect_to_xywh(py::object rect)
-{
-    return {
-        rect.attr("x").cast<int>(),
-        rect.attr("y").cast<int>(),
-        rect.attr("w").cast<int>(),
-        rect.attr("h").cast<int>(),
-    };
-}
+import util;
 
 class GameMap 
 {
