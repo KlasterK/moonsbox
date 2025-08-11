@@ -1,7 +1,7 @@
-// #include <pybind11/common.h>
 #include <pybind11/pybind11.h>
 #include <pybind11/pytypes.h>
 #include <pybind11/stl.h>
+#include <pybind11/numpy.h>
 
 namespace py = pybind11;
 using namespace py::literals;
@@ -23,7 +23,7 @@ class GameMap
 public:
     GameMap(Point size) 
     {
-        auto materials = py::module_::import("src.materials"); // hack
+        auto materials = py::module_::import("src.materials");
         m_space_class = materials.attr("Space");
         m_base_material_class = materials.attr("BaseMaterial");
         resize(size);
@@ -37,6 +37,11 @@ public:
     py::object get_at(Point pos) const
     {
         return bounds(pos) ? m_data[_index(pos)] : py::none();
+    }
+
+    void get_view() const
+    {
+        throw std::runtime_error("get_view() not implemented in opt_gamemap");
     }
 
     void set_at(Point pos, py::object value) 
@@ -275,19 +280,4 @@ private:
 
 PYBIND11_MODULE(opt_gamemap, m) 
 {
-    py::class_<GameMap>(m, "GameMap")
-        .def(py::init<Point>())
-        .def("__getitem__", &GameMap::get_at)
-        .def("__setitem__", &GameMap::set_at)
-        .def_property("size", &GameMap::get_size, nullptr)
-        .def("invy", &GameMap::invy)
-        .def("invy_pos", &GameMap::invy_pos)
-        .def("bounds", &GameMap::bounds)
-        .def("resize", &GameMap::resize)
-        .def("fill", &GameMap::fill)
-        .def("draw_rect", &GameMap::draw_rect)
-        .def("draw_ellipse", &GameMap::draw_ellipse)
-        .def("draw_line", &GameMap::draw_line)
-        .def("dump", &GameMap::dump)
-        .def("load", &GameMap::load);
 }
