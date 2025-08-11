@@ -129,6 +129,11 @@ class GameApp:
 
         pygame.display.set_icon(get_image('window_icon'))
 
+        # TODO: enhance loading screen
+        self._screen.fill('black')
+        self._screen.blit(get_font().render('Loading...', True, DEBUG_COLOR), (10, 10))
+        pygame.display.flip()
+
         self._is_running = True
         self._is_paused = False
 
