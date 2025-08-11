@@ -22,4 +22,3 @@ target_sources(opt
         materials.cppm
         public.cpp
 )
-
