@@ -45,11 +45,10 @@ and their interactions in a pixel world.
 - **Enter | Double LMB**: Select material to draw
 - **Esc**: Close palette or exit
 - **Space**: Pause simulation
-- **F1**: Change render mask (normal/thermal)
+- **V**: Change render mask (normal/thermal)
 - **F5**: Step simulation
 - **F6**: Clean map
-- **F9**: Show map screenshot
-- **F10**: Save map screenshot
+- **F10**: Take screenshot
 - **+ | -**: Change brush size
 - **R**: Pause rendering to speed up simulation
 - **Alt + F12**: Begin or end capturing (see Running to convert capture to a video)
@@ -64,7 +63,7 @@ and their interactions in a pixel world.
 
 ## Running
 
-```
+```sh
 # If your platform is not Windows, it's recommended to have tkinter:
 python -c "import tkinter" # checks if tkinter is here
 # If you don't have one and not using Windows, then if you open file dialogs, you have to enter
@@ -85,9 +84,8 @@ python -m src
 # Requires FFMPEG!
 ffmpeg -i <CAPTURE DIR>/frame_%06d.png [<further args>]
 # Create a video with 60 FPS, x264 codec, scaled to 400x400 (but still pixelated):
-ffmpeg -i ./capture_2025-08-05_17-02-33/frame_%06d.png -framerate 60 -vcodec libx264 \
-       -sws_flags neighbor -s 400x400 ./testcapt.mp4
-rm -rf ./capture_2025-08-05_17-02-33/
+ffmpeg -i capture_2025-08-05_17-02-33/frame_%06d.png -framerate 60 -vcodec libx264 \
+       -sws_flags neighbor -s 400x400 testcapt.mp4
 ```
 
 ## License

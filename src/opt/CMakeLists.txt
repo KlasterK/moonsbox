@@ -13,4 +13,13 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(PYBIND11_FINDPYTHON ON)
 find_package(pybind11 CONFIG REQUIRED)
 
-pybind11_add_module(opt_gamemap gamemap.cpp)
+pybind11_add_module(opt)
+target_sources(opt 
+    PUBLIC FILE_SET cxx_modules TYPE CXX_MODULES FILES
+        gamemap.cppm
+        simulation.cppm
+        renderer.cppm
+        materials.cppm
+        public.cpp
+)
+
