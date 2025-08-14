@@ -283,8 +283,10 @@ class CapturingEventHandler(BaseEventHandler):
             if e.key == pygame.K_F12 and e.mod & pygame.KMOD_ALT:
                 if not self._rnd.is_capturing():
                     self._rnd.begin_capturing()
+                    GameSound('ui.begin_capturing').play_override()
                 else:
                     self._rnd.end_capturing()
+                    GameSound('ui.end_capturing').play_override()
 
             elif e.key == pygame.K_r:
                 self._rnd.is_paused = True
