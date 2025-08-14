@@ -1,7 +1,7 @@
 import numpy as np
 import pygame
 
-from .config import TEMP_IS_EXCHANGING
+from .config import TEMP_IS_EXCHANGING, DO_USE_FAST_TEMP_EXCHANGING
 from .gamemap import GameMap
 from .materials import BaseMaterial, MaterialTags
 
@@ -23,25 +23,26 @@ class SimulationManager:
 
         # Exchanging temp of neighbours
         for x in range(size_x):
-            dot_below = None
             for y in range(size_y):
                 dot: BaseMaterial = view[x, y]
 
                 if TEMP_IS_EXCHANGING:
-                    if dot_below is not None:
-                        dot.temp += (
-                            (dot_below.temp - dot.temp)
-                            * dot_below.thermal_conductivity
-                            * dot.heat_capacity
-                        )
+                    if not DO_USE_FAST_TEMP_EXCHANGING:
+                        if x > 0:
+                            neighbour = view[x - 1, y]
+                            dot.temp += (
+                                (neighbour.temp - dot.temp)
+                                * neighbour.thermal_conductivity
+                                * dot.heat_capacity
+                            )
 
-                    if x > 0:
-                        neighbour = view[x - 1, y]
-                        dot.temp += (
-                            (neighbour.temp - dot.temp)
-                            * neighbour.thermal_conductivity
-                            * dot.heat_capacity
-                        )
+                        if y > 0:
+                            neighbour = view[x, y - 1]
+                            dot.temp += (
+                                (neighbour.temp - dot.temp)
+                                * neighbour.thermal_conductivity
+                                * dot.heat_capacity
+                            )
 
                     if x < size_x - 1:
                         neighbour = view[x + 1, y]
@@ -59,7 +60,6 @@ class SimulationManager:
                             * dot.heat_capacity
                         )
 
-                dot_below = dot
                 if not dot.tags & MaterialTags.GAS:
                     dot.update(self._map, x, y)
 
