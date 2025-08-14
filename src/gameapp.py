@@ -137,11 +137,16 @@ class GameApp:
         self._is_running = True
         self._is_paused = False
 
-        self._map = GameMap(MAP_SIZE)
-        self._sim = SimulationManager(self._map)
+        try:
+            from .opt import make_opt
+        except ImportError:
+            self._map = GameMap(MAP_SIZE)
+            self._sim = SimulationManager(self._map)
+            self._renderer = Renderer(self._map, self._screen, MAP_INNER_COLOR)
+        else:
+            self._map, self._sim, self._renderer = make_opt()
 
         self._camera = Camera(self._screen, self._map, VISIBLE_AREA)
-        self._renderer = Renderer(self._map, self._screen, MAP_INNER_COLOR)
 
         self._pal = MaterialPalette(
             PALETTE_ICON_SIZE,

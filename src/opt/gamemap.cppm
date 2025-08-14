@@ -1,106 +1,129 @@
 module;
-#include <pybind11/pybind11.h>
-#include <pybind11/pytypes.h>
-#include <pybind11/stl.h>
+#include <cstdint>
+#include <optional>
+#include <functional>
 export module gamemap;
-
-namespace py = pybind11;
-using namespace py::literals;
 
 import util;
 
-class GameMap 
+class GameMap;
+
+export enum class MaterialTags : long long
+{
+    Null        = 0,
+    Solid       = 1,
+    Bulk        = 2,
+    Liquid      = 4,
+    Gas         = 8,
+    Space       = 16,
+
+    Sparseness  = Gas | Space,
+    Movable     = Bulk | Liquid | Gas,
+};
+
+export struct MaterialData
+{
+    float temp, heat_capacity, thermal_conductivity;
+    uint32_t color_rgba;
+    std::function<void(GameMap&, Point)> update;
+    uintptr_t aux;
+    MaterialTags tags;
+
+    // Default constructor, represents Space
+    MaterialData()
+        : temp(20.0_cels)
+        , heat_capacity(0.3f)
+        , thermal_conductivity(1.0f)
+        , color_rgba(0000)
+        , update(nullptr)
+        , tags(MaterialTags::Space)
+    {}
+};
+
+using material_factory_t = std::function<MaterialData(GameMap&, Point)>;
+enum class LineEnds { Square, Round };
+
+export class GameMap
 {
 public:
-    GameMap(Point size) 
+    GameMap(Point size)
     {
-        auto materials = py::module_::import("src.materials");
-        m_space_class = materials.attr("Space");
-        m_base_material_class = materials.attr("BaseMaterial");
         resize(size);
     }
 
-    Point get_size()
+    Point get_size() noexcept
     {
         return m_size;
     }
 
-    py::object get_at(Point pos) const
+    opt_ref<const MaterialData> at(Point pos) const noexcept
     {
-        return bounds(pos) ? m_data[_index(pos)] : py::none();
+        return bounds(pos) ? m_data[_index(pos)] : std::nullopt;
     }
 
-    void get_view() const
+    opt_ref<MaterialData> at(Point pos) noexcept
     {
-        throw std::runtime_error("get_view() not implemented in opt_gamemap");
+        return bounds(pos) ? m_data[_index(pos)] : std::nullopt;
     }
 
-    void set_at(Point pos, py::object value) 
-    {
-        if (bounds(pos)) 
-            m_data[_index(pos)] = value;
-    }
+    decltype(m_data)::iterator begin() { return m_data.begin(); }
+    decltype(m_data)::iterator end()   { return m_data.end(); }
+    Point strides() { return m_size[1], 1; }
 
-    int invy(int y) const 
+    int invy(int y) const noexcept
     {
         return m_size[1] - 1 - y;
     }
 
-    Point invy_pos(Point pos) const 
+    Point invy_pos(Point pos) const noexcept
     {
         return {pos[0], m_size[1] - 1 - pos[1]};
     }
 
-    bool bounds(Point pos) const 
+    bool bounds(Point pos) const noexcept
     {
         return pos[0] >= 0 && pos[0] < m_size[0] && pos[1] >= 0 && pos[1] < m_size[1];
     }
 
-    void resize(Point new_size) 
+    void resize(Point new_size)
     {
+        m_data = std::make_unique<MaterialData[]>(m_size[0] * m_size[1], py::none());
         m_size = new_size;
-        m_data.resize(m_size[0] * m_size[1], py::none());
         fill(m_space_class);
     }
 
-    void fill(py::object material_factory) 
+    void fill(material_factory_t material_factory) 
     {
         for (int y = 0; y < m_size[1]; ++y)
             for (int x = 0; x < m_size[0]; ++x)
                 m_data[_index({x, y})] = material_factory(*this, x, y);
     }
 
-    void draw_rect(py::object area, py::object material_factory) 
+    void draw_rect(Rect area, material_factory_t material_factory) 
     {
-        auto [rx, ry, rw, rh] = pygame_rect_to_xywh(area);
-
-        int x_start = std::max(rx, 0);
-        int x_end = std::min(ry, m_size[0]);
-        int y_start = std::max(rx+rw, 0);
-        int y_end = std::min(ry+rh, m_size[1]);
+        int x_start = std::max(area.x0(), 0);
+        int x_end   = std::min(area.x1(), m_size[0]);
+        int y_start = std::max(area.y0(), 0);
+        int y_end   = std::min(area.y1(), m_size[1]);
 
         for (int y = y_start; y < y_end; ++y)
             for (int x = x_start; x < x_end; ++x)
                 m_data[_index({x, y})] = material_factory(*this, x, y);
     }
 
-    void draw_ellipse(py::object area, py::object material_factory) 
+    void draw_ellipse(Rect area, material_factory_t material_factory) 
     {
         // Solving ellipse equation:
         // ((x - x0) / a) ** 2 + ((y - y0) / b) ** 2 <= 1
         // This formula with only integral logic:
         // b ** 2 * (x - x0) ** 2 + a ** 2 * (y - y0) ** 2 <= a ** 2 * b ** 2
-        // Does this formula need long long? I calculated sqrt of MAX_INT and it's ~44k
 
-        long long x0, y0, a_sq, b_sq, right_cmp, rows = m_size[0], cols = m_size[1];
-        {
-            auto [x, y, w, h] = pygame_rect_to_xywh(area);
-            x0 = x + w / 2;
-            y0 = x + h / 2;
-            a_sq = w * w / 4;
-            b_sq = h * h / 4;
-            right_cmp = a_sq * b_sq;
-        }
+        long long x0 = area.center_x();
+        long long y0 = area.center_y();
+        long long a_sq = area.w() * area.w() / 4;
+        long long b_sq = area.h() * area.h() / 4;
+        long long right_cmp = a_sq * b_sq;
+        long long rows = m_size[0], cols = m_size[1];
 
         for (long long y = 0; y < rows; ++y) 
         {
@@ -115,7 +138,8 @@ public:
     }
 
     // TODO: implement more efficient line drawing (this one is just translation from Python)
-    void draw_line(Point start, Point end, int width, py::object material_factory, std::string ends) 
+    void draw_line(Point start, Point end, int width, material_factory_t material_factory, 
+                   LineEnds ends) 
     {
         int delta_x = std::abs(start[0] - end[0]);
         int delta_y = std::abs(start[1] - end[1]);
@@ -183,84 +207,11 @@ public:
         }
     }
 
-    py::object dump(py::object file) 
-    {
-        // NOTE: internal format is columns-first, but external is rows-first
-        py::list lists;
-        for(int x{}; x < m_size[0]; ++x)
-        {
-            py::list sublist;
-            for(int y{}; y < m_size[1]; ++y)
-            {
-                sublist.append(m_data[_index({x, y})]);
-            }
-            lists.append(sublist);
-        }
-
-        py::dict info;
-        info["application"] = "moonsbox";
-        info["version"] = py::make_tuple("1.0.1-alpha");
-        info["lists"] = lists;
-        py::module pickle = py::module_::import("pickle");
-        return pickle.attr("dump")(info, file);
-    }
-
-    void load(py::object file)  
-    {
-        // TODO: add more checks
-        py::dict info;
-        try 
-        {
-            py::module pickle = py::module_::import("pickle");
-            info = pickle.attr("load")(file);
-        }
-        catch(const py::builtin_exception &e)
-        {
-            throw py::value_error("failed to unpickle save");
-        }
-
-        if (!info.contains("application") 
-            || info["application"].cast<std::string>() != "moonsbox"
-        ) throw py::value_error("save is not a moonsbox save (wrong application)");
-
-        if (!info.contains("version") 
-            || !info["version"].cast<py::sequence>().contains("1.0.1-alpha")
-        ) throw py::value_error("save is incompatible with this version");
-
-        if (!info.contains("lists"))
-            throw py::value_error("save is invalid (no lists key)");
-
-        py::sequence lists = info["lists"];
-        int shape_y = lists.size();
-        if(shape_y <= 0)
-            throw py::value_error("save is invalid (empty map)");
-        int shape_x = lists[0].cast<py::sequence>().size();
-        if(shape_x <= 0)
-            throw py::value_error("save is invalid (empty map)");
-
-        // Firsly, check everything
-        for(auto sublist_uncasted : lists)
-        {
-            auto subseq = sublist_uncasted.cast<py::sequence>();
-            if(subseq.size() != shape_x)
-                throw py::value_error("save is invalid (non-straight shape)");
-        }
-
-        resize({shape_x, shape_y});
-        for(int x{}; x < shape_x; ++x)
-        {
-            auto subseq = lists[x].cast<py::sequence>();
-            for(int y{}; y < shape_y; ++y)
-            {
-                m_data[_index({x, y})] = subseq[y];
-            }
-        }
-    }
-
+    // FIXME: add dump() and load()
+    
 private:
-    std::vector<py::object> m_data;
+    std::vector<MaterialData> m_data;
     Point m_size;
-    py::object m_space_class, m_base_material_class;
 
     int _index(Point pos) const 
     {
@@ -268,7 +219,3 @@ private:
         return pos[1] + pos[0] * m_size[1];
     }
 };
-
-PYBIND11_MODULE(opt_gamemap, m) 
-{
-}
