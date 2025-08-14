@@ -69,9 +69,11 @@ class Renderer:
 
         # Iterating through the map
         with pygame.PixelArray(self._temp_surface) as temp_array:
+            view = self._map.get_view()
+            
             for x in range(x_start, x_end):
                 for y in range(y_start, y_end):
-                    dot = self._map[x, self._map.invy(y)]
+                    dot = view[x, self._map.invy(y)]
                     original_color = self._render_mask(dot)
 
                     if original_color.a == 255:
