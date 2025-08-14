@@ -1,14 +1,18 @@
+#include <pybind11/cast.h>
 #include <pybind11/pybind11.h>
 #include <pybind11/pytypes.h>
 #include <pybind11/stl.h>
 #include <pybind11/numpy.h>
 
 import gamemap;
+import simulation;
+import renderer;
+namespace py = pybind11;
+using namespace py::literals;
 
 PYBIND11_MODULE(opt, m)
 {
     py::class_<GameMap>(m, "GameMap")
-        .def(py::init<Point>())
         .def("__getitem__", &GameMap::get_at)
         .def("__setitem__", &GameMap::set_at)
         .def_property("size", &GameMap::get_size, nullptr)
@@ -27,4 +31,12 @@ PYBIND11_MODULE(opt, m)
         .def(py::init<py::object>())
         .def("tick", &SimulationManager::tick)
         .def("get_tps", &SimulationManager::get_tps);
+
+    m.def("make_opt", []
+    {
+        GameMap map;
+        SimulationManager sim_mgr;
+        Renderer rnd;
+        return py::make_tuple(map, sim_mgr, rnd);
+    });
 }

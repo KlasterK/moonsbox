@@ -16,9 +16,9 @@ find_package(pybind11 CONFIG REQUIRED)
 pybind11_add_module(opt)
 target_sources(opt 
     PUBLIC FILE_SET cxx_modules TYPE CXX_MODULES FILES
+        util.cppm
         gamemap.cppm
         simulation.cppm
         renderer.cppm
-        materials.cppm
         public.cpp
 )
