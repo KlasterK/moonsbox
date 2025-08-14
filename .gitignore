@@ -18,3 +18,4 @@ __pycache__/
 /toolchain.cmake
 /.cache/
 *.pdb
+.clangd
