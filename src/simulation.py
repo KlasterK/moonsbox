@@ -61,7 +61,7 @@ class SimulationManager:
                         )
 
                 if not dot.tags & MaterialTags.GAS:
-                    dot.update(self._map, x, y)
+                    dot.update(x, y)
 
         # We need to update gases separately, because the updating is going upwards,
         # and gas with y=0 will raise, then the same gas, now with y=1 will raise,
@@ -75,7 +75,7 @@ class SimulationManager:
 
         for idx in sorted_indices:
             x, y = x_coords[idx], y_coords[idx]
-            view[x, y].update(self._map, x, y)
+            view[x, y].update(x, y)
 
         self._clock.tick(framerate)
 
