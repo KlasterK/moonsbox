@@ -1,37 +1,114 @@
-# moonsbox config (TOML)
+# Default temperature for usual dots (default is 26.85 *C, 80.33 *F)
 DEFAULT_TEMP = 300
+
+# Set it to false to boost moonsbox (only if you do not need temperature)
 TEMP_IS_EXCHANGING = true
+
+# Default width of brush
 DEFAULT_DRAWING_WIDTH = 1
+
+# Width of brush will be increased/decreased on this value on + or - key press
 DELTA_DRAWING_WIDTH = 1
+
+# If you increase this value, zooming with mouse wheel will be faster
 ZOOM_FACTOR = 0.1
+
+# Set volume of sounds
 VOLUME = 1.0
+
+# Set volume of music (do not listen to)
 MUSIC_VOLUME = 0.0
+
+# If true, brush is a circle, otherwise brush is a square
 DRAWING_IS_CIRCULAR = true
+
+# If true, brush will replace all dots below, otherwise only empty space will be replaced
 DRAWING_IS_DESTRUCTIVE = false
+
+# Title of window
 WINDOW_CAPTION = "moonsbox"
+
+# Screen size on start
 SCREEN_SIZE = [560, 560]
+
+# Map size
 MAP_SIZE = [100, 100]
+
+# Visible area on start (format is [x, y, width, height])
 VISIBLE_AREA = [-20, -20, 140, 140]
+
+# Increase to make material icons larger (but blurrier)
 PALETTE_ICON_SIZE = [64, 64]
+
+# Increase if material captions are truncated (but then captions may collide)
 PALETTE_MAX_CAPTION_CHARS = 20
+
+# Distance between material icons in the palette
 PALETTE_MARGIN = 20
+
+# Color inside the map
 MAP_INNER_COLOR = "#000000"
+
+# Color outside the map (infinite boundary)
 MAP_OUTER_COLOR = "#071b10"
+
+# Outline color of selection
 PALETTE_SELECTION_OUTER_COLOR = "#00C3FF40"
+
+# Background color of selection
 PALETTE_SELECTION_INNER_COLOR = "#008CFF20"
+
+# The map will be filled with this color if the palette is shown
 PALETTE_SHADOW_COLOR = "#000000CC"
+
+# Font size of material captions, debug captions, etc.
 FONT_SIZE = 15
+
+# Path to font or name of font in the OS (depends on FONT_IS_SYSFONT)
+# May be a list (if first element is failed to load, then second element will be loaded, and so on)
 FONT_NAME_OR_PATH = "Sans"
+
+# If true, font will be looked up in OS font list, otherwise font will be looked up as a file
 FONT_IS_SYSFONT = true
+
+# If true, framerate is more smooth but locked to monitor's framerate
 ENABLE_VSYNC = true
+
+# If true, FPS counter will be shown
 ENABLE_FPS_COUNTER = false
+
+# If true, TPS (ticks per second) counter will be shown
 ENABLE_TPS_COUNTER = false
+
+# Color of FPS and TPS counters
 DEBUG_COLOR = "#00FF00"
+
+# Locale for material captions.
+# If assigned to "auto", then system's locale will be used. Otherwise, the value will be used.
+# Value is looked up in MATERIAL_TRANSLATIONS. Value must be in format language_COUNTRY (e.g. en_US)
 USER_LOCALE = "auto"
+
+# Path to assets directory
 ASSETS_ROOT = "./assets"
+
+# Path for screenshots. Fields in %x format will be filled according to strftime function of ANSI C.
+# See <https://en.cppreference.com/w/c/chrono/strftime>
 SCREENSHOT_PATH_FACTORY = "./screenshot_%Y-%m-%d_%H-%M-%S.png"
+
+# Type hint for screenshots. Required if target file has no extension.
 SCREENSHOT_TYPE_HINT = "PNG"
+
+# Dot size in pixels on screenshots.
 SCREENSHOT_DOT_SIZE = [1, 1]
+
+# Path for capturings. See SCREENSHOT_PATH_FACTORY
 CAPTURE_PATH_FACTORY = "./capture_%Y-%m-%d_%H-%M-%S/"
+
+# If true, then in order to pick unselected material you need to click on it 2 times, 
+# otherwise only 1 times.
 PALETTE_MOUSE_SELECTION_REQUIRES_DBL_CLICK = true
+
+# If true, then only half of neighbours of a dot will affect the dot's temperature.
+# It increases the speed of the game, but in return makes the temperature exchange more abrupt 
+# and prevents the spread of fire.
 DO_USE_FAST_TEMP_EXCHANGE = false
