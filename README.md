@@ -89,3 +89,7 @@ ffmpeg -i ./capture_2025-08-05_17-02-33/frame_%06d.png -framerate 60 -vcodec lib
        -sws_flags neighbor -s 400x400 ./testcapt.mp4
 rm -rf ./capture_2025-08-05_17-02-33/
 ```
+
+## License
+
+This project is licensed under the GPL-3.0 License - see the [LICENSE](LICENSE) file for details.
