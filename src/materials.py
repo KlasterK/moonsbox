@@ -72,8 +72,12 @@ class MaterialTags(Flag):
     LIQUID = auto()
     GAS = auto()
     SPACE = auto()
+
     SPARSENESS = GAS | SPACE
     MOVABLE = BULK | LIQUID | GAS
+
+    WET = auto()
+    ELECTRIC = auto()
 
 
 class BaseMaterial(abc.ABC):
@@ -236,7 +240,7 @@ class Water(BaseMaterial, display_name='Water'):
         if self.temp < 273:
             return MaterialTags.SOLID
         elif self.temp < 373:
-            return MaterialTags.LIQUID
+            return MaterialTags.LIQUID | MaterialTags.WET
         else:
             return MaterialTags.GAS
 
@@ -368,3 +372,112 @@ class Fire(BaseMaterial, display_name='Fire'):
     def color(self):
         factor = (self.temp - 800) / (1200 - 800)
         return blend(pygame.Color('#ff000044'), pygame.Color("#FFff00"), factor)
+
+
+class Flour(BaseMaterial, display_name='Flour'):
+    heat_capacity = 0.12
+    thermal_conductivity = 0.12
+    tags = MaterialTags.BULK
+    color = None
+
+    def __post_init__(self, x, y):
+        grayscale = random.randint(0xCC, 0xFF)
+        self._orig_color = pygame.Color((grayscale,) * 3)
+
+    def update(self, x, y):
+        if self.temp > 500:  # 300 *C
+            self.map[x, y] = Fire(self.map, x, y)
+
+        if not self.tags & MaterialTags.WET:
+            for rx, ry, _ in _moore_hood(self.map, x, y, MaterialTags.WET | MaterialTags.LIQUID):
+                self.map[rx, ry] = Space(self.map, rx, ry)
+                self.tags |= MaterialTags.WET
+
+            self._fall_ash(x, y)
+        else:
+            for rx, ry, dot in _von_neumann_hood(self.map, x, y, MaterialTags.BULK):
+                if not dot.tags & MaterialTags.WET:
+                    dot.tags |= MaterialTags.WET
+                    self.tags &= ~MaterialTags.WET
+
+    @property
+    def color(self):
+        if self.tags & MaterialTags.WET:
+            return pygame.Color("#D3CFBC")
+        return self._orig_color
+
+
+# ======== Electronics ========
+
+
+class BaseElec(BaseMaterial):
+    potential = 0
+    current = 0
+
+    def __post_init__(self, x, y):
+        total_v = 0
+        weights = 0
+
+        for _, _, nb_dot in _von_neumann_hood(self.map, x, y, MaterialTags.ELECTRIC):
+            r = self.resistance + nb_dot.resistance
+            if r > 0:
+                weight = 1 / r
+                total_v += nb_dot.voltage * weight
+                weights += weight
+
+        if weights > 0:
+            self.voltage = total_v / weights
+
+
+class Copper(BaseElec, display_name='Copper'):
+    heat_capacity = 0.7
+    thermal_conductivity = 0.87
+    tags = MaterialTags.SOLID | MaterialTags.ELECTRIC
+    color = pygame.Color("#D47216")
+
+    resistance = 0.01
+
+    def update(self, x, y):
+        self._elec_update(x, y)
+
+
+class LightBulb(BaseElec, display_name='Light Bulb'):
+    '''1 watt incandescent lamp.'''
+
+    heat_capacity = 0.3
+    thermal_conductivity = 0.6
+    tags = MaterialTags.SOLID | MaterialTags.ELECTRIC
+    color = None
+
+    resistance = 1
+
+    def update(self, x, y):
+        self._elec_update(x, y)
+
+    @property
+    def color(self):
+        power = abs(self.voltage**2) / self.resistance
+        return blend(pygame.Color("#4E4E4E84"), pygame.Color("#ffbb00"), power)
+
+
+class PotentialPlus1V(BaseElec, display_name='Potential +1 V'):
+    heat_capacity = 0.5
+    thermal_conductivity = 0.3
+    tags = MaterialTags.SOLID | MaterialTags.ELECTRIC
+    color = pygame.Color("#542c5e")
+
+    def update(self, x, y):
+        self.voltage = max(1, self.voltage)
+        self._elec_update(x, y)
+
+
+class Potential0V(BaseElec, display_name='Potential 0 V'):
+    heat_capacity = 0.5
+    thermal_conductivity = 0.5
+    tags = MaterialTags.SOLID | MaterialTags.ELECTRIC
+    color = pygame.Color("#4b2455")
+    voltage = 0
+
+    def update(self, x, y):
+        self.voltage = max(0, self.voltage)
+        self._elec_update(x, y)

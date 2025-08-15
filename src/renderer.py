@@ -13,7 +13,7 @@ from .config import (
     SCREENSHOT_TYPE_HINT,
 )
 from .gamemap import GameMap
-from .materials import BaseMaterial
+from .materials import BaseMaterial, MaterialTags
 from .util import blend
 
 type RenderMask = Callable[[BaseMaterial], pygame.Color]
@@ -70,7 +70,7 @@ class Renderer:
         # Iterating through the map
         with pygame.PixelArray(self._temp_surface) as temp_array:
             view = self._map.get_view()
-            
+
             for x in range(x_start, x_end):
                 for y in range(y_start, y_end):
                     dot = view[x, self._map.invy(y)]
@@ -183,3 +183,14 @@ def _thermal(dot):
     grayscale = (dot.color.r + dot.color.g + dot.color.b) / 3
     red = max(0, min(255, dot.temp - DEFAULT_TEMP + 0x7F))
     return pygame.Color(red, grayscale, grayscale)
+
+
+@add_render_mask
+def _elec(dot):
+    darkscale = (dot.color.r + dot.color.g + dot.color.b) // 12  # 25 % of grayscale
+    if not dot.tags & MaterialTags.ELECTRIC:
+        return pygame.Color((darkscale,) * 3)
+    else:
+        red = dot.resistance * 127
+        green = 127 + dot.voltage * 63
+        return pygame.Color(red, green, darkscale)
