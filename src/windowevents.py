@@ -99,6 +99,7 @@ class DrawingEventHandler(BaseEventHandler):
         self._previous_pos = None
         self._width = DEFAULT_DRAWING_WIDTH
         self._is_hold_drawing_event_sent = False
+        self.compsids = []
 
     def _material_factory(self, game_map, x, y):
         ready_dot = self._pal.selected_material(game_map, x, y)
@@ -142,10 +143,24 @@ class DrawingEventHandler(BaseEventHandler):
             )
 
         elif e.type == pygame.MOUSEMOTION:
-            if self._previous_pos is not None:
-                mouse_pos = pygame.mouse.get_pos()
-                abs_pos = self._map.invy_pos(self._camera.convert_pos(mouse_pos))
+            mouse_pos = pygame.mouse.get_pos()
+            abs_pos = self._map.invy_pos(self._camera.convert_pos(mouse_pos))
 
+            target_dot = self._map[abs_pos]
+            print('\n========', type(target_dot).__name__, "========")
+            for k in dir(target_dot):
+                if k == 'components':
+                    i = id(getattr(target_dot, k))
+                    try:
+                        idx = self.compsids.index(i)
+                    except ValueError:
+                        idx = len(self.compsids)
+                        self.compsids.append(i)
+                    print(k, '=', idx)
+                elif not k.startswith('_'):
+                    print(k, '=', getattr(target_dot, k))
+
+            if self._previous_pos is not None:
                 # Drawing a line is slow so we won't do it if delta motion is too small
                 # min_delta = self._width // 3
                 # if (
