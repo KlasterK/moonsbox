@@ -53,7 +53,7 @@ def _von_neumann_hood(game_map, x, y, tags):
     for rx, ry in (1, 0), (-1, 0), (0, 1), (0, -1):
         idx = x + rx, y + ry
         dot = game_map[idx]
-        if dot is not None and game_map[idx].tags & tags == tags:
+        if dot is not None and game_map[idx].tags & tags:
             yield *idx, dot
 
 
@@ -61,7 +61,7 @@ def _moore_hood(game_map, x, y, tags):
     for rx, ry in (1, 0), (-1, 0), (0, 1), (0, -1), (1, 1), (-1, -1), (1, -1), (-1, 1):
         idx = x + rx, y + ry
         dot = game_map[idx]
-        if dot is not None and game_map[idx].tags & tags == tags:
+        if dot is not None and game_map[idx].tags & tags:
             yield *idx, dot
 
 
