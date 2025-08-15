@@ -1,4 +1,5 @@
 import collections.abc
+import copy
 import pickle
 from io import BytesIO
 from typing import Callable, Literal
@@ -172,14 +173,20 @@ class GameMap:
                             continue
                     self._array[tx, ty] = material_factory(self, tx, ty)
 
-    COMPAT_SAVE_VERSIONS = ('1.0.1-alpha',)
+    COMPAT_SAVE_VERSIONS = ('1.0.1-alpha/DI',)
 
     def dump(self, file: BytesIO) -> None:
         info = {
             'application': 'moonsbox',
             'version': GameMap.COMPAT_SAVE_VERSIONS,
-            'lists': self._array.tolist(),
+            'lists': copy.deepcopy(self._array.tolist()),
         }
+
+        # Reset GameMap dependency of dots
+        for x in range(self.size[0]):
+            for y in range(self.size[1]):
+                del info['lists'][x][y].map
+
         try:
             pickle.dump(info, file)
         except pickle.PickleError as e:
@@ -215,3 +222,7 @@ class GameMap:
 
         self._array = arr
         self.size = self._array.shape
+
+        # Inject GameMap dependency into dots
+        for dot in self._array.flat:
+            dot.map = self

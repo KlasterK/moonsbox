@@ -192,7 +192,7 @@ class GameApp:
 
             @btn_load.add_cb
             def _(_, old):
-                if btn_save.pseudo != 'hover' or old != 'pressed':
+                if btn_load.pseudo != 'hover' or old != 'pressed':
                     return
                 try:
                     file_types = {'Moonsbox Save': '*.kk-save', 'All Files': '*.*'}
