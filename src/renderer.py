@@ -12,7 +12,7 @@ from .config import (
     SCREENSHOT_TYPE_HINT,
 )
 from .gamemap import GameMap
-from .materials import BaseMaterial
+from .materials import BaseMaterial, MaterialTags
 from .util import blend
 
 type RenderMask = Callable[[BaseMaterial], pygame.Color]
@@ -191,3 +191,14 @@ def _thermal(dot):
     green = min(0xFF, max(0x00, darkscale + (temp_factor - 1) * 0x3F))
 
     return pygame.Color(red, green, darkscale)
+
+
+@add_render_mask
+def _elec(dot):
+    darkscale = (dot.color.r + dot.color.g + dot.color.b) // 12  # 25 % of grayscale
+    if not dot.tags & MaterialTags.ELECTRIC:
+        return pygame.Color((darkscale,) * 3)
+    else:
+        red = dot.resistance * 127
+        green = 127 + dot.voltage * 63
+        return pygame.Color(red, green, darkscale)
