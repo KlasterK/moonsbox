@@ -1,6 +1,4 @@
 module;
-#include <cstdint>
-#include <optional>
 #include <functional>
 export module gamemap;
 
@@ -21,7 +19,7 @@ export enum class MaterialTags : long long
     Movable     = Bulk | Liquid | Gas,
 };
 
-export struct MaterialData
+export struct MaterialData 
 {
     float temp, heat_capacity, thermal_conductivity;
     uint32_t color_rgba;
@@ -46,7 +44,7 @@ enum class LineEnds { Square, Round };
 export class GameMap
 {
 public:
-    GameMap(Point size)
+    GameMap(Point size, material_factory_t filler)
     {
         resize(size);
     }
@@ -207,7 +205,12 @@ public:
         }
     }
 
-    // FIXME: add dump() and load()
+public:
+    void dump(std::ostream file)
+    {}
+
+    void load(std::istream file)
+    {}
     
 private:
     std::vector<MaterialData> m_data;
