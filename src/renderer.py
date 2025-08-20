@@ -44,6 +44,9 @@ class Renderer:
         visible_area: pygame.Rect,
         framerate: float = 0,
     ) -> None:
+        if self.is_paused:
+            return
+
         # We will not iterate through the whole visible area, only its part that is inside the map.
         # Unless we are capturing, then we render the whole map.
         if self._is_capturing:

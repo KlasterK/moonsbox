@@ -107,8 +107,3 @@ CAPTURE_PATH_FACTORY = "./capture_%Y-%m-%d_%H-%M-%S/"
 # If true, then in order to pick unselected material you need to click on it 2 times, 
 # otherwise only 1 times.
 PALETTE_MOUSE_SELECTION_REQUIRES_DBL_CLICK = true
-
-# If true, then only half of neighbours of a dot will affect the dot's temperature.
-# It increases the speed of the game, but in return makes the temperature exchange more abrupt 
-# and prevents the spread of fire.
-DO_USE_FAST_TEMP_EXCHANGE = false
