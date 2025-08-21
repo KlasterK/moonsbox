@@ -16,7 +16,6 @@ class SimulationManager:
         view = self._map.get_view()
         size_x, size_y = self._map.size
 
-        # Обмен температурой
         if TEMP_IS_EXCHANGING:
             for x in range(size_x):
                 for y in range(size_y):
@@ -28,16 +27,13 @@ class SimulationManager:
                         if 0 <= nx < size_x and 0 <= ny < size_y:
                             nbr = view[nx, ny]
                             temp_delta += (
-                                (nbr.temp - dot.temp)
-                                * nbr.thermal_conductivity
-                                * dot.heat_capacity
+                                (nbr.temp - dot.temp) * nbr.thermal_conductivity * dot.heat_capacity
                             )
 
                     dot.temp += temp_delta
                     if dot.temp < 0:
                         dot.temp = 0
 
-        # Обновление материалов
         for x in range(size_x):
             for y in range(size_y):
                 dot = view[x, y]
@@ -47,9 +43,7 @@ class SimulationManager:
         # We need to update gases separately, because the updating is going upwards,
         # and gas with y=0 will raise, then the same gas, now with y=1 will raise,
         # and at the end it is on the top.
-        tags_map = np.array(
-            [[dot.tags.value for dot in row] for row in view], dtype=np.uint8
-        )
+        tags_map = np.array([[dot.tags.value for dot in row] for row in view], dtype=np.uint8)
         # Create mask of gases
         gas_mask = tags_map & MaterialTags.GAS.value
         # Getting indices of gas dots
