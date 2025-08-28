@@ -29,11 +29,13 @@ class SimulationManager:
                             nbr = view[nx, ny]
                             temp_delta += (
                                 (nbr.temp - dot.temp)
-                                * nbr.thermal_conductivity
-                                * dot.heat_capacity
+                                * min(
+                                    nbr.thermal_conductivity, dot.thermal_conductivity
+                                )
+                                * (1 - dot.heat_capacity)
                             )
 
-                    dot.temp += temp_delta
+                    dot.temp += temp_delta / 4
                     if dot.temp < 0:
                         dot.temp = 0
 
