@@ -395,26 +395,36 @@ class Subwindow(Container):
         if not self.is_visible:
             return
 
-        if (
-            e.type == pygame.MOUSEBUTTONDOWN
-            and e.button == pygame.BUTTON_LEFT
-            and self._title_rect.collidepoint(e.pos)
-        ):
-            self._is_title_captured = True
+        if e.type == pygame.MOUSEBUTTONDOWN and e.button == pygame.BUTTON_LEFT:
+            if self._title_rect.collidepoint(e.pos):
+                self._is_title_captured = True
+            elif not self._content_rect.collidepoint(e.pos):
+                return
+
+            self.parent.move_to_top(self)
+            self._process_event_children(e)
             raise StopHandling
 
         elif e.type == pygame.MOUSEBUTTONUP and e.button == pygame.BUTTON_LEFT:
             self._is_title_captured = False
 
-        elif e.type == pygame.MOUSEMOTION and self._is_title_captured:
-            for widget in (self, *self._children):
-                rect = widget.get_rect()
-                widget.set_rect(x=rect.x + e.rel[0], y=rect.y + e.rel[1])
+        elif e.type == pygame.MOUSEMOTION:
+            if self._is_title_captured:
+                for widget in (self, *self._children):
+                    rect = widget.get_rect()
+                    widget.set_rect(x=rect.x + e.rel[0], y=rect.y + e.rel[1])
+            elif not self._rect.collidepoint(e.pos):
+                return
+
+            self._process_event_children(e)
             raise StopHandling
 
         if 'pos' in e.dict and not self._content_rect.collidepoint(e.pos):
             return  # hack to prevent forwarding events to clipped parts of children
 
+        self._process_event_children(e)
+
+    def _process_event_children(self, e):
         for widget in reversed(self._children):  # lastly added widgets will get events first
             widget.process_event(e)  # may raise StopHandling
 
