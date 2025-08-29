@@ -280,9 +280,7 @@ class Lava(BaseMaterial, display_name='Lava'):
     def color(self):
         factor = (self.temp - 400) / (1200 - 400)
         if factor > 0.5:
-            return blend(
-                pygame.Color("#ff0000"), pygame.Color("#ffff00"), (factor - 0.5) * 2
-            )
+            return blend(pygame.Color("#ff0000"), pygame.Color("#ffff00"), (factor - 0.5) * 2)
         else:
             return blend(pygame.Color("#440000"), pygame.Color("#ff0000"), factor * 2)
 
