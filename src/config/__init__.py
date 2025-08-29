@@ -59,19 +59,19 @@ def load_config():
     def get(key, default):
         val = user_cfg.get(key, default)
         # Type casting
-        if key in [
+        if key in {
             "MAP_INNER_COLOR",
             "MAP_OUTER_COLOR",
             "PALETTE_SELECTION_OUTER_COLOR",
             "PALETTE_SELECTION_INNER_COLOR",
             "PALETTE_SHADOW_COLOR",
             "DEBUG_COLOR",
-        ]:
+        }:
             try:
                 return parse_color(val)
             except Exception:
                 return default
-        if key in ["SCREEN_SIZE", "MAP_SIZE", "PALETTE_ICON_SIZE", "SCREENSHOT_DOT_SIZE"]:
+        if key in {"SCREEN_SIZE", "MAP_SIZE", "PALETTE_ICON_SIZE", "SCREENSHOT_DOT_SIZE"}:
             try:
                 return parse_tuple(val)
             except Exception:
@@ -88,8 +88,11 @@ def load_config():
                 return default
         if key == "USER_LOCALE":
             return get_locale(val)
-        if key in ("SCREENSHOT_PATH_FACTORY", 'CAPTURE_PATH_FACTORY'):
-            return get_path_factory(val)
+        if key in {"SCREENSHOT_PATH_FACTORY", 'CAPTURE_PATH_FACTORY'}:
+            try:
+                return get_path_factory(val)
+            except ValueError:
+                return default
         return val
 
     # Build config namespace
