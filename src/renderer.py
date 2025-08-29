@@ -1,4 +1,3 @@
-from io import BytesIO
 from pathlib import Path
 import shutil
 from typing import Callable
@@ -44,6 +43,9 @@ class Renderer:
         visible_area: pygame.Rect,
         framerate: float = 0,
     ) -> None:
+        if self.is_paused:
+            return
+
         # We will not iterate through the whole visible area, only its part that is inside the map.
         # Unless we are capturing, then we render the whole map.
         if self._is_capturing:
@@ -70,7 +72,7 @@ class Renderer:
         # Iterating through the map
         with pygame.PixelArray(self._temp_surface) as temp_array:
             view = self._map.get_view()
-            
+
             for x in range(x_start, x_end):
                 for y in range(y_start, y_end):
                     dot = view[x, self._map.invy(y)]
@@ -178,8 +180,10 @@ def _normal(dot):
 
 @add_render_mask
 def _thermal(dot):
-    # Simple thermal imagination, where R=temp, G=B=grayscale
-    # TODO: implement more complex and handy thermal rendering
-    grayscale = (dot.color.r + dot.color.g + dot.color.b) / 3
-    red = max(0, min(255, dot.temp - DEFAULT_TEMP + 0x7F))
-    return pygame.Color(red, grayscale, grayscale)
+    darkscale = (dot.color.r + dot.color.g + dot.color.b) // 6  # 50 % of grayscale
+    temp_factor = dot.temp / 500
+
+    red = min(0xFF, darkscale + temp_factor * 0xBF)
+    green = min(0xFF, max(0x00, darkscale + (temp_factor - 1) * 0x3F))
+
+    return pygame.Color(red, green, darkscale)

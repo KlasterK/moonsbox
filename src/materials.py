@@ -207,38 +207,32 @@ class Sand(BaseMaterial, display_name='Sand'):
 class Water(BaseMaterial, display_name='Water'):
     heat_capacity = 0.7  # liquids store heat well
     thermal_conductivity = 0.3  # moderate transfer
+    tags = MaterialTags.LIQUID
+    color = None
 
     def __post_init__(self, x, y):
-        self._liquid_color = pygame.Color(0, random.randint(0x95, 0xBB), 0x99)
+        self.color = self._liquid_color = pygame.Color(0, random.randint(0x95, 0xBB), 0x99)
 
     def update(self, x, y):
-        if self.temp < 273:
-            pass  # do nothing
-        elif self.temp < 373:
+        if self.tags & MaterialTags.SOLID:
+            if self.temp > 275:
+                self.tags = MaterialTags.LIQUID
+                self.color = self._liquid_color
+
+        elif self.tags & MaterialTags.LIQUID:
+            if self.temp < 270:
+                self.tags = MaterialTags.SOLID
+                self.color = pygame.Color("#66C8E0B7")
+            elif self.temp > 375:
+                self.tags = MaterialTags.GAS
+                self.color = pygame.Color("#28BBC53D")
             self._fall_liquid(x, y)
-        else:
-            # hack to make clouds rain
-            if y == self.map.size[1] - 1:
-                self.temp -= 10
+
+        elif self.tags & MaterialTags.GAS:
+            if self.temp < 370:
+                self.tags = MaterialTags.LIQUID
+                self.color = self._liquid_color
             self._fall_gas(x, y)
-
-    @property
-    def color(self):
-        if self.temp < 273:
-            return pygame.Color("#66C8E0B7")
-        elif self.temp < 373:
-            return self._liquid_color
-        else:
-            return pygame.Color("#28BBC53D")
-
-    @property
-    def tags(self):
-        if self.temp < 273:
-            return MaterialTags.SOLID
-        elif self.temp < 373:
-            return MaterialTags.LIQUID
-        else:
-            return MaterialTags.GAS
 
 
 class UnbreakableWall(BaseMaterial, display_name='Unbreakable Wall'):
@@ -249,8 +243,8 @@ class UnbreakableWall(BaseMaterial, display_name='Unbreakable Wall'):
 
 
 class Lava(BaseMaterial, display_name='Lava'):
-    heat_capacity = 0.2  # hot, but doesn't store much
-    thermal_conductivity = 0.8  # transfers heat well
+    heat_capacity = 0.8  # hot, but doesn't store much
+    thermal_conductivity = 0.5  # transfers heat well
     temp = 1200  # 927 *C, 1700 *F
 
     def __post_init__(self, x, y):
@@ -262,10 +256,11 @@ class Lava(BaseMaterial, display_name='Lava'):
 
     @property
     def color(self):
-        mid_temp = self.temp - 1200
-        red = mid_temp / 5 + 0xFF
-        green = mid_temp / 8 + 0x10
-        return pygame.Color(max(0x44, min(255, red)), max(0, min(255, green)), 0)
+        factor = (self.temp - 400) / (1200 - 400)
+        if factor > 0.5:
+            return blend(pygame.Color("#ff0000"), pygame.Color("#ffff00"), (factor - 0.5) * 2)
+        else:
+            return blend(pygame.Color("#440000"), pygame.Color("#ff0000"), factor * 2)
 
     @property
     def tags(self):
@@ -311,7 +306,7 @@ class BlackHole(BaseMaterial, display_name='Black Hole'):
 
 class Tap(BaseMaterial, display_name='Tap'):
     color = pygame.Color("#67a046")
-    heat_capacity = 0.2  # factors like Lava got
+    heat_capacity = 0.2  # factors that Lava used to have
     thermal_conductivity = 0.6
     tags = MaterialTags.SOLID
 
@@ -334,7 +329,7 @@ class Tap(BaseMaterial, display_name='Tap'):
 
 class Propane(BaseMaterial, display_name='Propane'):
     color = pygame.Color("#385DA345")
-    heat_capacity = 0.3  # factors like Space got
+    heat_capacity = 0.3  # factors that Space used to have
     thermal_conductivity = 0.5
     tags = MaterialTags.GAS
 
@@ -351,20 +346,20 @@ class Fire(BaseMaterial, display_name='Fire'):
     heat_capacity = 0  # fire cannot store heat
     thermal_conductivity = 1  # very high
     tags = MaterialTags.GAS
+    temp = 1000  # about 800 *C, temp of wood burning
 
     def __post_init__(self, x, y):
-        self.temp = _fast_randint(800, 1200)  # near 600..1000*C
+        self._time_to_live = _fast_randint(0, 20)
 
     def update(self, x, y):
-        self.temp -= 20
-
-        if self.temp <= 800:
+        if self._time_to_live <= 0:
             self.map[x, y] = Space(self.map, x, y)
             return
 
+        self._time_to_live -= 1
         self._fall_gas(x, y)
 
     @property
     def color(self):
-        factor = (self.temp - 800) / (1200 - 800)
-        return blend(pygame.Color('#ff000044'), pygame.Color("#FFff00"), factor)
+        factor = self._time_to_live / 20
+        return blend(pygame.Color("#ff000044"), pygame.Color("#FFff00"), factor)

@@ -1,7 +1,6 @@
 import abc
 from typing import TYPE_CHECKING
 
-import PIL.Image
 import pygame
 
 from .config import (
