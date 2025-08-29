@@ -207,19 +207,31 @@ class Sand(BaseMaterial, display_name='Sand'):
 class Water(BaseMaterial, display_name='Water'):
     heat_capacity = 0.7  # liquids store heat well
     thermal_conductivity = 0.3  # moderate transfer
+    tags = MaterialTags.LIQUID
+    color = None
 
     def __post_init__(self, x, y):
-        self._liquid_color = pygame.Color(0, random.randint(0x95, 0xBB), 0x99)
+        self.color = self._liquid_color = pygame.Color(0, random.randint(0x95, 0xBB), 0x99)
 
     def update(self, x, y):
-        if self.temp < 273:
-            pass  # do nothing
-        elif self.temp < 373:
+        if self.tags & MaterialTags.SOLID:
+            if self.temp > 275:
+                self.tags = MaterialTags.LIQUID
+                self.color = self._liquid_color
+
+        elif self.tags & MaterialTags.LIQUID:
+            if self.temp < 270:
+                self.tags = MaterialTags.SOLID
+                self.color = pygame.Color("#66C8E0B7")
+            elif self.temp > 375:
+                self.tags = MaterialTags.GAS
+                self.color = pygame.Color("#28BBC53D")
             self._fall_liquid(x, y)
-        else:
-            # hack to make clouds rain
-            if y == self.map.size[1] - 1:
-                self.temp -= 10
+
+        elif self.tags & MaterialTags.GAS:
+            if self.temp < 370:
+                self.tags = MaterialTags.LIQUID
+                self.color = self._liquid_color
             self._fall_gas(x, y)
 
     @property
