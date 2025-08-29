@@ -181,11 +181,13 @@ def _normal(dot):
 
 @add_render_mask
 def _thermal(dot):
-    # Simple thermal imagination, where R=temp, G=B=grayscale
-    # TODO: implement more complex and handy thermal rendering
-    grayscale = (dot.color.r + dot.color.g + dot.color.b) / 3
-    red = max(0, min(255, dot.temp - DEFAULT_TEMP + 0x7F))
-    return pygame.Color(red, grayscale, grayscale)
+    darkscale = (dot.color.r + dot.color.g + dot.color.b) // 6  # 50 % of grayscale
+    temp_factor = dot.temp / 500
+
+    red = min(0xFF, darkscale + temp_factor * 0xBF)
+    green = min(0xFF, max(0x00, darkscale + (temp_factor - 1) * 0x3F))
+
+    return pygame.Color(red, green, darkscale)
 
 
 @add_render_mask
