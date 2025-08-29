@@ -234,24 +234,6 @@ class Water(BaseMaterial, display_name='Water'):
                 self.color = self._liquid_color
             self._fall_gas(x, y)
 
-    @property
-    def color(self):
-        if self.temp < 273:
-            return pygame.Color("#66C8E0B7")
-        elif self.temp < 373:
-            return self._liquid_color
-        else:
-            return pygame.Color("#28BBC53D")
-
-    @property
-    def tags(self):
-        if self.temp < 273:
-            return MaterialTags.SOLID
-        elif self.temp < 373:
-            return MaterialTags.LIQUID
-        else:
-            return MaterialTags.GAS
-
 
 class UnbreakableWall(BaseMaterial, display_name='Unbreakable Wall'):
     color = pygame.Color(0xFF, 0xFF, 0xFF)
