@@ -22,12 +22,12 @@ and their interactions in a pixel world.
 - Get rid of tkinter.filedialog dependency and make our own opener of native file dialog. (✓)
 - Make capturing system for the game on top of FFMPEG. (✓)
 - Make the first release of the game. (✓)
-- Spread the game.
-- Create a chat for the game.
+- Spread the game. (✓)
+- Create a chat for the game. (✓)
 - Start developing native (C++) version of gamemap.py.
 - Native version of simulation.py.
 - Native version of renderer.py.
-- Native version of materials.py (but keep support of Python-written classes).
+- Native version of materials.py.
 - Add more materials.
 - Add alternative to keyboard controls in form of widgets.
 - Add full touchscreen support.
@@ -54,12 +54,17 @@ and their interactions in a pixel world.
 - **R**: Pause rendering to speed up simulation
 - **Alt + F12**: Begin or end capturing (see Running to convert capture to a video)
 
+## Social
+
+Moonsbox have got its own [telegram channel](https://t.me/kk_moonsbox)!
+
+If you know Russian and you are interested in the development of moonsbox, please join it.
+
 ## Requirements
 
 - Python 3 (I run it with Python 3.13.3)
 - pygame-ce
 - numpy
-- pillow
 - toml
 
 ## Running
@@ -71,7 +76,7 @@ python -c "import tkinter" # checks if tkinter is here
 # text into console.
 
 # Getting ready
-python -m pip install pygame-ce numpy pillow toml
+python -m pip install pygame-ce numpy toml
 cd <PROJECT DIR>
 
 # Settings are at ./user/config.toml
