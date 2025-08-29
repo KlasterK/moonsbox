@@ -1,6 +1,27 @@
 # moonsbox.spec
 from PyInstaller.utils.hooks import collect_data_files, collect_submodules
 import os
+import sys
+
+
+def get_nativedialog_hiddenimports():
+    if 'win' in sys.platform:
+        return ('src.nativedialog._windows',)
+    else:
+        try:
+            import tkinter
+        except ImportError:
+            return ()
+
+        return ('src.nativedialog._tk',)
+
+
+def get_nativedialog_excludes():
+    if 'win' in sys.platform:
+        return ('src.nativedialog._tk',)
+    else:
+        return ('src.nativedialog._windows',)
+
 
 a = Analysis(
     ['pyinst_launcher.py'],
@@ -13,15 +34,17 @@ a = Analysis(
     hiddenimports=[
         # *collect_submodules('src'),
         'src',
-        'nativedialog',
         'pygame_ce',
         'numpy',
-        'PIL',
         'toml',
+        'src.nativedialog',
+        *get_nativedialog_hiddenimports(),
     ],
     hookspath=[],
     runtime_hooks=[],
-    excludes=[],
+    excludes=[
+        *get_nativedialog_excludes(),
+    ],
     win_no_prefer_redirects=False,
     win_private_assemblies=False,
     cipher=None,
