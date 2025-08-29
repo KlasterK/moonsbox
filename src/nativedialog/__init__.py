@@ -1,7 +1,6 @@
 from os import PathLike
 import os
-import sys
-from typing import Iterable, Literal, Sequence
+from typing import Literal
 import pygame._sdl2
 
 _IMPL = True
