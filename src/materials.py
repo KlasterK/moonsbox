@@ -178,7 +178,6 @@ class Space(BaseMaterial, display_name='Space'):  # air
 class Sand(BaseMaterial, display_name='Sand'):
     heat_capacity = 0.3  # moderate, sand stores some heat
     thermal_conductivity = 0.1  # sand transfers heat slowly
-    tags = MaterialTags.BULK
 
     def __post_init__(self, x, y):
         self._is_glass = False
@@ -192,14 +191,6 @@ class Sand(BaseMaterial, display_name='Sand'):
             return blend(pygame.Color("#96947755"), pygame.Color("#FF880085"), t)
         else:
             return blend(self._original_sand_color, pygame.Color("#FF6600AA"), t)
-
-    @property
-    def tags(self):
-        if self.temp > 1973:
-            return MaterialTags.LIQUID
-        if self._is_glass:
-            return MaterialTags.SOLID
-        return MaterialTags.BULK
 
     def update(self, x, y):
         if self.temp > 1973:  # 1700 *C, 3092 *F
