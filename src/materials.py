@@ -178,6 +178,7 @@ class Space(BaseMaterial, display_name='Space'):  # air
 class Sand(BaseMaterial, display_name='Sand'):
     heat_capacity = 0.3  # moderate, sand stores some heat
     thermal_conductivity = 0.1  # sand transfers heat slowly
+    tags = None
 
     def __post_init__(self, x, y):
         self._is_glass = False
