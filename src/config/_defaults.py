@@ -57,6 +57,7 @@ class ConfigDefaults:
                 "Propane": "Пропан",
                 "Fire": "Огонь",
                 "Glass": "Стекло",
+                'Absorbent': 'Абсорбент',
             },
             "en_US": {
                 "+100 K": "+180 °F",
