@@ -351,10 +351,28 @@ class Propane(BaseMaterial, display_name='Propane'):
         if self.temp > 700:  # ~500 *C
             self.map[x, y] = Fire(self.map, x, y)
             self.map[x, y].temp = 2800
-            for rx, ry, _ in _von_neumann_hood(self.map, x, y, MaterialTags.GAS):
+            for rx, ry, _ in _moore_hood(self.map, x, y, MaterialTags.GAS):
                 self.map[rx, ry] = Fire(self.map, rx, ry)
                 self.map[rx, ry].temp = 2800
-        else:
+
+        elif self.tags & MaterialTags.SOLID:
+            if self.temp > 85:
+                self.tags = MaterialTags.LIQUID
+                self.color = pygame.Color("#5376B885")
+
+        elif self.tags & MaterialTags.LIQUID:
+            if self.temp < 80:
+                self.tags = MaterialTags.SOLID
+                self.color = pygame.Color("#6D8EC9B8")
+            elif self.temp > 235:
+                self.tags = MaterialTags.GAS
+                self.color = pygame.Color("#385DA345")
+            self._fall_liquid(x, y)
+
+        elif self.tags & MaterialTags.GAS:
+            if self.temp < 230:
+                self.tags = MaterialTags.LIQUID
+                self.color = pygame.Color("#5376B885")
             self._fall_gas(x, y)
 
 
