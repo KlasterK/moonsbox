@@ -248,6 +248,14 @@ class Water(BaseMaterial, display_name='Water'):
             self._fall_gas(x, y)
 
 
+class Ice(Water, display_name='Ice'):
+    temp = 220
+
+
+class Steam(Water, display_name='Steam'):
+    temp = 420
+
+
 class UnbreakableWall(BaseMaterial, display_name='Unbreakable Wall'):
     color = pygame.Color(0xFF, 0xFF, 0xFF)
     heat_capacity = 0  # does not change its temp

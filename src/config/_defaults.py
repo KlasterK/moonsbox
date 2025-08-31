@@ -19,27 +19,19 @@ class ConfigDefaults:
     WINDOW_CAPTION: str = "moonsbox"
     SCREEN_SIZE: tuple = (560, 560)
     MAP_SIZE: tuple = (100, 100)
-    VISIBLE_AREA: pygame.Rect = field(
-        default_factory=lambda: pygame.Rect(-20, -20, 140, 140)
-    )
+    VISIBLE_AREA: pygame.Rect = field(default_factory=lambda: pygame.Rect(-20, -20, 140, 140))
     PALETTE_ICON_SIZE: tuple = (64, 64)
     PALETTE_MAX_CAPTION_CHARS: int = 20
     PALETTE_MARGIN: int = 20
-    MAP_INNER_COLOR: pygame.Color = field(
-        default_factory=lambda: pygame.Color("#000000")
-    )
-    MAP_OUTER_COLOR: pygame.Color = field(
-        default_factory=lambda: pygame.Color("#071b10")
-    )
+    MAP_INNER_COLOR: pygame.Color = field(default_factory=lambda: pygame.Color("#000000"))
+    MAP_OUTER_COLOR: pygame.Color = field(default_factory=lambda: pygame.Color("#071b10"))
     PALETTE_SELECTION_OUTER_COLOR: pygame.Color = field(
         default_factory=lambda: pygame.Color("#00C3FF40")
     )
     PALETTE_SELECTION_INNER_COLOR: pygame.Color = field(
         default_factory=lambda: pygame.Color("#008CFF20")
     )
-    PALETTE_SHADOW_COLOR: pygame.Color = field(
-        default_factory=lambda: pygame.Color("#000000CC")
-    )
+    PALETTE_SHADOW_COLOR: pygame.Color = field(default_factory=lambda: pygame.Color("#000000CC"))
     FONT_SIZE: int = 15
     FONT_NAME_OR_PATH: str = "Sans"
     FONT_IS_SYSFONT: bool = True
@@ -54,6 +46,8 @@ class ConfigDefaults:
                 "Space": "Стереть",
                 "Sand": "Песок",
                 "Water": "Вода",
+                'Ice': 'Лёд',
+                'Steam': 'Пар',
                 "Unbreakable Wall": "Неруш. Стена",
                 "Lava": "Лава",
                 "+100 K": "+100 °C",
@@ -71,12 +65,8 @@ class ConfigDefaults:
         }
     )
     ASSETS_ROOT: Path = Path("./assets")
-    SCREENSHOT_PATH_FACTORY: callable = lambda: time.strftime(
-        "./screenshot_%Y-%m-%d_%H-%M-%S.png"
-    )
+    SCREENSHOT_PATH_FACTORY: callable = lambda: time.strftime("./screenshot_%Y-%m-%d_%H-%M-%S.png")
     SCREENSHOT_TYPE_HINT: str = "PNG"
     SCREENSHOT_DOT_SIZE: tuple = (1, 1)
-    CAPTURE_PATH_FACTORY: callable = lambda: time.strftime(
-        "./capture_%Y-%m-%d_%H-%M-%S/"
-    )
+    CAPTURE_PATH_FACTORY: callable = lambda: time.strftime("./capture_%Y-%m-%d_%H-%M-%S/")
     PALETTE_MOUSE_SELECTION_REQUIRES_DBL_CLICK: bool = True
