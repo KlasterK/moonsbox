@@ -208,7 +208,7 @@ class Water(BaseMaterial, display_name='Water'):
     heat_capacity = 0.7  # liquids store heat well
     thermal_conductivity = 0.3  # moderate transfer
     tags = MaterialTags.LIQUID
-    color = None
+    color = pygame.Color('#00A899')  # just in case
 
     def __post_init__(self, x, y):
         self.color = self._liquid_color = pygame.Color(0, random.randint(0x95, 0xBB), 0x99)
