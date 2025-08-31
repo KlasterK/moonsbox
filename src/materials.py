@@ -193,15 +193,28 @@ class Sand(BaseMaterial, display_name='Sand'):
         else:
             return blend(self._original_sand_color, pygame.Color("#FF6600AA"), t)
 
+    @property
+    def tags(self):
+        if self.temp > 1973:
+            return MaterialTags.LIQUID
+        if self._is_glass:
+            return MaterialTags.SOLID
+        return MaterialTags.BULK
+
     def update(self, x, y):
         if self.temp > 1973:  # 1700 *C, 3092 *F
             if not self._is_glass:
                 self._is_glass = True
                 GameSound('convert.Sand_to_glass').play()
             self._fall_liquid(x, y)
+            self.tags = MaterialTags.LIQUID
 
         elif not self._is_glass:
             self._fall_sand(x, y)
+            self.tags = MaterialTags.BULK
+
+        else:
+            self.tags = MaterialTags.SOLID
 
 
 class Water(BaseMaterial, display_name='Water'):
