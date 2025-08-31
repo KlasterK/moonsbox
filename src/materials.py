@@ -72,8 +72,9 @@ class MaterialTags(Flag):
     LIQUID = auto()
     GAS = auto()
     SPACE = auto()
+    FLOAT = auto()
     SPARSENESS = GAS | SPACE
-    MOVABLE = BULK | LIQUID | GAS
+    MOVABLE = BULK | LIQUID | GAS | FLOAT
 
 
 class BaseMaterial(abc.ABC):
@@ -418,3 +419,27 @@ class PureGlass(BaseMaterial, display_name='Glass'):
     def update(self, x, y):
         if self.temp > 1773:  # 1500 *C
             self._fall_liquid(x, y)
+
+
+class Absorbent(BaseMaterial, display_name='Absorbent'):
+    heat_capacity = 0.2
+    thermal_conductivity = 0.9
+    color = pygame.Color("#eeeee3")
+    tags = MaterialTags.FLOAT
+
+    def __post_init__(self, x, y):
+        grayscale = _fast_randint(0xDD, 0xFF)
+        yellowness = _fast_randint(0x11, 0x33)
+        self.color = pygame.Color(grayscale, grayscale, grayscale - yellowness)
+        self._time_to_live = _fast_randint(0, 200)
+
+    def update(self, x, y):
+        for rx, ry, _ in _von_neumann_hood(self.map, x, y, MaterialTags.LIQUID):
+            self.map[rx, ry] = Space(self.map, rx, ry)
+            self._time_to_live -= 50
+
+        if self._time_to_live < 0:
+            self.map[x, y] = Space(self.map, x, y)
+        else:
+            self._time_to_live -= 1
+            self._fall_sand(x, y)
