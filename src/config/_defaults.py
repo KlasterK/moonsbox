@@ -62,6 +62,7 @@ class ConfigDefaults:
                 "Tap": "Кран",
                 "Propane": "Пропан",
                 "Fire": "Огонь",
+                "Glass": "Стекло",
             },
             "en_US": {
                 "+100 K": "+180 °F",

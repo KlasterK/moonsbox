@@ -367,3 +367,23 @@ class Fire(BaseMaterial, display_name='Fire'):
     def color(self):
         factor = self._time_to_live / 20
         return blend(pygame.Color("#ff000044"), pygame.Color("#FFff00"), factor)
+
+
+class PureGlass(BaseMaterial, display_name='Glass'):
+    heat_capacity = 0.5
+    thermal_conductivity = 0.05
+
+    @property
+    def color(self):
+        t = (self.temp - 400) / (1773 - 400)
+        return blend(pygame.Color("#A7C1AD22"), pygame.Color("#FF880085"), t)
+
+    @property
+    def tags(self):
+        if self.temp > 1773:
+            return MaterialTags.LIQUID
+        return MaterialTags.SOLID
+
+    def update(self, x, y):
+        if self.temp > 1773:  # 1500 *C
+            self._fall_liquid(x, y)
