@@ -336,14 +336,16 @@ class Propane(BaseMaterial, display_name='Propane'):
     def update(self, x, y):
         if self.temp > 700:  # ~500 *C
             self.map[x, y] = Fire(self.map, x, y)
+            self.map[x, y].temp = 2800
             for rx, ry, _ in _von_neumann_hood(self.map, x, y, MaterialTags.GAS):
                 self.map[rx, ry] = Fire(self.map, rx, ry)
-
-        self._fall_gas(x, y)
+                self.map[rx, ry].temp = 2800
+        else:
+            self._fall_gas(x, y)
 
 
 class Fire(BaseMaterial, display_name='Fire'):
-    heat_capacity = 0  # fire cannot store heat
+    heat_capacity = 1  # it must be 1 so fire cannot lose its heat
     thermal_conductivity = 1  # very high
     tags = MaterialTags.GAS
     temp = 1000  # about 800 *C, temp of wood burning
