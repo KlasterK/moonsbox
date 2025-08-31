@@ -185,12 +185,15 @@ class MaterialPalette:
 
                 x = x0 + j * btn_w
                 y = y0 + i * btn_h
+                btn_rect = btn_surf.get_rect(centerx=x + btn_w / 2, y=y)
 
                 if idx == self._selected_index:
+                    sel_rect = btn_rect.inflate(10, 10)
+
                     pygame.draw.rect(
                         surface=temp_dest,
                         color=blend(PALETTE_SHADOW_COLOR, PALETTE_SELECTION_INNER_COLOR),
-                        rect=(x - 5, y - 5, btn_surf.get_width() + 5, btn_surf.get_height() + 5),
+                        rect=sel_rect,
                         width=0,
                         border_radius=8,
                     )
@@ -198,12 +201,12 @@ class MaterialPalette:
                     pygame.draw.rect(
                         surface=temp_dest,
                         color=blend(PALETTE_SHADOW_COLOR, PALETTE_SELECTION_OUTER_COLOR),
-                        rect=(x - 5, y - 5, btn_surf.get_width() + 5, btn_surf.get_height() + 5),
+                        rect=sel_rect,
                         width=3,
                         border_radius=8,
                     )
 
-                temp_dest.blit(btn_surf, (x, y))
+                temp_dest.blit(btn_surf, btn_rect)
 
         # Blit the temporary surface onto the destination
         self._dest.blit(temp_dest, (0, 0))
