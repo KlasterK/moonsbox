@@ -290,6 +290,8 @@ class Minus100K(BaseMaterial, display_name='-100 K'):
         dot = game_map[x, y]
         if dot is not None:
             dot.temp -= 100
+        if dot.temp < 0:
+            dot.temp = 0
         return dot
 
 
