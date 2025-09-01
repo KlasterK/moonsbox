@@ -434,7 +434,7 @@ class Absorbent(BaseMaterial, display_name='Absorbent'):
         self._time_to_live = _fast_randint(0, 200)
 
     def update(self, x, y):
-        for rx, ry, _ in _von_neumann_hood(self.map, x, y, MaterialTags.LIQUID):
+        for rx, ry, _ in _moore_hood(self.map, x, y, MaterialTags.LIQUID):
             self.map[rx, ry] = Space(self.map, rx, ry)
             self._time_to_live -= 50
 
