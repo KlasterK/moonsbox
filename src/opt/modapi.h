@@ -7,12 +7,14 @@ extern "C" {
 
 #include <stdint.h>
 
-typedef struct tagPoint {
+typedef struct tagPoint 
+{
     int x, y;
 } Point;
 
 typedef long long MaterialFlags; 
-enum {
+enum 
+{
     MAT_FLAG_NULL   = 0,
     MAT_FLAG_SOLID  = 1,
     MAT_FLAG_BULK   = 2,
@@ -24,14 +26,33 @@ enum {
     MAT_FLAG_MOVABLE    = MAT_FLAG_BULK | MAT_FLAG_LIQUID | MAT_FLAG_GAS,
 };
 
-typedef struct tagMaterialData {
+typedef struct tagMaterialData 
+{
     float temp, heat_capacity, thermal_conductivity;
     uint32_t color_rgba;
     uintptr_t aux;
     MaterialFlags flags;
-};
+    void (*update_func)(Point pos);
+} MaterialData;
 
+typedef struct tagModExportTable
+{
+    char display_name[256];
+    int version_major, version_minor, version_patch;
+    void (*update_func)(Point);
+} ModExportTable;
 
+typedef struct tagModEntry
+{
+    char mod_name[256];
+    int version_major, version_minor, version_patch;
+    void (*init_func)(
+        MaterialData* (*get_at)(Point),
+        const MaterialData* (*get_at_const)(Point)
+    );
+    void (*exit_func)();
+    const ModExportTable* export_table;
+} ModEntry;
 
 #ifdef __cplusplus
 } /* extern "C" */
