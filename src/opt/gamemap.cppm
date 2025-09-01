@@ -1,5 +1,6 @@
 module;
 #include <functional>
+#include "modapi.h"
 export module gamemap;
 
 import util;
@@ -17,25 +18,6 @@ export enum class MaterialTags : long long
 
     Sparseness  = Gas | Space,
     Movable     = Bulk | Liquid | Gas,
-};
-
-export struct MaterialData 
-{
-    float temp, heat_capacity, thermal_conductivity;
-    uint32_t color_rgba;
-    std::function<void(GameMap&, Point)> update;
-    uintptr_t aux;
-    MaterialTags tags;
-
-    // Default constructor, represents Space
-    MaterialData()
-        : temp(20.0_cels)
-        , heat_capacity(0.3f)
-        , thermal_conductivity(1.0f)
-        , color_rgba(0000)
-        , update(nullptr)
-        , tags(MaterialTags::Space)
-    {}
 };
 
 using material_factory_t = std::function<MaterialData(GameMap&, Point)>;
