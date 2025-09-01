@@ -214,10 +214,12 @@ class Water(BaseMaterial, display_name='Water'):
     heat_capacity = 0.7  # liquids store heat well
     thermal_conductivity = 0.3  # moderate transfer
     tags = MaterialTags.LIQUID
-    color = pygame.Color('#00A899')  # just in case
+    color = None
 
     def __post_init__(self, x, y):
-        self.color = self._liquid_color = pygame.Color(0, random.randint(0x95, 0xBB), 0x99)
+        self._liquid_color = pygame.Color(0, random.randint(0x95, 0xBB), 0x99)
+        if self.color is None:
+            self.color = self._liquid_color
 
     def update(self, x, y):
         if self.tags & MaterialTags.SOLID:
@@ -243,10 +245,14 @@ class Water(BaseMaterial, display_name='Water'):
 
 class Ice(Water, display_name='Ice'):
     temp = 220
+    color = pygame.Color("#66C8E0B7")
+    tags = MaterialTags.SOLID
 
 
 class Steam(Water, display_name='Steam'):
     temp = 420
+    color = pygame.Color("#28BBC53D")
+    tags = MaterialTags.GAS
 
 
 class UnbreakableWall(BaseMaterial, display_name='Unbreakable Wall'):
