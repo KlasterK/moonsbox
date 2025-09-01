@@ -470,3 +470,32 @@ class Aerogel(BaseMaterial, display_name='Aerogel'):
     def __post_init__(self, x, y):
         grayscale = _fast_randint(0xAA, 0xBB)
         self.color = pygame.Color(grayscale, grayscale, grayscale, 0x25)
+
+
+class DryIce(BaseMaterial, display_name='Dry Ice'):
+    heat_capacity = 0.8
+    thermal_conductivity = 0.3
+    tags = MaterialTags.BULK
+    color = None
+    temp = 175
+
+    def __post_init__(self, x, y):
+        self._orig_color = blend(pygame.Color("#dbe2ee"), pygame.Color("#c2d9df"), _fast_random())
+        self._concentration = 1
+
+    def update(self, x, y):
+        if self.temp > 250:
+            self.map[x, y] = Space(self.map, x, y)
+        elif self.temp > 195:
+            self.tags = MaterialTags.GAS
+            self._fall_gas(x, y)
+        else:
+            self.tags = MaterialTags.BULK
+            self._fall_sand(x, y)
+
+    @property
+    def color(self):
+        color = pygame.Color(self._orig_color)
+        factor = 1 - (self.temp - 175) / (250 - 175)
+        color.a = min(255, max(0, int(factor * 255)))
+        return color
