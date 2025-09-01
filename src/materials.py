@@ -49,6 +49,16 @@ def _fast_randint(a: int, b: int) -> int:
     return min(b, max(a, result))
 
 
+def _fast_random() -> float:
+    global _random_index
+    if _random_index >= _pre_generated_random.shape[0]:
+        _random_index = 0
+
+    ret = _pre_generated_random[_random_index]
+    _random_index += 1
+    return ret
+
+
 def _von_neumann_hood(game_map, x, y, tags):
     for rx, ry in (1, 0), (-1, 0), (0, 1), (0, -1):
         idx = x + rx, y + ry
