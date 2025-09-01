@@ -58,6 +58,7 @@ class ConfigDefaults:
                 "Fire": "Огонь",
                 "Glass": "Стекло",
                 'Absorbent': 'Абсорбент',
+                'Aerogel': 'Аэрогель',
             },
             "en_US": {
                 "+100 K": "+180 °F",

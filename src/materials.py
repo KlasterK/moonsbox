@@ -443,3 +443,14 @@ class Absorbent(BaseMaterial, display_name='Absorbent'):
         else:
             self._time_to_live -= 1
             self._fall_sand(x, y)
+
+
+class Aerogel(BaseMaterial, display_name='Aerogel'):
+    heat_capacity = 0.99
+    thermal_conductivity = 0.01
+    tags = MaterialTags.FLOAT
+    color = None
+
+    def __post_init__(self, x, y):
+        grayscale = _fast_randint(0xAA, 0xBB)
+        self.color = pygame.Color(grayscale, grayscale, grayscale, 0x25)
