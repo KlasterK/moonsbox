@@ -20,5 +20,5 @@ target_sources(opt
         gamemap.cppm
         simulation.cppm
         renderer.cppm
-        public.cpp
+        pyexport.cpp
 )
