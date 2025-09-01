@@ -59,6 +59,7 @@ class ConfigDefaults:
                 "Glass": "Стекло",
                 'Absorbent': 'Абсорбент',
                 'Aerogel': 'Аэрогель',
+                'Dry Ice': 'Сухой Лёд',
             },
             "en_US": {
                 "+100 K": "+180 °F",
