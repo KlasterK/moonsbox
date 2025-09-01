@@ -17,6 +17,8 @@ from .config import (
     SCREEN_SIZE,
     VISIBLE_AREA,
     WINDOW_CAPTION,
+    MAX_TPS,
+    MAX_FPS,
 )
 from .gamemap import GameMap
 from .materialpalette import MaterialPalette
@@ -263,10 +265,10 @@ class GameApp:
                         break
 
             if not self._is_paused:
-                self._sim.tick()
+                self._sim.tick(MAX_TPS)
 
             self._screen.fill(MAP_OUTER_COLOR)
-            self._renderer.render(self._camera.get_area())
+            self._renderer.render(self._camera.get_area(), MAX_FPS)
             self._pal.render()
             if not self._pal.is_visible():
                 self._ui.draw(self._screen)
