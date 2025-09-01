@@ -251,8 +251,8 @@ class Steam(Water, display_name='Steam'):
 
 class UnbreakableWall(BaseMaterial, display_name='Unbreakable Wall'):
     color = pygame.Color(0xFF, 0xFF, 0xFF)
-    heat_capacity = 0  # does not change its temp
-    thermal_conductivity = 0  # does not transfer heat
+    heat_capacity = 0.6  # does not change its temp
+    thermal_conductivity = 0.4  # does not transfer heat
     tags = MaterialTags.SOLID
 
 
