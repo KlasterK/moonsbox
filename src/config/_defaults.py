@@ -65,6 +65,25 @@ class ConfigDefaults:
                 "+100 K": "+180 °F",
                 "-100 K": "-180 °F",
             },
+            'zh_CN': {
+                "Space": "清除",
+                "Sand": "沙子",
+                "Water": "水",
+                'Ice': "冰",
+                'Steam': "蒸汽",
+                'Unbreakable Wall': "强化墙",
+                'Lava': "熔岩",
+                '+100 K': "加温100 °C",
+                '-100 K': "冷却100 °C",
+                'Black Hole': "黑洞",
+                'Tap': "水龙头",
+                'Propane': "丙烷",
+                'Fire': "火",
+                'Glass': "玻璃",
+                'Absorbent': "吸收剂",
+                'Aerogel': "气凝胶",
+                'Dry Ice': "干冰",
+            },
         }
     )
     ASSETS_ROOT: Path = Path("./assets")
