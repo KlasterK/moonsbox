@@ -4,7 +4,15 @@ from typing import Literal
 
 import pygame
 
-from .config import ASSETS_ROOT, FONT_IS_SYSFONT, FONT_NAME_OR_PATH, FONT_SIZE, MUSIC_VOLUME, VOLUME
+from .config import (
+    ASSETS_ROOT,
+    FONT_IDENTIFIER,
+    FONT_SOURCE,
+    FONT_SIZE,
+    MUSIC_VOLUME,
+    VOLUME,
+    USER_LOCALE,
+)
 
 
 def blend(bg: pygame.Color, fg: pygame.Color, alpha: float | None = None) -> pygame.Color:
@@ -57,12 +65,28 @@ def get_image(
 
 
 def get_font() -> pygame.font.Font:
-    """Returns a pygame.font.Font object for the given size."""
-
-    if FONT_IS_SYSFONT:
-        return pygame.font.SysFont(FONT_NAME_OR_PATH, FONT_SIZE)
+    if FONT_SOURCE == 'file':
+        return pygame.font.Font(FONT_IDENTIFIER, FONT_SIZE)
+    elif FONT_SOURCE == 'system':
+        return pygame.font.SysFont(FONT_IDENTIFIER, FONT_SIZE)
+    elif FONT_SOURCE == 'auto':
+        if 'zh' in USER_LOCALE or 'CN' in USER_LOCALE:
+            names = [
+                'Microsoft YaHei',
+                'SimHei',
+                'PingFanc SC',
+                'WenQuanYi Zen Hei',
+                'Noto Sans SC',
+                'Sans',
+                'sans-serif',
+            ]
+        else:
+            names = ['Sans', 'sans-serif']
+        return pygame.font.SysFont(names, FONT_SIZE)
     else:
-        return pygame.font.Font(FONT_NAME_OR_PATH, FONT_SIZE)
+        raise ValueError(
+            f'invalid FONT_SOURCE {FONT_SOURCE!r}, allowed values are "file", "system", "auto"'
+        )
 
 
 # from profilehooks import profile

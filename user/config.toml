@@ -64,12 +64,15 @@ PALETTE_SHADOW_COLOR = "#000000CC"
 # Font size of material captions, debug captions, etc.
 FONT_SIZE = 15
 
-# Path to font or name of font in the OS (depends on FONT_IS_SYSFONT)
+# The name or file path of the font to be loaded.
 # May be a list (if first element is failed to load, then second element will be loaded, and so on)
-FONT_NAME_OR_PATH = "Sans"
+FONT_IDENTIFIER = ""
 
-# If true, font will be looked up in OS font list, otherwise font will be looked up as a file
-FONT_IS_SYSFONT = true
+# Defines how the font is loaded.
+# "file"   : Treat FONT_IDENTIFIER as a path to font file.
+# "system" : Use FONT_IDENTIFIER to search the font in the system.
+# "auto"   : Ignore FONT_IDENTIFIER and let the game decide which font to use and how to load it.
+FONT_SOURCE = "auto"
 
 # If true, framerate is more smooth but locked to monitor's framerate
 ENABLE_VSYNC = true

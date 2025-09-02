@@ -1,5 +1,6 @@
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import Literal
 import pygame
 import locale
 import time
@@ -33,8 +34,8 @@ class ConfigDefaults:
     )
     PALETTE_SHADOW_COLOR: pygame.Color = field(default_factory=lambda: pygame.Color("#000000CC"))
     FONT_SIZE: int = 15
-    FONT_NAME_OR_PATH: str = "Sans"
-    FONT_IS_SYSFONT: bool = True
+    FONT_IDENTIFIER: str = ''
+    FONT_SOURCE: Literal['file', 'system', 'auto'] = 'auto'
     ENABLE_VSYNC: bool = True
     ENABLE_FPS_COUNTER: bool = False
     ENABLE_TPS_COUNTER: bool = False
