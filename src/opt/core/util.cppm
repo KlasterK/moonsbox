@@ -1,11 +1,7 @@
 module;
-#include <pybind11/pybind11.h>
-#include <pybind11/pytypes.h>
-#include <pybind11/stl.h>
+#include <array>
+#include <optional>
 export module util;
-
-namespace py = pybind11;
-using namespace py::literals;
 
 export using Point = std::array<int, 2>;
 

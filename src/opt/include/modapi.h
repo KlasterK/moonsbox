@@ -1,7 +1,6 @@
 #ifndef KK_OPT_MODAPI_H
 #define KK_OPT_MODAPI_H
 
-#include <utility>
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -47,14 +46,14 @@ typedef struct tagOptionalMaterialData
 
 /* Game-Mod API */
 
-OptionalMaterialData mo_get_value_at(void* ctx, Point pos);
-MaterialData* mo_get_ptr_at(void* ctx, Point pos);
+MaterialData* mo_get_value_at(void* ctx, Point pos);
+const MaterialData* mo_get_const_at(void* ctx, Point pos);
 void mo_register_material(
-    void* ctx, 
+    void* ctx,
     const char* name, 
-    uint8_t api_version[2],
+    uint8_t version[2],
     void (*update_func)(Point pos),
-    size_t (*serialize_aux_func)(MaterialData dot, void* buffer, size_t size),
+    size_t (*serialize_aux_func)(Point pos, void* buffer, size_t size),
     uintptr_t (*deserialize_aux_func)(const void* data, size_t size)
 );
 
