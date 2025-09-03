@@ -1,24 +1,8 @@
 module;
-#include <functional>
-#include "modapi.h"
+#include <modapi.h>
 export module gamemap;
 
-import util;
-
-class GameMap;
-
-export enum class MaterialTags : long long
-{
-    Null        = 0,
-    Solid       = 1,
-    Bulk        = 2,
-    Liquid      = 4,
-    Gas         = 8,
-    Space       = 16,
-
-    Sparseness  = Gas | Space,
-    Movable     = Bulk | Liquid | Gas,
-};
+// import util;
 
 using material_factory_t = std::function<MaterialData(GameMap&, Point)>;
 enum class LineEnds { Square, Round };

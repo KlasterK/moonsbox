@@ -34,9 +34,9 @@ PYBIND11_MODULE(opt, m)
 
     m.def("make_opt", []
     {
-        GameMap map;
-        SimulationManager sim_mgr;
-        Renderer rnd;
-        return py::make_tuple(map, sim_mgr, rnd);
+        // GameMap map;
+        // SimulationManager sim_mgr;
+        // Renderer rnd;
+        // return py::make_tuple(map, sim_mgr, rnd);
     });
 }

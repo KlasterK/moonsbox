@@ -8,4 +8,4 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_DEBUG "${CMAKE_SOURCE_DIR}/..")
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_RELEASE "${CMAKE_SOURCE_DIR}/..")
 
 pybind11_add_module(pythonapi pythonapi.cpp)
-target_link_libraries(pythonapi core)
+target_link_libraries(pythonapi PRIVATE core)
