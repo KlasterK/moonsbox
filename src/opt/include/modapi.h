@@ -65,7 +65,7 @@ typedef struct tagModEntry
     const char* mod_name;
     uint8_t mod_version[2];
     void (*init_func)(void* ctx);
-    void (*exit_func)();
+    void (*exit_func)(void);
 } ModEntry;
 
 /* Utility */
