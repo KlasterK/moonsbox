@@ -2,12 +2,11 @@
 #define KK_OPT_GAMEMAP_HPP
 
 #include <vector>
+#include <iterator>
 #include <modapi.h>
 #include "util.hpp"
 
-enum class LineEnds { Square, Round };
-
-constexpr Point&& operator * (const Point& a, const Point& b) { return {a.x * b.x, a.y * b.y}; }
+constexpr Point operator * (Point a, Point b) { return {a.x * b.x, a.y * b.y}; }
 
 class GameMap
 {
@@ -22,13 +21,13 @@ public:
 
     constexpr Point strides() const noexcept { return {m_size.y, 1}; }
 
-    constexpr bool bounds(Point pos) const noexcept { return pos.x >= 0 && pos.x < m_size.x 
+    constexpr bool bounds(Point pos) const noexcept { return pos.x >= 0 && pos.x < m_size.x
                                                       && pos.y >= 0 && pos.y < m_size.y; }
 
     void resize(Point new_size);
-    
+
 private:
-    std::vector<MaterialData> m_data;
+    std::unique_ptr<MaterialData[]> m_data;
     Point m_size;
     setup_dot_func_t m_default_factory;
 };

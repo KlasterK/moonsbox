@@ -15,5 +15,12 @@ inline opt_ref<const MaterialData> GameMap::at(Point pos) const noexcept
 
 inline opt_ref<MaterialData> GameMap::at(Point pos) noexcept
 {
-    return opt_ref<MaterialData>();
+    if(!bounds(pos))
+        return std::nullopt;
+    return m_data[pos * strides()];
+}
+
+void GameMap::resize(Point new_size)
+{
+
 }
