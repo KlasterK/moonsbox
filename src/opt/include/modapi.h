@@ -1,11 +1,11 @@
 #ifndef KK_OPT_MODAPI_H
 #define KK_OPT_MODAPI_H
 
+#include <stdint.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include <stdint.h>
 
 /* Basic Definitions */
 
@@ -46,26 +46,37 @@ typedef struct tagOptionalMaterialData
 
 /* Game-Mod API */
 
-MaterialData* mo_get_value_at(void* ctx, Point pos);
+typedef void(*setup_dot_func_t)(Point pos);
+typedef void(*update_dot_func_t)(Point pos);
+typedef size_t(*get_serialize_aux_size_func_t)(Point pos);
+typedef void(*serialize_aux_into_func_t)(Point pos, void* buffer, size_t size);
+typedef void(*deserialize_aux_func_t)(Point pos, const void* data, size_t size);
+
+MaterialData* mo_get_at(void* ctx, Point pos);
 const MaterialData* mo_get_const_at(void* ctx, Point pos);
 void mo_register_material(
     void* ctx,
-    const char* name, 
+    const char* name,
     uint8_t version[2],
-    void (*update_func)(Point pos),
-    size_t (*serialize_aux_func)(Point pos, void* buffer, size_t size),
-    uintptr_t (*deserialize_aux_func)(const void* data, size_t size)
+    setup_dot_func_t setup_func,
+    update_dot_func_t update_func,
+    get_serialize_aux_size_func_t get_serialize_aux_size_func,
+    serialize_aux_into_func_t serialize_aux_into_func_t,
+    deserialize_aux_func_t deserialize_aux_func
 );
 
 /* Mod Loader Definitions */
+
+typedef void (*init_mod_func_t)(void* ctx);
+typedef void (*exit_mod_func_t)(void);
 
 typedef struct tagModEntry
 {
     uint8_t api_version[2];
     const char* mod_name;
     uint8_t mod_version[2];
-    void (*init_func)(void* ctx);
-    void (*exit_func)(void);
+    init_mod_func_t init_func;
+    exit_mod_func_t exit_func;
 } ModEntry;
 
 /* Utility */
