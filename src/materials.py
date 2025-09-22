@@ -127,12 +127,23 @@ class BaseMaterial(abc.ABC):
     def update(self, x: int, y: int) -> None:
         '''Updates physical processes of a dot.'''
 
-    def _fall_gas(self, x, y):
+    def _fall_light_gas(self, x, y):
         for remote_pos in (
             (x, y + 1),
             _fast_choice2((x - 1, y), (x + 1, y)),
             _fast_choice2((x - 1, y + 1), (x + 1, y + 1)),
         ):
+            remote_dot = self.map[remote_pos]
+            if remote_dot is not None and remote_dot.tags & MaterialTags.SPACE:
+                self.map[remote_pos] = self
+                self.map[x, y] = remote_dot
+                break
+
+    def _fall_heavy_gas(self, x, y):
+        neighbours = [(x, y + 1), (x + 1, y), (x - 1, y), (x, y - 1)]
+        np.random.shuffle(neighbours)
+
+        for remote_pos in neighbours:
             remote_dot = self.map[remote_pos]
             if remote_dot is not None and remote_dot.tags & MaterialTags.SPACE:
                 self.map[remote_pos] = self
@@ -250,7 +261,7 @@ class Water(BaseMaterial, display_name='Water'):
             if self.temp < 370:
                 self.tags = MaterialTags.LIQUID
                 self.color = self._liquid_color
-            self._fall_gas(x, y)
+            self._fall_light_gas(x, y)
 
 
 class Ice(Water, display_name='Ice'):
@@ -391,7 +402,7 @@ class Propane(BaseMaterial, display_name='Propane'):
             if self.temp < 230:
                 self.tags = MaterialTags.LIQUID
                 self.color = pygame.Color("#5376B885")
-            self._fall_gas(x, y)
+            self._fall_light_gas(x, y)
 
 
 class Fire(BaseMaterial, display_name='Fire'):
@@ -409,7 +420,7 @@ class Fire(BaseMaterial, display_name='Fire'):
             return
 
         self._time_to_live -= 1
-        self._fall_gas(x, y)
+        self._fall_light_gas(x, y)
 
     @property
     def color(self):
@@ -424,7 +435,7 @@ class PureGlass(BaseMaterial, display_name='Glass'):
     @property
     def color(self):
         t = (self.temp - 400) / (1773 - 400)
-        return blend(pygame.Color("#A7C1AD22"), pygame.Color("#FF880085"), t)
+        return blend(pygame.Color("#53D49820"), pygame.Color("#FF880085"), t)
 
     @property
     def tags(self):
@@ -488,7 +499,7 @@ class DryIce(BaseMaterial, display_name='Dry Ice'):
             self.map[x, y] = Space(self.map, x, y)
         elif self.temp > 195:
             self.tags = MaterialTags.GAS
-            self._fall_gas(x, y)
+            self._fall_heavy_gas(x, y)
         else:
             self.tags = MaterialTags.BULK
             self._fall_sand(x, y)
