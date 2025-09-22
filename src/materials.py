@@ -485,14 +485,13 @@ class Aerogel(BaseMaterial, display_name='Aerogel'):
 
 class DryIce(BaseMaterial, display_name='Dry Ice'):
     heat_capacity = 0.8
-    thermal_conductivity = 0.3
+    thermal_conductivity = 1
     tags = MaterialTags.BULK
     color = None
     temp = 175
 
     def __post_init__(self, x, y):
         self._orig_color = blend(pygame.Color("#dbe2ee"), pygame.Color("#c2d9df"), _fast_random())
-        self._concentration = 1
 
     def update(self, x, y):
         if self.temp > 250:
