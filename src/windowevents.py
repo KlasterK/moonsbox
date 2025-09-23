@@ -190,43 +190,39 @@ class MaterialPaletteEventHandler(BaseEventHandler):
     def process_event(self, e):
         if self._pal.is_visible():
             if e.type == pygame.KEYDOWN:
-                if e.key == pygame.K_LEFT:
+                if e.key in (pygame.K_LEFT, pygame.K_a):
                     x, y = self._pal.selection_slot
                     x = max(x - 1, 0)
                     self._pal.selection_slot = (x, y)
                     GameSound('palette.move_selection').play_override()
 
-                elif e.key == pygame.K_RIGHT:
+                elif e.key in (pygame.K_RIGHT, pygame.K_d):
                     x, y = self._pal.selection_slot
                     width = self._pal.whole_grid_size[0]
                     x = min(x + 1, width - 1)
                     self._pal.selection_slot = (x, y)
                     GameSound('palette.move_selection').play_override()
 
-                elif e.key == pygame.K_UP:
+                elif e.key in (pygame.K_UP, pygame.K_w):
                     x, y = self._pal.selection_slot
                     y = max(y - 1, 0)
                     self._pal.selection_slot = (x, y)
                     GameSound('palette.move_selection').play_override()
 
-                elif e.key == pygame.K_DOWN:
+                elif e.key in (pygame.K_DOWN, pygame.K_s):
                     x, y = self._pal.selection_slot
                     height = self._pal.whole_grid_size[1]
                     y = min(y + 1, height - 1)
                     self._pal.selection_slot = (x, y)
                     GameSound('palette.move_selection').play_override()
 
-                elif e.key == pygame.K_RETURN:
+                elif e.key in (pygame.K_RETURN, pygame.K_SPACE):
                     self._pal.hide(True)
                     GameSound('palette.hide_confirmation').play_override()
 
                 elif e.key == pygame.K_ESCAPE:
                     self._pal.hide(False)
                     GameSound('palette.hide_no_confirmation').play_override()
-
-                elif e.unicode and e.unicode.isalpha():
-                    self._pal.go_to_starting_with(e.unicode)
-                    GameSound('palette.move_selection').play_override()
 
                 raise StopHandling
 
