@@ -41,8 +41,8 @@ and their interactions in a pixel world.
 - **RMB | Shift**: Move the camera
 - **Mouse Wheel**: Zoom camera
 - **MMB | Tab**: Open the material palette
-- **Arrow Keys | Mouse**: Move material selection
-- **Enter | Double LMB**: Select material to draw
+- **WASD | Arrow Keys | Mouse**: Move material selection
+- **Space | Enter | Double LMB**: Select material to draw
 - **Esc**: Close palette or exit
 - **Space**: Pause simulation
 - **V**: Change render mask (normal/thermal)
@@ -52,6 +52,8 @@ and their interactions in a pixel world.
 - **+ | -**: Change brush size
 - **R**: Pause rendering to speed up simulation
 - **Alt + F12**: Begin or end capturing (see Running to convert capture to a video)
+- **U | Mouse Go Forward**: Push current material into material stack
+- **I | Mouse Go Back**: Pop material from the stack (if empty, get Space)
 
 ## Social
 
