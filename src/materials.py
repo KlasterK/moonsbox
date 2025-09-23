@@ -484,7 +484,7 @@ class Aerogel(BaseMaterial, display_name='Aerogel'):
 
 
 class DryIce(BaseMaterial, display_name='Dry Ice'):
-    heat_capacity = 0.8
+    heat_capacity = 0.95
     thermal_conductivity = 1
     tags = MaterialTags.BULK
     color = None
