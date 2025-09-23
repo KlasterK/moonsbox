@@ -121,9 +121,11 @@ class GameApp:
             vsync=ENABLE_VSYNC,
         )
         pygame.display.set_caption(WINDOW_CAPTION)
-        pygame.display.set_icon(get_image('window_icon'))
 
         self._screen = pygame.display.get_surface()
+        self._show_loading_screen()
+
+        pygame.display.set_icon(get_image('window_icon'))
 
         self._is_running = True
         self._is_paused = False
@@ -245,6 +247,14 @@ class GameApp:
             DrawingEventHandler(self._camera, self._map, self._pal),
             CapturingEventHandler(self._renderer),
         )
+
+    def _show_loading_screen(self):
+        font = get_font()
+        loading_surf = font.render('Loading...', True, '#00ff00')
+
+        self._screen.fill('#000000')
+        self._screen.blit(loading_surf, (10, 10))
+        pygame.display.flip()
 
     def run(self) -> None:
         if not self._is_running:
