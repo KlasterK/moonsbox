@@ -242,25 +242,36 @@ class Water(BaseMaterial, display_name='Water'):
         if self.color is None:
             self.color = self._liquid_color
 
+        if self.tags & MaterialTags.SOLID:
+            GameSound('material.Ice').play()
+        elif self.tags & MaterialTags.LIQUID:
+            GameSound('material.Water').play()
+        elif self.tags & MaterialTags.GAS:
+            GameSound('material.Steam').play()
+
     def update(self, x, y):
         if self.tags & MaterialTags.SOLID:
             if self.temp > 275:
                 self.tags = MaterialTags.LIQUID
                 self.color = self._liquid_color
+                GameSound('convert.Ice_melts').play()
 
         elif self.tags & MaterialTags.LIQUID:
             if self.temp < 270:
                 self.tags = MaterialTags.SOLID
                 self.color = pygame.Color("#66C8E0B7")
+                GameSound('convert.Water_freezes').play()
             elif self.temp > 375:
                 self.tags = MaterialTags.GAS
                 self.color = pygame.Color("#28BBC53D")
+                GameSound('convert.Water_evaporates').play()
             self._fall_liquid(x, y)
 
         elif self.tags & MaterialTags.GAS:
             if self.temp < 370:
                 self.tags = MaterialTags.LIQUID
                 self.color = self._liquid_color
+                GameSound('convert.Steam_condensates').play()
             self._fall_light_gas(x, y)
 
 
@@ -413,6 +424,7 @@ class Fire(BaseMaterial, display_name='Fire'):
 
     def __post_init__(self, x, y):
         self._time_to_live = _fast_randint(0, 20)
+        GameSound('material.Fire').play()
 
     def update(self, x, y):
         if self._time_to_live <= 0:
