@@ -25,7 +25,7 @@ class ConfigDefaults:
     PALETTE_MAX_CAPTION_CHARS: int = 20
     PALETTE_MARGIN: int = 20
     MAP_INNER_COLOR: pygame.Color = field(default_factory=lambda: pygame.Color("#000000"))
-    MAP_OUTER_COLOR: pygame.Color = field(default_factory=lambda: pygame.Color("#071b10"))
+    MAP_OUTER_COLOR: pygame.Color = field(default_factory=lambda: pygame.Color("#113311"))
     PALETTE_SELECTION_OUTER_COLOR: pygame.Color = field(
         default_factory=lambda: pygame.Color("#00C3FF40")
     )

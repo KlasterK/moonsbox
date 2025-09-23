@@ -50,7 +50,7 @@ PALETTE_MARGIN = 20
 MAP_INNER_COLOR = "#000000"
 
 # Color outside the map (infinite boundary)
-MAP_OUTER_COLOR = "#071b10"
+MAP_OUTER_COLOR = "#113311"
 
 # Outline color of selection
 PALETTE_SELECTION_OUTER_COLOR = "#00C3FF40"
