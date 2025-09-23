@@ -16,7 +16,7 @@ ZOOM_FACTOR = 0.1
 # Set volume of sounds
 VOLUME = 1.0
 
-# Set volume of music (do not listen to)
+# Set volume of music
 MUSIC_VOLUME = 0.0
 
 # If true, brush is a circle, otherwise brush is a square
@@ -109,11 +109,11 @@ CAPTURE_PATH_FACTORY = "./capture_%Y-%m-%d_%H-%M-%S/"
 
 # If true, then in order to pick unselected material you need to click on it 2 times, 
 # otherwise only 1 times.
-PALETTE_MOUSE_SELECTION_REQUIRES_DBL_CLICK = true
+PALETTE_MOUSE_SELECTION_REQUIRES_DBL_CLICK = false
 
 # Limits ticks per second, may be useful if the game is too fast. 
 # Values below or equal to 0 means disable the limit.
-MAX_TPS = 0
+MAX_TPS = 30
 
 # Limits frames per second may be useful if you want to save battery charge. 
 # Values below or equal to 0 means disable the limit.
