@@ -186,6 +186,7 @@ class MaterialPaletteEventHandler(BaseEventHandler):
         self._app = game_app
         self._pal = palette
         self._previous_material = None
+        self._material_stack = []
 
     def process_event(self, e):
         if self._pal.is_visible():
@@ -262,11 +263,33 @@ class MaterialPaletteEventHandler(BaseEventHandler):
                 raise StopHandling
 
         else:
-            if (e.type == pygame.KEYDOWN and e.key == pygame.K_TAB) or (
-                e.type == pygame.MOUSEBUTTONDOWN and e.button == pygame.BUTTON_MIDDLE
+            if (
+                e.type == pygame.KEYDOWN
+                and e.key == pygame.K_TAB
+                or e.type == pygame.MOUSEBUTTONDOWN
+                and e.button == pygame.BUTTON_MIDDLE
             ):
                 self._pal.show()
                 GameSound('palette.show').play_override()
+
+            elif (
+                e.type == pygame.KEYDOWN
+                and e.key == pygame.K_u
+                or e.type == pygame.MOUSEBUTTONDOWN
+                and e.button == pygame.BUTTON_X2  # navigate forward
+            ):
+                self._material_stack.append(self._pal.selected_material)
+
+            elif (
+                e.type == pygame.KEYDOWN
+                and e.key == pygame.K_i
+                or e.type == pygame.MOUSEBUTTONDOWN
+                and e.button == pygame.BUTTON_X1  # navigate back
+            ):
+                if not self._material_stack:
+                    self._pal.selected_material = Space
+                else:
+                    self._pal.selected_material = self._material_stack.pop()
 
 
 class CapturingEventHandler(BaseEventHandler):
