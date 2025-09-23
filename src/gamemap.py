@@ -118,57 +118,38 @@ class GameMap:
     ) -> None:
         '''Draws a line with the given width on the map with the given material.'''
 
-        delta_x = abs(start[0] - end[0])
-        delta_y = abs(start[1] - end[1])
+        dx = abs(start[0] - end[0])
+        dy = abs(start[1] - end[1])
 
-        current_x = start[0]
-        current_y = start[1]
+        ix = 1 if start[0] < end[0] else -1
+        iy = 1 if start[1] < end[1] else -1
 
-        step_x = 1 if start[0] < end[0] else -1
-        step_y = 1 if start[1] < end[1] else -1
+        x = start[0]
+        y = start[1]
 
-        points = []
-        # Bresenham's algorithm to collect all points along the line
-        if delta_x > delta_y:
-            error = delta_x / 2.0
-
-            while current_x != end[0]:
-                points.append((current_x, current_y))
-
-                current_x += step_x
-
-                error -= delta_y
-                if error < 0:
-                    current_y += step_y
-                    error += delta_x
-
-            points.append((current_x, current_y))
-        else:
-            error = delta_y / 2.0
-
-            while current_y != end[1]:
-                points.append((current_x, current_y))
-
-                current_y += step_y
-
-                error -= delta_x
-                if error < 0:
-                    current_x += step_x
-                    error += delta_y
-
-            points.append((current_x, current_y))
-
-        # Draw width-wide line by filling a square or disk around each point
+        error = 0
         radius = max(0, width // 2)
-        for px, py in points:
-            for dx in range(-radius, radius + 1):
-                for dy in range(-radius, radius + 1):
-                    tx, ty = px + dx, py + dy
+
+        # 4-connected line algorithm
+        for _ in range(dx + dy):
+            e1 = error + dy
+            e2 = error - dx
+            if abs(e1) < abs(e2):
+                x += ix
+                error = e1
+            else:
+                y += iy
+                error = e2
+
+            # Draw width-wide line by filling a square or disk around each point
+            for rad_dx in range(-radius, radius + 1):
+                for rad_dy in range(-radius, radius + 1):
+                    tx, ty = x + rad_dx, y + rad_dy
                     if not self.bounds((tx, ty)):
                         continue
                     if ends == 'round':
                         # Only fill points inside the circle
-                        if dx * dx + dy * dy > radius * radius:
+                        if rad_dx**2 + rad_dy**2 > radius**2:
                             continue
                     self._array[tx, ty] = material_factory(self, tx, ty)
 
