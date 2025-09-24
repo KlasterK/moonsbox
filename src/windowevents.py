@@ -350,6 +350,7 @@ class MusicEventHandler(BaseEventHandler):
     def __init__(self, name: str):
         self._end_event_type = pygame.event.custom_type()
         pygame.mixer_music.set_endevent(self._end_event_type)
+        pygame.mixer_music.set_volume(MUSIC_VOLUME)
 
         glob_path = Path(ASSETS_ROOT / 'sounds')
         self._tracks = sorted(glob_path.glob(f'{name}.*'))
