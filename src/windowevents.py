@@ -1,4 +1,5 @@
 import abc
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 import pygame
@@ -12,12 +13,14 @@ from .config import (
     SCREEN_SIZE,
     ZOOM_FACTOR,
     PALETTE_MOUSE_SELECTION_REQUIRES_DBL_CLICK,
+    ASSETS_ROOT,
+    MUSIC_VOLUME,
 )
 from .gamemap import GameMap
 from .materialpalette import MaterialPalette
 from .materials import MaterialTags, Space
 from .simulation import SimulationManager
-from .util import GameSound
+from .soundengine import play_sound
 
 if TYPE_CHECKING:
     from .gameapp import Camera, GameApp
@@ -35,6 +38,8 @@ class BaseEventHandler(abc.ABC):
     @abc.abstractmethod
     def process_event(self, e: pygame.Event):
         pass
+
+    _common_user_event_type = pygame.event.custom_type()
 
 
 class GameAppEventHandler(BaseEventHandler):
@@ -130,7 +135,9 @@ class DrawingEventHandler(BaseEventHandler):
                 self._map.draw_rect(rect, self._material_factory)
             self._previous_pos = abs_pos
 
-            pygame.event.post(pygame.event.Event(pygame.USEREVENT, purpose='hold-drawing'))
+            pygame.event.post(
+                pygame.event.Event(BaseEventHandler._common_user_event_type, purpose='hold-drawing')
+            )
 
         elif e.type == pygame.MOUSEMOTION:
             if self._previous_pos is not None:
@@ -169,7 +176,10 @@ class DrawingEventHandler(BaseEventHandler):
         elif e.type == pygame.KEYDOWN and e.key == pygame.K_MINUS:
             self._width = max(1, self._width - DELTA_DRAWING_WIDTH)
 
-        elif e.type == pygame.USEREVENT and getattr(e, 'purpose', None) == 'hold-drawing':
+        elif (
+            e.type == BaseEventHandler._common_user_event_type
+            and getattr(e, 'purpose', None) == 'hold-drawing'
+        ):
             if self._previous_pos is not None:
                 rect = pygame.Rect(0, 0, self._width, self._width)
                 rect.center = self._previous_pos
@@ -178,7 +188,11 @@ class DrawingEventHandler(BaseEventHandler):
                 else:
                     self._map.draw_rect(rect, self._material_factory)
 
-                pygame.event.post(pygame.event.Event(pygame.USEREVENT, purpose='hold-drawing'))
+                pygame.event.post(
+                    pygame.event.Event(
+                        BaseEventHandler._common_user_event_type, purpose='hold-drawing'
+                    )
+                )
 
 
 class MaterialPaletteEventHandler(BaseEventHandler):
@@ -195,35 +209,35 @@ class MaterialPaletteEventHandler(BaseEventHandler):
                     x, y = self._pal.selection_slot
                     x = max(x - 1, 0)
                     self._pal.selection_slot = (x, y)
-                    GameSound('palette.move_selection').play_override()
+                    play_sound('palette.move_selection', 'ui', True)
 
                 elif e.key in (pygame.K_RIGHT, pygame.K_d):
                     x, y = self._pal.selection_slot
                     width = self._pal.whole_grid_size[0]
                     x = min(x + 1, width - 1)
                     self._pal.selection_slot = (x, y)
-                    GameSound('palette.move_selection').play_override()
+                    play_sound('palette.move_selection', 'ui', True)
 
                 elif e.key in (pygame.K_UP, pygame.K_w):
                     x, y = self._pal.selection_slot
                     y = max(y - 1, 0)
                     self._pal.selection_slot = (x, y)
-                    GameSound('palette.move_selection').play_override()
+                    play_sound('palette.move_selection', 'ui', True)
 
                 elif e.key in (pygame.K_DOWN, pygame.K_s):
                     x, y = self._pal.selection_slot
                     height = self._pal.whole_grid_size[1]
                     y = min(y + 1, height - 1)
                     self._pal.selection_slot = (x, y)
-                    GameSound('palette.move_selection').play_override()
+                    play_sound('palette.move_selection', 'ui', True)
 
                 elif e.key in (pygame.K_RETURN, pygame.K_SPACE):
                     self._pal.hide(True)
-                    GameSound('palette.hide_confirmation').play_override()
+                    play_sound('palette.hide_confirmation', 'ui', True)
 
                 elif e.key == pygame.K_ESCAPE:
                     self._pal.hide(False)
-                    GameSound('palette.hide_no_confirmation').play_override()
+                    play_sound('palette.hide_no_confirmation', 'ui', True)
 
                 raise StopHandling
 
@@ -239,15 +253,15 @@ class MaterialPaletteEventHandler(BaseEventHandler):
                                 PALETTE_MOUSE_SELECTION_REQUIRES_DBL_CLICK
                                 and slot_pos != previous_slot_pos
                             ):
-                                GameSound('palette.move_selection').play_override()
+                                play_sound('palette.move_selection', 'ui', True)
                             else:
                                 self._pal.hide(True)
-                                GameSound('palette.hide_confirmation').play_override()
+                                play_sound('palette.hide_confirmation', 'ui', True)
                             break
                     else:
                         # If no slot was clicked, hide the palette
                         self._pal.hide(False)
-                        GameSound('palette.hide_no_confirmation').play_override()
+                        play_sound('palette.hide_no_confirmation', 'ui', True)
 
                 raise StopHandling
 
@@ -270,7 +284,7 @@ class MaterialPaletteEventHandler(BaseEventHandler):
                 and e.button == pygame.BUTTON_MIDDLE
             ):
                 self._pal.show()
-                GameSound('palette.show').play_override()
+                play_sound('palette.show', 'ui', True)
 
             elif (
                 e.type == pygame.KEYDOWN
@@ -301,10 +315,10 @@ class CapturingEventHandler(BaseEventHandler):
             if e.key == pygame.K_F12 and e.mod & pygame.KMOD_ALT:
                 if not self._rnd.is_capturing():
                     self._rnd.begin_capturing()
-                    GameSound('ui.begin_capturing').play_override()
+                    play_sound('ui.begin_capturing', 'ui', True)
                 else:
                     self._rnd.end_capturing()
-                    GameSound('ui.end_capturing').play_override()
+                    play_sound('ui.end_capturing', 'ui', True)
 
             elif e.key == pygame.K_r:
                 self._rnd.is_paused = True
@@ -330,3 +344,29 @@ class CapturingEventHandler(BaseEventHandler):
                         pygame.RESIZABLE | pygame.DOUBLEBUF | pygame.HWSURFACE | pygame.HWACCEL,
                         vsync=1,
                     )
+
+
+class MusicEventHandler(BaseEventHandler):
+    def __init__(self, name: str):
+        self._end_event_type = pygame.event.custom_type()
+        pygame.mixer_music.set_endevent(self._end_event_type)
+
+        glob_path = Path(ASSETS_ROOT / 'sounds')
+        self._tracks = sorted(glob_path.glob(f'{name}.*'))
+
+        if not self._tracks:
+            self._track_idx = -1
+            return
+
+        self._track_idx = 0
+
+        pygame.mixer_music.load(self._tracks[0])
+        pygame.mixer_music.play()
+
+    def process_event(self, e):
+        if e.type == self._end_event_type:
+            self._track_idx += 1
+            self._track_idx %= len(self._tracks)
+
+            pygame.mixer_music.load(self._tracks[self._track_idx])
+            pygame.mixer_music.play()

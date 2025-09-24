@@ -35,13 +35,15 @@ from .ui import (
     Container,
     Subwindow,
 )
-from .util import GameSound, get_font, get_image
+from .soundengine import play_sound
+from .util import get_font, get_image
 from .windowevents import (
     CameraEventHandler,
     CapturingEventHandler,
     DrawingEventHandler,
     GameAppEventHandler,
     MaterialPaletteEventHandler,
+    MusicEventHandler,
     SimulationEventHandler,
     StopHandling,
 )
@@ -173,7 +175,7 @@ class GameApp:
         @btn_materials.add_cb
         def _(_, old):
             if btn_materials.pseudo == 'hover' and old == 'pressed':
-                GameSound('palette.show').play_override()
+                play_sound('palette.show', 'ui', True)
                 self._pal.show()
 
         btn_saving = Button(parent=layout, image=get_image('saving_btn_icon'))
@@ -246,6 +248,7 @@ class GameApp:
             CameraEventHandler(self._camera),
             DrawingEventHandler(self._camera, self._map, self._pal),
             CapturingEventHandler(self._renderer),
+            MusicEventHandler('stream.ambient'),
         )
 
     def _show_loading_screen(self):
@@ -260,7 +263,6 @@ class GameApp:
         if not self._is_running:
             raise RuntimeError('game is stopped')
 
-        GameSound('stream.ambient').play()
         font = get_font()
 
         tps_pos = 10, 10

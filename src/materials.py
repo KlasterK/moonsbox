@@ -7,7 +7,8 @@ import numpy as np
 import pygame
 
 from .config import DEFAULT_TEMP
-from .util import GameSound, blend
+from .util import blend
+from .soundengine import play_sound
 
 if TYPE_CHECKING:
     from .gamemap import GameMap
@@ -205,7 +206,7 @@ class Sand(BaseMaterial, display_name='Sand'):
     def __post_init__(self, x, y):
         self._is_glass = False
         self._original_sand_color = pygame.Color(0xFF, random.randint(0x99, 0xFF), 0)
-        GameSound('material.Sand').play()
+        play_sound('material.Sand')
 
     @property
     def color(self):
@@ -219,7 +220,7 @@ class Sand(BaseMaterial, display_name='Sand'):
         if self.temp > 1973:  # 1700 *C, 3092 *F
             if not self._is_glass:
                 self._is_glass = True
-                GameSound('convert.Sand_to_glass').play()
+                play_sound('convert.Sand_to_glass')
             self._fall_liquid(x, y)
             self.tags = MaterialTags.LIQUID
 
@@ -243,35 +244,35 @@ class Water(BaseMaterial, display_name='Water'):
             self.color = self._liquid_color
 
         if self.tags & MaterialTags.SOLID:
-            GameSound('material.Ice').play()
+            play_sound('material.Ice')
         elif self.tags & MaterialTags.LIQUID:
-            GameSound('material.Water').play()
+            play_sound('material.Water')
         elif self.tags & MaterialTags.GAS:
-            GameSound('material.Steam').play()
+            play_sound('material.Steam')
 
     def update(self, x, y):
         if self.tags & MaterialTags.SOLID:
             if self.temp > 275:
                 self.tags = MaterialTags.LIQUID
                 self.color = self._liquid_color
-                GameSound('convert.Ice_melts').play()
+                play_sound('convert.Ice_melts')
 
         elif self.tags & MaterialTags.LIQUID:
             if self.temp < 270:
                 self.tags = MaterialTags.SOLID
                 self.color = pygame.Color("#66C8E0B7")
-                GameSound('convert.Water_freezes').play()
+                play_sound('convert.Water_freezes')
             elif self.temp > 375:
                 self.tags = MaterialTags.GAS
                 self.color = pygame.Color("#28BBC53D")
-                GameSound('convert.Water_evaporates').play()
+                play_sound('convert.Water_evaporates')
             self._fall_liquid(x, y)
 
         elif self.tags & MaterialTags.GAS:
             if self.temp < 370:
                 self.tags = MaterialTags.LIQUID
                 self.color = self._liquid_color
-                GameSound('convert.Steam_condensates').play()
+                play_sound('convert.Steam_condensates')
             self._fall_light_gas(x, y)
 
 
@@ -300,7 +301,7 @@ class Lava(BaseMaterial, display_name='Lava'):
     temp = 1200  # 927 *C, 1700 *F
 
     def __post_init__(self, x, y):
-        GameSound('material.Lava').play()
+        play_sound('material.Lava')
 
     def update(self, x, y):
         if self.temp > 400:  # 127 *C, 260 *F
@@ -424,7 +425,7 @@ class Fire(BaseMaterial, display_name='Fire'):
 
     def __post_init__(self, x, y):
         self._time_to_live = _fast_randint(0, 20)
-        GameSound('material.Fire').play()
+        play_sound('material.Fire')
 
     def update(self, x, y):
         if self._time_to_live <= 0:
