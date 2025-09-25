@@ -147,6 +147,7 @@ class GameApp:
         self._pal.selected_material = Sand
 
         style = Stylesheet(
+            Selector(ruleset=Ruleset(spacing=7.5)),
             Selector(
                 class_name='Button',
                 ruleset=Ruleset(bg_color='#7C6423'),
