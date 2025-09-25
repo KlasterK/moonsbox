@@ -164,6 +164,14 @@ class GameApp:
                 pseudo='pressed',
                 ruleset=Ruleset(bg_color="#A98930"),
             ),
+            Selector(
+                class_name='Subwindow',
+                ruleset=Ruleset(
+                    bg_color="#4E3F15",
+                    border_color="#614D16",
+                    border_width=2,
+                ),
+            ),
         )
         self._ui = Container(None, style)
         self._ui.capture_surface = self._screen
