@@ -141,7 +141,16 @@ class BaseMaterial(abc.ABC):
                 break
 
     def _fall_heavy_gas(self, x, y):
-        neighbours = [(x, y + 1), (x + 1, y), (x - 1, y), (x, y - 1)]
+        neighbours = [
+            (x, y + 1),
+            (x + 1, y),
+            (x - 1, y),
+            (x, y - 1),
+            (x + 1, y + 1),
+            (x + 1, y - 1),
+            (x - 1, y + 1),
+            (x - 1, y - 1),
+        ]
         np.random.shuffle(neighbours)
 
         for remote_pos in neighbours:
