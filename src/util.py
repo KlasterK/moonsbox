@@ -61,11 +61,19 @@ def get_image(
         return pygame.transform.scale(image, scale_to)
 
 
+_cached_font = None
+
+
 def get_font() -> pygame.font.Font:
+    global _cached_font
+
+    if _cached_font is not None:
+        return _cached_font
+
     if FONT_SOURCE == 'file':
-        return pygame.font.Font(FONT_IDENTIFIER, FONT_SIZE)
+        _cached_font = pygame.font.Font(FONT_IDENTIFIER, FONT_SIZE)
     elif FONT_SOURCE == 'system':
-        return pygame.font.SysFont(FONT_IDENTIFIER, FONT_SIZE)
+        _cached_font = pygame.font.SysFont(FONT_IDENTIFIER, FONT_SIZE)
     elif FONT_SOURCE == 'auto':
         if 'zh' in USER_LOCALE or 'CN' in USER_LOCALE:
             names = [
@@ -79,8 +87,10 @@ def get_font() -> pygame.font.Font:
             ]
         else:
             names = ['Sans', 'sans-serif']
-        return pygame.font.SysFont(names, FONT_SIZE)
+        _cached_font = pygame.font.SysFont(names, FONT_SIZE)
     else:
         raise ValueError(
             f'invalid FONT_SOURCE {FONT_SOURCE!r}, allowed values are "file", "system", "auto"'
         )
+
+    return _cached_font
