@@ -49,6 +49,7 @@ class OPENFILENAMEW(ctypes.Structure):
 OFN_FILEMUSTEXIST = 0x00001000
 OFN_PATHMUSTEXIST = 0x00000800
 OFN_EXPLORER = 0x00080000
+OFN_NOCHANGEDIR = 0x00000008
 
 commdlg = ctypes.WinDLL('comdlg32.dll')
 
@@ -70,7 +71,8 @@ def impl_ask_open_file(title, file_types, initial_dir):
         title,
         initial_dir,
         ''.join(f'{k}\0{v}\0' for k, v in file_types.items()) + '\0',
-        OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST | OFN_EXPLORER,
+        # OFN_NOCHANGEDIR prevents changing CWD
+        OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST | OFN_EXPLORER | OFN_NOCHANGEDIR,
     )
 
     if GetOpenFileNameW(ctypes.byref(ofn)):
@@ -87,7 +89,7 @@ def impl_ask_save_file(title, file_types, initial_dir, default_extension):
         title,
         initial_dir,
         ''.join(f'{k}\0{v}\0' for k, v in file_types.items()) + '\0',
-        OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST | OFN_EXPLORER,
+        OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST | OFN_EXPLORER | OFN_NOCHANGEDIR,
         def_ext=default_extension,
     )
 
