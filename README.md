@@ -39,7 +39,7 @@ and their interactions in a pixel world.
 
 - **LMB | Ctrl**: Draw with the selected material
 - **RMB | Shift**: Move the camera
-- **Alt + Mouse Wheel**: Zoom camera
+- **Mouse Wheel**: Zoom camera
 - **MMB | Tab**: Open the material palette
 - **WASD | Arrow Keys | Mouse**: Move material selection
 - **Space | Enter | Double LMB**: Select material to draw
@@ -49,7 +49,7 @@ and their interactions in a pixel world.
 - **F5**: Step simulation
 - **F6**: Clean map
 - **F10**: Take map snapshot
-- **+ | - | Mouse Wheel**: Change brush size
+- **+ | - | Alt + Mouse Wheel**: Change brush size
 - **R**: Pause rendering to speed up simulation
 - **Alt + F12**: Begin or end capturing (see Running to convert capture to a video)
 - **U | Mouse Go Forward**: Push current material into material stack

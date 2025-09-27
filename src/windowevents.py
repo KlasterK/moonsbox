@@ -85,7 +85,7 @@ class CameraEventHandler(BaseEventHandler):
 
         elif e.type == pygame.MOUSEWHEEL:
             mods = pygame.key.get_mods()
-            if mods & pygame.KMOD_ALT == 0:
+            if mods & pygame.KMOD_ALT:
                 return
 
             self._camera.zoom(-e.precise_y * ZOOM_FACTOR)
@@ -178,7 +178,7 @@ class DrawingEventHandler(BaseEventHandler):
         elif e.type == pygame.KEYDOWN and e.key == pygame.K_MINUS:
             self._width = max(1, self._width - DELTA_DRAWING_WIDTH)
 
-        elif e.type == pygame.MOUSEWHEEL:
+        elif e.type == pygame.MOUSEWHEEL and pygame.key.get_mods() & pygame.KMOD_ALT:
             self._width = max(1, self._width + e.y)
 
         elif (
