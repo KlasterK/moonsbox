@@ -139,7 +139,18 @@ class BaseMaterial(abc.ABC):
             if remote_dot is not None and remote_dot.tags & MaterialTags.SPACE:
                 self.map[remote_pos] = self
                 self.map[x, y] = remote_dot
-                break
+                return
+
+        if _fast_random() > 0.99:
+            nb_pos = ((x - 1, y), (x + 1, y), (x, y - 1), (x, y + 1))[_fast_randint(0, 3)]
+            nb_dot = self.map[nb_pos]
+
+            if nb_dot is None:
+                return
+
+            if nb_dot.tags & MaterialTags.GAS:
+                self.map[nb_pos] = self
+                self.map[x, y] = nb_dot
 
     def _fall_heavy_gas(self, x, y):
         neighbours = [
@@ -160,6 +171,17 @@ class BaseMaterial(abc.ABC):
                 self.map[remote_pos] = self
                 self.map[x, y] = remote_dot
                 break
+
+        if _fast_random() > 0.99:
+            nb_pos = ((x - 1, y), (x + 1, y), (x, y - 1), (x, y + 1))[_fast_randint(0, 3)]
+            nb_dot = self.map[nb_pos]
+
+            if nb_dot is None:
+                return
+
+            if nb_dot.tags & MaterialTags.GAS:
+                self.map[nb_pos] = self
+                self.map[x, y] = nb_dot
 
     def _fall_liquid(self, x, y):
         remote_dot = self.map[x, y + 1]
