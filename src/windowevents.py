@@ -84,11 +84,10 @@ class CameraEventHandler(BaseEventHandler):
                 self._camera.move(-e.rel[0], -e.rel[1])
 
         elif e.type == pygame.MOUSEWHEEL:
-            # Changing scale factors
-            # self._visible_area_size_scale.x += e.precise_y * 0.1
-            # self._visible_area_size_scale.y += e.precise_y * 0.1
+            mods = pygame.key.get_mods()
+            if mods & pygame.KMOD_ALT == 0:
+                return
 
-            # Saving center to assign it later, we will work with 'radius' of the area
             self._camera.zoom(-e.precise_y * ZOOM_FACTOR)
 
 
@@ -121,8 +120,11 @@ class DrawingEventHandler(BaseEventHandler):
         #         '~y',
         #     ] = self._selected_material()
 
-        if (e.type == pygame.KEYDOWN and e.key == pygame.K_LCTRL) or (
-            e.type == pygame.MOUSEBUTTONDOWN and e.button == pygame.BUTTON_LEFT
+        if (
+            e.type == pygame.KEYDOWN
+            and e.key == pygame.K_LCTRL
+            or e.type == pygame.MOUSEBUTTONDOWN
+            and e.button == pygame.BUTTON_LEFT
         ):
             mouse_pos = pygame.mouse.get_pos()
             abs_pos = self._map.invy_pos(self._camera.convert_pos(mouse_pos))
@@ -175,6 +177,9 @@ class DrawingEventHandler(BaseEventHandler):
 
         elif e.type == pygame.KEYDOWN and e.key == pygame.K_MINUS:
             self._width = max(1, self._width - DELTA_DRAWING_WIDTH)
+
+        elif e.type == pygame.MOUSEWHEEL:
+            self._width = max(1, self._width + e.y)
 
         elif (
             e.type == BaseEventHandler._common_user_event_type
