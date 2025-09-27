@@ -85,6 +85,7 @@ class MaterialTags(Flag):
     SPACE = auto()
     FLOAT = auto()
     SPARSENESS = GAS | SPACE
+    FLOWABLE = SPARSENESS | LIQUID
     MOVABLE = BULK | LIQUID | GAS | FLOAT
 
 
@@ -179,12 +180,15 @@ class BaseMaterial(abc.ABC):
                 break
 
     def _fall_sand(self, x, y):
-        for remote_pos in (x, y - 1), _fast_choice2((x - 1, y - 1), (x + 1, y - 1)):
-            remote_dot = self.map[remote_pos]
+        for nb_pos in (x, y - 1), _fast_choice2((x - 1, y - 1), (x + 1, y - 1)):
+            nb_dot = self.map[nb_pos]
 
-            if remote_dot is not None and remote_dot.tags & MaterialTags.SPARSENESS:
-                self.map[remote_pos] = self
-                self.map[x, y] = remote_dot
+            if nb_dot is None:
+                continue
+
+            if nb_dot.tags & MaterialTags.FLOWABLE:
+                self.map[nb_pos] = self
+                self.map[x, y] = nb_dot
                 break
 
     def _fall_ash(self, x, y):
