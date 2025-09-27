@@ -129,6 +129,20 @@ class BaseMaterial(abc.ABC):
     def update(self, x: int, y: int) -> None:
         '''Updates physical processes of a dot.'''
 
+    def _diffuse(self, x, y, tags, chance=0.01):
+        if _fast_random() > chance:
+            return
+
+        nb_pos = ((x - 1, y), (x + 1, y), (x, y - 1), (x, y + 1))[_fast_randint(0, 3)]
+        nb_dot = self.map[nb_pos]
+
+        if nb_dot is None:
+            return
+
+        if nb_dot.tags & tags:
+            self.map[nb_pos] = self
+            self.map[x, y] = nb_dot
+
     def _fall_light_gas(self, x, y):
         for remote_pos in (
             (x, y + 1),
@@ -141,16 +155,7 @@ class BaseMaterial(abc.ABC):
                 self.map[x, y] = remote_dot
                 return
 
-        if _fast_random() > 0.99:
-            nb_pos = ((x - 1, y), (x + 1, y), (x, y - 1), (x, y + 1))[_fast_randint(0, 3)]
-            nb_dot = self.map[nb_pos]
-
-            if nb_dot is None:
-                return
-
-            if nb_dot.tags & MaterialTags.GAS:
-                self.map[nb_pos] = self
-                self.map[x, y] = nb_dot
+        self._diffuse(x, y, MaterialTags.GAS)
 
     def _fall_heavy_gas(self, x, y):
         neighbours = [
@@ -172,16 +177,7 @@ class BaseMaterial(abc.ABC):
                 self.map[x, y] = remote_dot
                 break
 
-        if _fast_random() > 0.99:
-            nb_pos = ((x - 1, y), (x + 1, y), (x, y - 1), (x, y + 1))[_fast_randint(0, 3)]
-            nb_dot = self.map[nb_pos]
-
-            if nb_dot is None:
-                return
-
-            if nb_dot.tags & MaterialTags.GAS:
-                self.map[nb_pos] = self
-                self.map[x, y] = nb_dot
+        self._diffuse(x, y, MaterialTags.GAS)
 
     def _fall_liquid(self, x, y):
         remote_dot = self.map[x, y + 1]
@@ -201,16 +197,7 @@ class BaseMaterial(abc.ABC):
                 self.map[x, y] = remote_dot
                 return
 
-        if _fast_random() > 0.99:
-            nb_pos = ((x - 1, y), (x + 1, y), (x, y - 1), (x, y + 1))[_fast_randint(0, 3)]
-            nb_dot = self.map[nb_pos]
-
-            if nb_dot is None:
-                return
-
-            if nb_dot.tags & MaterialTags.LIQUID:
-                self.map[nb_pos] = self
-                self.map[x, y] = nb_dot
+        self._diffuse(x, y, MaterialTags.LIQUID)
 
     def _fall_sand(self, x, y):
         for nb_pos in (x, y - 1), _fast_choice2((x - 1, y - 1), (x + 1, y - 1)):
