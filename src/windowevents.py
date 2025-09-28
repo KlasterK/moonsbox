@@ -202,6 +202,17 @@ class DrawingEventHandler(BaseEventHandler):
                     )
                 )
 
+        elif e.type == pygame.KEYDOWN and e.key == pygame.K_k:
+            # Picker
+            mouse_pos = pygame.mouse.get_pos()
+            abs_pos = self._map.invy_pos(self._camera.convert_pos(mouse_pos))
+
+            if not self._map.bounds(abs_pos):
+                return
+
+            material_type = type(self._map[abs_pos])
+            self._pal.selected_material = material_type
+
 
 class MaterialPaletteEventHandler(BaseEventHandler):
     def __init__(self, game_app: 'GameApp', palette: MaterialPalette):
