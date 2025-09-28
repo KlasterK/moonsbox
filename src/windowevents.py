@@ -282,6 +282,10 @@ class MaterialPaletteEventHandler(BaseEventHandler):
                         self._pal.hide(False)
                         play_sound('palette.hide_no_confirmation', 'ui', True)
 
+                elif e.button == pygame.BUTTON_RIGHT:
+                    self._pal.hide(False)
+                    play_sound('palette.hide_no_confirmation', 'ui', True)
+
                 raise StopHandling
 
             elif e.type == pygame.MOUSEWHEEL:
