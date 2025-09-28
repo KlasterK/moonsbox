@@ -113,7 +113,7 @@ PALETTE_MOUSE_SELECTION_REQUIRES_DBL_CLICK = false
 
 # Limits ticks per second, may be useful if the game is too fast. 
 # Values below or equal to 0 means disable the limit.
-MAX_TPS = 30
+MAX_TPS = 40
 
 # Limits frames per second may be useful if you want to save battery charge. 
 # Values below or equal to 0 means disable the limit.
