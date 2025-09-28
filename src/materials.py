@@ -265,60 +265,67 @@ class Sand(BaseMaterial, display_name='Sand'):
             self.tags = MaterialTags.SOLID
 
 
-class Water(BaseMaterial, display_name='Water'):
+class _CommonWater(BaseMaterial):
     heat_capacity = 0.7  # liquids store heat well
     thermal_conductivity = 0.3  # moderate transfer
+
+    def __init__(self, game_map, x, y, converting=False):
+        self._converting = converting
+        super().__init__(game_map, x, y)  # calls __post_init__
+
+    def _convert_to(self, type_: type['_CommonWater'], x: int, y: int, sound: str) -> None:
+        new_dot = type_(self.map, x, y, converting=True)
+        new_dot.temp = self.temp
+        self.map[x, y] = new_dot
+        play_sound(sound)
+
+
+class Water(_CommonWater, display_name='Water'):
     tags = MaterialTags.LIQUID
     color = None
 
     def __post_init__(self, x, y):
-        self._liquid_color = pygame.Color(0, random.randint(0x95, 0xBB), 0x99)
-        if self.color is None:
-            self.color = self._liquid_color
-
-        if self.tags & MaterialTags.SOLID:
-            play_sound('material.Ice')
-        elif self.tags & MaterialTags.LIQUID:
+        self.color = pygame.Color(0, random.randint(0x95, 0xBB), 0x99)
+        if not self._converting:
             play_sound('material.Water')
-        elif self.tags & MaterialTags.GAS:
-            play_sound('material.Steam')
 
     def update(self, x, y):
-        if self.tags & MaterialTags.SOLID:
-            if self.temp > 275:
-                self.tags = MaterialTags.LIQUID
-                self.color = self._liquid_color
-                play_sound('convert.Ice_melts')
-
-        elif self.tags & MaterialTags.LIQUID:
-            if self.temp < 270:
-                self.tags = MaterialTags.SOLID
-                self.color = pygame.Color("#66C8E0B7")
-                play_sound('convert.Water_freezes')
-            elif self.temp > 375:
-                self.tags = MaterialTags.GAS
-                self.color = pygame.Color("#28BBC53D")
-                play_sound('convert.Water_evaporates')
+        if self.temp < 270:
+            self._convert_to(Ice, x, y, 'convert.Water_freezes')
+        elif self.temp > 375:
+            self._convert_to(Steam, x, y, 'convert.Water_evaporates')
+        else:
             self._fall_liquid(x, y)
 
-        elif self.tags & MaterialTags.GAS:
-            if self.temp < 370:
-                self.tags = MaterialTags.LIQUID
-                self.color = self._liquid_color
-                play_sound('convert.Steam_condensates')
-            self._fall_light_gas(x, y)
 
-
-class Ice(Water, display_name='Ice'):
+class Ice(_CommonWater, display_name='Ice'):
     temp = 220
     color = pygame.Color("#66C8E0B7")
     tags = MaterialTags.SOLID
+
+    def __post_init__(self, x, y):
+        if not self._converting:
+            play_sound('material.Ice')
+
+    def update(self, x, y):
+        if self.temp > 275:
+            self._convert_to(Water, x, y, 'convert.Ice_melts')
 
 
 class Steam(Water, display_name='Steam'):
     temp = 420
     color = pygame.Color("#28BBC53D")
     tags = MaterialTags.GAS
+
+    def __post_init__(self, x, y):
+        if not self._converting:
+            play_sound('material.Steam')
+
+    def update(self, x, y):
+        if self.temp < 370:
+            self._convert_to(Water, x, y, 'convert.Steam_condensates')
+        else:
+            self._fall_light_gas(x, y)
 
 
 class UnbreakableWall(BaseMaterial, display_name='Unbreakable Wall'):
