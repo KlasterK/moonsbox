@@ -332,6 +332,7 @@ class Lava(BaseMaterial, display_name='Lava'):
     heat_capacity = 0.8  # hot, but doesn't store much
     thermal_conductivity = 0.5  # transfers heat well
     temp = 1200  # 927 *C, 1700 *F
+    tags = MaterialTags.LIQUID
 
     def __post_init__(self, x, y):
         play_sound('material.Lava')
@@ -339,6 +340,9 @@ class Lava(BaseMaterial, display_name='Lava'):
     def update(self, x, y):
         if self.temp > 400:  # 127 *C, 260 *F
             self._fall_liquid(x, y)
+            self.tags = MaterialTags.LIQUID
+        else:
+            self.tags = MaterialTags.SOLID
 
     @property
     def color(self):
@@ -347,10 +351,6 @@ class Lava(BaseMaterial, display_name='Lava'):
             return blend(pygame.Color("#ff0000"), pygame.Color("#ffff00"), (factor - 0.5) * 2)
         else:
             return blend(pygame.Color("#440000"), pygame.Color("#ff0000"), factor * 2)
-
-    @property
-    def tags(self):
-        return MaterialTags.LIQUID if self.temp > 400 else MaterialTags.SOLID
 
 
 class Plus100K(BaseMaterial, display_name='+100 K'):
