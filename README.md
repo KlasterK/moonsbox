@@ -41,9 +41,6 @@ and their interactions in a pixel world.
 - **RMB | Shift**: Move the camera
 - **Mouse Wheel**: Zoom camera
 - **MMB | Tab**: Open the material palette
-- **WASD | Arrow Keys | Mouse**: Move material selection
-- **Space | Enter | Double LMB**: Select material to draw
-- **Esc**: Close palette or exit
 - **Space**: Pause simulation
 - **V**: Change render mask (normal/thermal)
 - **F5**: Step simulation
