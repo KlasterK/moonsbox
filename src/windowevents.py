@@ -122,7 +122,7 @@ class DrawingEventHandler(BaseEventHandler):
 
         if (
             e.type == pygame.KEYDOWN
-            and e.key == pygame.K_LCTRL
+            and e.key in (pygame.K_LCTRL, pygame.K_RCTRL)
             or e.type == pygame.MOUSEBUTTONDOWN
             and e.button == pygame.BUTTON_LEFT
         ):
@@ -167,8 +167,11 @@ class DrawingEventHandler(BaseEventHandler):
 
                 self._previous_pos = abs_pos
 
-        elif (e.type == pygame.KEYUP and e.key == pygame.K_LCTRL) or (
-            e.type == pygame.MOUSEBUTTONUP and e.button == pygame.BUTTON_LEFT
+        elif (
+            e.type == pygame.KEYUP
+            and e.key in (pygame.K_LCTRL, pygame.K_RCTRL)
+            or e.type == pygame.MOUSEBUTTONUP
+            and e.button == pygame.BUTTON_LEFT
         ):
             self._previous_pos = None
 
@@ -236,7 +239,7 @@ class MaterialPaletteEventHandler(BaseEventHandler):
                     self._pal.selection_slot = (x, y)
                     play_sound('palette.move_selection', 'ui', True)
 
-                elif e.key in (pygame.K_RETURN, pygame.K_SPACE):
+                elif e.key in (pygame.K_RETURN, pygame.K_SPACE, pygame.K_LCTRL, pygame.K_RCTRL):
                     self._pal.hide(True)
                     play_sound('palette.hide_confirmation', 'ui', True)
 
