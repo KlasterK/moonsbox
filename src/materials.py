@@ -175,7 +175,7 @@ class BaseMaterial(abc.ABC):
             if remote_dot is not None and remote_dot.tags & MaterialTags.SPACE:
                 self.map[remote_pos] = self
                 self.map[x, y] = remote_dot
-                break
+                return
 
         self._diffuse(x, y, MaterialTags.GAS)
 
@@ -209,7 +209,7 @@ class BaseMaterial(abc.ABC):
             if nb_dot.tags & MaterialTags.FLOWABLE:
                 self.map[nb_pos] = self
                 self.map[x, y] = nb_dot
-                break
+                return
 
     def _fall_ash(self, x, y):
         down = (x, y - 1)
@@ -221,7 +221,7 @@ class BaseMaterial(abc.ABC):
             if remote_dot is not None and remote_dot.tags & MaterialTags.SPARSENESS:
                 self.map[remote_pos] = self
                 self.map[x, y] = remote_dot
-                break
+                return
 
 
 class Space(BaseMaterial, display_name='Space'):  # air
