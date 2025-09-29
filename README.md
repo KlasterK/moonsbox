@@ -51,6 +51,7 @@ and their interactions in a pixel world.
 - **Alt + F12**: Begin or end capturing (see Running to convert capture to a video)
 - **U | Mouse Go Forward**: Push current material into material stack
 - **I | Mouse Go Back**: Pop material from the stack (if empty, get Space)
+- **K**: Pick the material of a dot under the mouse cursor
 
 ## Social
 
