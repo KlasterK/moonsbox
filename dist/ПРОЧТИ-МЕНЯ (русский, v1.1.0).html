@@ -59,7 +59,6 @@
 
 <body>
     <h1>moonsbox</h1>
-    
     <p>
         Это песочница и клеточный автомат. 
         Вдохновлена классическими играми с падающим песком, особенно Песочницей от SmellyMoo. 
@@ -67,7 +66,7 @@
         и их взаимодействием в пиксельном мире.
     </p>
 
-    <h2>Features</h2>
+    <h2>Возможности</h2>
     <ul>
         <li>
             <strong>Палитра материалов</strong>:
@@ -114,7 +113,7 @@
             <tr><td>Приостановить рендеринг (ускорит симуляцию)</td><td>R (удерживать)</td></tr>
             <tr><td>Начать/остановить запись</td><td>Alt + F12</td></tr>
             <tr><td>Положить текущий материал в стек</td><td>U, Кнопка "Вперёд" на мыши</td></tr>
-            <tr><td>Взять материал из стека (или выбрать Пустоту)</td><td>I, Кнопка "Назад" на мыши</td></tr>
+            <tr><td>Взять материал из стека (или выбрать ластик)</td><td>I, Кнопка "Назад" на мыши</td></tr>
             <tr>
                 <td>Взять материал точки под курсором</td>
                 <td>K</td>
@@ -125,43 +124,44 @@
     <h2>Запуск</h2>
     <p>Для запуска просто запустите <code>moonsbox.exe</code>.</p>
     <p>Настройки игры можно изменить в файле <code>user/config.toml</code>. Комментарии внутри файла помогут разобраться.</p>
-    
-    <h2>Capturing</h2>
-    <p>You can record your simulation! Press <code>Alt + F12</code> to start/stop. Frames are saved as images.</p>
-    <p>To create a video from these images, you'll need FFmpeg:</p>
+
+    <h2>Запись</h2>
+    <p>Вы можете записывать свою симуляцию! Нажмите <code>Alt + F12</code> для начала/остановки. Кадры сохраняются как изображения.</p>
+    <p>Чтобы создать видео из этих кадров, вам понадобится FFmpeg:</p>
     <ol>
         <li>
-            Download FFmpeg: <a href="https://ffmpeg.org/download.html" target="_blank">ffmpeg.org/download</a>
+            Скачайте FFmpeg: <a href="https://ffmpeg.org/download.html" target="_blank">ffmpeg.org/download</a>
             <br>
-            Windows installing instruction:
+            Инструкция по установке для Windows:
             <ul>
                 <li>
-                    Go to site above
+                    Зайдите на вышеуказанный сайт
                 </li>
                 <li>
-                    Hover on Windows picture and go to "Windows builds from gyan.dev"
+                    Наведитесь на иконку Windows и перейдите по ссылке "Windows builds from gyan.dev"
                 </li>
                 <li>
-                    Download from link "ffmpeg-git-essentials.7z"
+                    Скачайте "ffmpeg-git-essentials.7z"
                 </li>
             </ul>
         </li>
         <li>
-            Extract the archive and open the <code>bin</code> folder in File Explorer
+            Распакуйте архив и откройте папку <code>bin</code> в Проводнике
         </li>
         <li>
-            Hold Shift, right-click in the folder, and select "Open PowerShell window here"
+            Нажмите Shift, кликните правой кнопкой в папке и выберите "Открыть окно PowerShell здесь"
         </li>
         <li>
-            Use a command like this (replace <code>CAPTURE_FOLDER</code> with your actual folder name):<br>
-            <code>ffmpeg -i CAPTURE_FOLDER/frame_%06d.png -framerate 60 my-video.mp4</code>
-        </li>
+            Выполните команду (замените <code>ПАПКА_С_ЗАПИСЬЮ</code> на реальное имя папки):
+            <br>
+            <code>ffmpeg -framerate 30 -i ПАПКА_С_ЗАПИСЬЮ/frame_%06d.png моё-видео.mp4</code>
+        </li>   
     </ol>
 
-    <h2>Social & Feedback</h2>
-    <p>Moonsbox has its own Telegram channel: <a href="https://t.me/kk_moonsbox" target="_blank">t.me/kk_moonsbox</a></p>
-    <p>If you know Russian and are interested in development, please join!</p>
-    <p>You can send your feedback here:</p>
+    <h2>Социальные сети и обратная связь</h2>
+    <p>У moonsbox есть собственный Telegram-канал: <a href="https://t.me/kk_moonsbox" target="_blank">t.me/kk_moonsbox</a></p>
+    <p>Если вы заинтересованы в разработке moonsbox, присоединяйтесь!</p>
+    <p>Вы можете отправить свой фидбек сюда:</p>
     <ul>
         <li>Email: kadakinvi2@gmail.com</li>
         <li>Telegram: @santilitr228</li>
@@ -169,10 +169,10 @@
     </ul>
 
     <div class="note">
-        <strong>A small note on performance</strong>:
-        moonsbox is a detailed physics simulation. 
-        The frame rate may vary depending on the number and type of dots
-        and your CPU's single-thread performance.
+        <strong>Примечание о производительности</strong>:
+        moonsbox это детальная физическая симуляция.
+        Частота кадров может меняться в зависимости от количества и типа точек
+        и производительности процессора в однопотоке.
     </div>
 </body>
 

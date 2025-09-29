@@ -59,7 +59,6 @@
 
 <body>
     <h1>moonsbox</h1>
-    
     <p>
         A sandbox cellular automata playground. 
         Inspired by classic falling sand games, especially SmellyMoo's sand:box, 
@@ -194,8 +193,9 @@
             Hold Shift, right-click in the folder, and select "Open PowerShell window here"
         </li>
         <li>
-            Use a command like this (replace <code>CAPTURE_FOLDER</code> with your actual folder name):<br>
-            <code>ffmpeg -i CAPTURE_FOLDER/frame_%06d.png -framerate 60 my-video.mp4</code>
+            Use a command like this (replace <code>CAPTURE_FOLDER</code> with your actual folder name):
+            <br>
+            <code>ffmpeg -framerate 30 -i CAPTURE_FOLDER/frame_%06d.png my-video.mp4</code>
         </li>
     </ol>
 
