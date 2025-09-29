@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+
+
+
+<head>
+    <meta charset="UTF-8">
+    <title>moonsbox 1.1.0 README</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body { 
+            font-family: sans-serif; 
+            max-width: 50em; 
+            margin: 0 auto; 
+            padding: 1.5em;
+            line-height: 1.5em;
+        }
+        h1 { 
+            text-align: center; 
+            color: #2c3e50; 
+        }
+        h2 { 
+            color: #34495e; 
+            border-bottom: 2px solid #ecf0f1; 
+            padding-bottom: 0.2em; 
+        }
+        table {
+            display: block;
+            overflow: auto;
+            margin: 1em 0;
+            border-collapse: collapse;
+        }
+        th, td { 
+            border: 1px solid #bdc3c7; 
+            padding: 0.3em 0.5em; 
+            text-align: left;
+        }
+        .hovered-table-row {
+            background-color: #f8f9fa;
+        }
+        th { 
+            background-color: #ecf0f1; 
+        }
+        code {
+            background-color: #e1e1e1;
+            padding: 0.1em 0.3em;
+            border-radius: 0.2em;
+        }
+        .note { 
+            background: #e8f4fd; 
+            padding: 0.4em 0.65em; 
+            border-left: 4px solid #3498db; 
+            margin: 1em 0;
+        }
+    </style>
+</head>
+
+
+
+<body>
+    <h1>moonsbox</h1>
+    
+    <p>
+        Это песочница и клеточный автомат. 
+        Вдохновлена классическими играми с падающим песком, особенно Песочницей от SmellyMoo. 
+        Moonsbox позволяет экспериментировать с различными материалами 
+        и их взаимодействием в пиксельном мире.
+    </p>
+
+    <h2>Features</h2>
+    <ul>
+        <li>
+            <strong>Палитра материалов</strong>:
+            Выбирайте материалы из визуальной палитры
+        </li>
+        <li>
+            <strong>Тепловая симуляция</strong>:
+            Материалы обмениваются температурой
+        </li>
+        <li>
+            <strong>Звуковые эффекты</strong>:
+            Некоторые материалы издают звуки при взаимодействии
+        </li>
+        <li>
+            <strong>Изменяемый размер окна</strong>:
+            Приближайте и перемещайте камеру
+        </li>
+        <li>
+            <strong>Сохранение и снимки</strong>:
+            Сохраняйте свои творения и делайте скриншоты
+        </li>
+    </ul>
+
+    <h2>Управление</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Действие</th>
+                <th>Управление</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+            <tr><td>Рисовать выбранным материалом</td><td>ЛКМ, Ctrl (удерживать)</td></tr>
+            <tr><td>Перемещать камеру</td><td>ПКМ, Shift (удерживать)</td></tr>
+            <tr><td>Масштабировать камеру</td><td>Колесо мыши</td></tr>
+            <tr><td>Открыть/закрыть палитру материалов</td><td>СКМ, Tab</td></tr>
+            <tr><td>Приостановить симуляцию</td><td>Пробел</td></tr>
+            <tr><td>Изменить вид (обычный / тепловидение)</td><td>V</td></tr>
+            <tr><td>Обновить симуляцию (полезно когда на паузе)</td><td>F5</td></tr>
+            <tr><td>Очистить карту</td><td>F6</td></tr>
+            <tr><td>Сделать снимок экрана</td><td>F10</td></tr>
+            <tr><td>Увеличить/уменьшить размер кисти</td><td>Клавиши +/-, Alt + Колесо мыши</td></tr>
+            <tr><td>Приостановить рендеринг (ускорит симуляцию)</td><td>R (удерживать)</td></tr>
+            <tr><td>Начать/остановить запись</td><td>Alt + F12</td></tr>
+            <tr><td>Положить текущий материал в стек</td><td>U, Кнопка "Вперёд" на мыши</td></tr>
+            <tr><td>Взять материал из стека (или выбрать Пустоту)</td><td>I, Кнопка "Назад" на мыши</td></tr>
+            <tr>
+                <td>Взять материал точки под курсором</td>
+                <td>K</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h2>Запуск</h2>
+    <p>Для запуска просто запустите <code>moonsbox.exe</code>.</p>
+    <p>Настройки игры можно изменить в файле <code>user/config.toml</code>. Комментарии внутри файла помогут разобраться.</p>
+    
+    <h2>Capturing</h2>
+    <p>You can record your simulation! Press <code>Alt + F12</code> to start/stop. Frames are saved as images.</p>
+    <p>To create a video from these images, you'll need FFmpeg:</p>
+    <ol>
+        <li>
+            Download FFmpeg: <a href="https://ffmpeg.org/download.html" target="_blank">ffmpeg.org/download</a>
+            <br>
+            Windows installing instruction:
+            <ul>
+                <li>
+                    Go to site above
+                </li>
+                <li>
+                    Hover on Windows picture and go to "Windows builds from gyan.dev"
+                </li>
+                <li>
+                    Download from link "ffmpeg-git-essentials.7z"
+                </li>
+            </ul>
+        </li>
+        <li>
+            Extract the archive and open the <code>bin</code> folder in File Explorer
+        </li>
+        <li>
+            Hold Shift, right-click in the folder, and select "Open PowerShell window here"
+        </li>
+        <li>
+            Use a command like this (replace <code>CAPTURE_FOLDER</code> with your actual folder name):<br>
+            <code>ffmpeg -i CAPTURE_FOLDER/frame_%06d.png -framerate 60 my-video.mp4</code>
+        </li>
+    </ol>
+
+    <h2>Social & Feedback</h2>
+    <p>Moonsbox has its own Telegram channel: <a href="https://t.me/kk_moonsbox" target="_blank">t.me/kk_moonsbox</a></p>
+    <p>If you know Russian and are interested in development, please join!</p>
+    <p>You can send your feedback here:</p>
+    <ul>
+        <li>Email: kadakinvi2@gmail.com</li>
+        <li>Telegram: @santilitr228</li>
+        <li>Discord: klasterk</li>
+    </ul>
+
+    <div class="note">
+        <strong>A small note on performance</strong>:
+        moonsbox is a detailed physics simulation. 
+        The frame rate may vary depending on the number and type of dots
+        and your CPU's single-thread performance.
+    </div>
+</body>
+
+
+
+<script>
+    // Add subtle row highlighting on hover
+    const rows = document.querySelectorAll('tbody tr');
+    rows.forEach(row => {
+        row.addEventListener('mouseenter', () => {
+            row.classList.add('hovered-table-row');
+        });
+        row.addEventListener('mouseleave', () => {
+            row.classList.remove('hovered-table-row');
+        });
+    });
+</script>
+
+
+
+</html>

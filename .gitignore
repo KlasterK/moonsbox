@@ -14,8 +14,9 @@ __pycache__/
 /build/
 *capture*
 /*.mp4
-/dist/
 /toolchain.cmake
 /.cache/
 *.pdb
 .clangd
+/dist/*.exe
+/dist/assets

@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+
+
+
+<head>
+    <meta charset="UTF-8">
+    <title>moonsbox 1.1.0 README</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body { 
+            font-family: sans-serif; 
+            max-width: 50em; 
+            margin: 0 auto; 
+            padding: 1.5em;
+            line-height: 1.5em;
+        }
+        h1 { 
+            text-align: center; 
+            color: #2c3e50; 
+        }
+        h2 { 
+            color: #34495e; 
+            border-bottom: 2px solid #ecf0f1; 
+            padding-bottom: 0.2em; 
+        }
+        table {
+            display: block;
+            overflow: auto;
+            margin: 1em 0;
+            border-collapse: collapse;
+        }
+        th, td { 
+            border: 1px solid #bdc3c7; 
+            padding: 0.3em 0.5em; 
+            text-align: left;
+        }
+        .hovered-table-row {
+            background-color: #f8f9fa;
+        }
+        th { 
+            background-color: #ecf0f1; 
+        }
+        code {
+            background-color: #e1e1e1;
+            padding: 0.1em 0.3em;
+            border-radius: 0.2em;
+        }
+        .note { 
+            background: #e8f4fd; 
+            padding: 0.4em 0.65em; 
+            border-left: 4px solid #3498db; 
+            margin: 1em 0;
+        }
+    </style>
+</head>
+
+
+
+<body>
+    <h1>moonsbox</h1>
+    
+    <p>
+        A sandbox cellular automata playground. 
+        Inspired by classic falling sand games, especially SmellyMoo's sand:box, 
+        moonsbox lets you experiment with different materials and their interactions 
+        in a pixel world.
+    </p>
+
+    <h2>Features</h2>
+    <ul>
+        <li>
+            <strong>Material Palette</strong>:
+            Choose materials with a visual palette
+        </li>
+        <li>
+            <strong>Heat Simulation</strong>:
+            Materials exchange temperature
+        </li>
+        <li>
+            <strong>Sound Effects</strong>:
+            Some materials play sounds on interaction
+        </li>
+        <li>
+            <strong>Resizable Window</strong>:
+            Zoom and pan the simulation area
+        </li>
+        <li>
+            <strong>Saving & Screenshots</strong>:
+            Save your creations and take screenshots
+        </li>
+    </ul>
+
+    <h2>Controls</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Action</th>
+                <th>Control</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Draw with selected material</td>
+                <td>LMB, Ctrl (Hold)</td>
+            </tr>
+            <tr>
+                <td>Move camera</td>
+                <td>RMB, Shift (Hold)</td>
+            </tr>
+            <tr>
+                <td>Zoom camera</td>
+                <td>Mouse Wheel</td>
+            </tr>
+            <tr>
+                <td>Open/Close material palette</td>
+                <td>MMB, Tab</td>
+            </tr>
+            <tr>
+                <td>Pause simulation</td>
+                <td>Space</td>
+            </tr>
+            <tr>
+                <td>Change view (Normal / Thermal)</td>
+                <td>V</td>
+            </tr>
+            <tr>
+                <td>Step simulation (useful when paused)</td>
+                <td>F5</td>
+            </tr>
+            <tr>
+                <td>Clear the map</td>
+                <td>F6</td>
+            </tr>
+            <tr>
+                <td>Take a screenshot</td>
+                <td>F10</td>
+            </tr>
+            <tr>
+                <td>Increase/Decrease brush size</td>
+                <td>+/- Keys, Alt + Mouse Wheel</td>
+            </tr>
+            <tr>
+                <td>Pause rendering (for faster simulation)</td>
+                <td>R (hold)</td>
+            </tr>
+            <tr>
+                <td>Start/Stop recording</td>
+                <td>Alt + F12</td>
+            </tr>
+            <tr>
+                <td>Push current material to stack</td>
+                <td>U, Mouse Forward Button</td>
+            </tr>
+            <tr>
+                <td>Pop material from stack (if the stack is empty, get Space)</td>
+                <td>I, Mouse Back Button</td>
+            </tr>
+            <tr>
+                <td>Pick the material of a dot under the mouse cursor</td>
+                <td>K</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h2>Running</h2>
+    <p>To run, simply execute <code>moonsbox.exe</code>.</p>
+    <p>You can customize the game by editing <code>user/config.toml</code>. Comments inside the file will guide you.</p>
+
+    <h2>Capturing</h2>
+    <p>You can record your simulation! Press <code>Alt + F12</code> to start/stop. Frames are saved as images.</p>
+    <p>To create a video from these images, you'll need FFmpeg:</p>
+    <ol>
+        <li>
+            Download FFmpeg: <a href="https://ffmpeg.org/download.html" target="_blank">ffmpeg.org/download</a>
+            <br>
+            Windows installing instruction:
+            <ul>
+                <li>
+                    Go to site above
+                </li>
+                <li>
+                    Hover on Windows picture and go to "Windows builds from gyan.dev"
+                </li>
+                <li>
+                    Download from link "ffmpeg-git-essentials.7z"
+                </li>
+            </ul>
+        </li>
+        <li>
+            Extract the archive and open the <code>bin</code> folder in File Explorer
+        </li>
+        <li>
+            Hold Shift, right-click in the folder, and select "Open PowerShell window here"
+        </li>
+        <li>
+            Use a command like this (replace <code>CAPTURE_FOLDER</code> with your actual folder name):<br>
+            <code>ffmpeg -i CAPTURE_FOLDER/frame_%06d.png -framerate 60 my-video.mp4</code>
+        </li>
+    </ol>
+
+    <h2>Social & Feedback</h2>
+    <p>Moonsbox has its own Telegram channel: <a href="https://t.me/kk_moonsbox" target="_blank">t.me/kk_moonsbox</a></p>
+    <p>If you know Russian and are interested in development, please join!</p>
+    <p>You can send your feedback here:</p>
+    <ul>
+        <li>Email: kadakinvi2@gmail.com</li>
+        <li>Telegram: @santilitr228</li>
+        <li>Discord: klasterk</li>
+    </ul>
+
+    <div class="note">
+        <strong>A small note on performance</strong>:
+        moonsbox is a detailed physics simulation. 
+        The frame rate may vary depending on the number and type of dots
+        and your CPU's single-thread performance.
+    </div>
+</body>
+
+
+
+<script>
+    // Add subtle row highlighting on hover
+    const rows = document.querySelectorAll('tbody tr');
+    rows.forEach(row => {
+        row.addEventListener('mouseenter', () => {
+            row.classList.add('hovered-table-row');
+        });
+        row.addEventListener('mouseleave', () => {
+            row.classList.remove('hovered-table-row');
+        });
+    });
+</script>
+
+
+
+</html>
