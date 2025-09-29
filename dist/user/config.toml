@@ -1,0 +1,219 @@
+# ===========================================
+# НАСТРОЙКИ MOONSBOX / MOONSBOX SETTINGS
+# ===========================================
+
+# Начальная температура материалов (в Кельвинах)
+# 300 К = 26.85°C = 80.33°F -- комнатная температура
+# Default temperature for materials (in Kelvin)
+# 300 K = 26.85°C = 80.33°F -- room temperature
+DEFAULT_TEMP = 300
+
+# Включить передачу температуры между материалами:
+# true  - включить тепловую физику (игра может работать медленнее)
+# false - выключить тепловую физику (игра будет работать быстрее, но часть геймплея сломается)
+# Enable heat transfer between materials:
+# true  - enable heat physics (game may run slower)
+# false - disable heat physics (game will run faster, but a part of the gameplay will break)
+TEMP_IS_EXCHANGING = true
+
+# Начальный размер кисти для рисования (в клетках)
+# Initial brush size for drawing (in dots)
+DEFAULT_DRAWING_WIDTH = 1
+
+# На сколько изменяется размер кисти при нажатии + или -
+# How much the brush size changes when pressing + or -
+DELTA_DRAWING_WIDTH = 1
+
+# Скорость приближения/отдаления камеры колесом мыши
+# Чем больше число, тем быстрее
+# Camera zoom speed with mouse wheel
+# Higher number = faster zoom
+ZOOM_FACTOR = 0.1
+
+# Громкость звуковых эффектов:
+# 0.0 - полностью выключено
+# 1.0 - максимальная громкость
+# Sound effects volume:
+# 0.0 - completely off
+# 1.0 - maximum volume
+VOLUME = 1.0
+
+# Громкость фоновой музыки:
+# 0.0 - музыка выключена
+# 1.0 - максимальная громкость
+# Background music volume:
+# 0.0 - music off
+# 1.0 - maximum volume
+MUSIC_VOLUME = 0.0
+
+# Форма кисти для рисования:
+# true  - круглая кисть
+# false - квадратная кисть
+# Brush shape for drawing:
+# true  - circular brush
+# false - square brush
+DRAWING_IS_CIRCULAR = true
+
+# Режим рисования:
+# true  - кисть заменяет все материалы под собой
+# false - кисть рисует только на пустых клетках
+# Drawing mode:
+# true - brush replaces all materials underneath
+# false - brush only draws on empty dots
+DRAWING_IS_DESTRUCTIVE = false
+
+# Название игры в заголовке окна
+# Game name in window title
+WINDOW_CAPTION = "moonsbox"
+
+# Размер окна игры при запуске [ширина, высота]
+# Game window size on start [width, height]
+SCREEN_SIZE = [560, 560]
+
+# Размер игрового мира [ширина в клетках, высота в клетках]
+# Game world size [width in cells, height in cells]
+MAP_SIZE = [100, 100]
+
+# Какая часть мира видна при запуске [левый край, верхний край, ширина, высота]
+# Which part of world is visible on start [left edge, top edge, width, height]
+VISIBLE_AREA = [-20, -20, 140, 140]
+
+# Размер иконок материалов в палитре [ширина, высота] в пикселях
+# Material icons size in palette [width, height] in pixels
+PALETTE_ICON_SIZE = [64, 64]
+
+# Максимальная длина названий материалов в палитре
+# Увеличьте это число, если названия обрезаются (в конце ...)
+# Maximum material name length in palette
+# Increase this number if names are cut off (... at the end)
+PALETTE_MAX_CAPTION_CHARS = 20
+
+# Расстояние между иконками материалов в палитре (в пикселях)
+# Distance between material icons in palette (in pixels)
+PALETTE_MARGIN = 20
+
+# Цвет фона внутри игрового мира (в формате #RRGGBB)
+# Background color inside game world (in #RRGGBB format)
+MAP_INNER_COLOR = "#000000"
+
+# Цвет фона за пределами игрового мира (в формате #RRGGBB)
+# Background color outside game world (in #RRGGBB format)
+MAP_OUTER_COLOR = "#113311"
+
+# Цвет обводки выбранного материала в палитре (в формате #RRGGBB или #RRGGBBAA)
+# Selected material outline color in palette (in #RRGGBB or #RRGGBBAA format)
+PALETTE_SELECTION_OUTER_COLOR = "#00C3FF40"
+
+# Цвет фона выбранного материала в палитре (в формате #RRGGBB или #RRGGBBAA)
+# Selected material background color in palette (in #RRGGBB or #RRGGBBAA format)
+PALETTE_SELECTION_INNER_COLOR = "#008CFF20"
+
+# Цвет затемнения экрана когда открыта палитра материалов (в формате #RRGGBB или #RRGGBBAA)
+# Screen dimming color when material palette is open (in #RRGGBB or #RRGGBBAA format)
+PALETTE_SHADOW_COLOR = "#000000CC"
+
+# Размер текста в игре (надписи материалов, отладочная информация)
+# Text size in game (material captions, debug info)
+FONT_SIZE = 15
+
+# Название шрифта или путь к файлу шрифта
+# Оставьте пустым "" для использования стандартного шрифта
+# Font name or path to font file
+# Leave empty "" to use default font
+FONT_IDENTIFIER = ""
+
+# Способ загрузки шрифта:
+# "file"   - загрузить из файла (укажите путь в FONT_IDENTIFIER)
+# "system" - найти шрифт в системе (укажите название в FONT_IDENTIFIER)
+# "auto"   - автоматический выбор шрифта (игнорирует FONT_IDENTIFIER)
+# Font loading method:
+# "file"   - load from file (specify path in FONT_IDENTIFIER)
+# "system" - find font in system (specify name in FONT_IDENTIFIER)
+# "auto"   - automatic font selection (ignores FONT_IDENTIFIER)
+FONT_SOURCE = "auto"
+
+# Вертикальная синхронизация (VSync):
+# true  - плавная картинка, но FPS ограничен частотой монитора
+# false - возможен тиринг, но FPS не ограничен
+# Vertical synchronization (VSync):
+# true  - smooth image but FPS limited by monitor refresh rate
+# false - possible screen tearing but FPS unlimited
+ENABLE_VSYNC = true
+
+# Показывать счётчик FPS (кадров в секунду):
+# true  - показать в углу экрана
+# false - скрыть
+# Show FPS counter (frames per second):
+# true  - show in corner
+# false - hide
+ENABLE_FPS_COUNTER = false
+
+# Показывать счётчик TPS (тиков в секунду - скорость симуляции):
+# true  - показать в углу экрана
+# false - скрыть
+# Show TPS counter (ticks per second - simulation speed):
+# true  - show in corner
+# false - hide
+ENABLE_TPS_COUNTER = false
+
+# Цвет отладочной информации (FPS, TPS) в формате #RRGGBB
+# Debug info color (FPS, TPS) in #RRGGBB format
+DEBUG_COLOR = "#00FF00"
+
+# Язык интерфейса:
+# "auto"  - автоматически (системный язык)
+# "ru_RU" - русский
+# "en_US" - английский
+# "zh_CN" - упрощённый китайский
+# Interface language:
+# "auto"  - automatic (system language)
+# "ru_RU" - Russian
+# "en_US" - English
+# "zh_CN" - Simplified Chinese
+USER_LOCALE = "auto"
+
+# Папка с ресурсами игры (текстуры, звуки)
+# Game assets folder (textures, sounds)
+ASSETS_ROOT = "./assets"
+
+# Папка и имя для скриншотов
+# %Y-год, %m-месяц, %d-день, %H-час, %M-минуты, %S-секунды
+# Screenshot folder and filename
+# %Y-year, %m-month, %d-day, %H-hour, %M-minute, %S-second
+SCREENSHOT_PATH_FACTORY = "./screenshot_%Y-%m-%d_%H-%M-%S.png"
+
+# Формат файлов скриншотов: "PNG", "JPG", "BMP", и т.п.
+# Нужен, если в SCREENSHOT_PATH_FACTORY у файла нет расширения
+# Screenshot file format: "PNG", "JPG", "BMP", etc.
+# Needed if in SCREENSHOT_PATH_FACTORY file name has no extension
+SCREENSHOT_TYPE_HINT = "PNG"
+
+# Размер одного пикселя игры на скриншоте [ширина, высота]
+# Один пиксель игры может занимать несколько пикселей на скриншоте
+# Size of one game pixel on screenshot [width, height]
+# One game pixel can take multiple pixels on screenshot
+SCREENSHOT_DOT_SIZE = [1, 1]
+
+# Папка для записи видео (каждый кадр - отдельная картинка)
+# Folder for video recording (each frame - separate image)
+CAPTURE_PATH_FACTORY = "./capture_%Y-%m-%d_%H-%M-%S/"
+
+# Выбор материалов в палитре:
+# true  - требуется двойной клик для выбора материала
+# false - материал выбирается одним кликом
+# Material selection in palette:
+# true  - double click required to select material
+# false - material selected with single click
+PALETTE_MOUSE_SELECTION_REQUIRES_DBL_CLICK = false
+
+# Максимальная скорость симуляции (тиков в секунду)
+# 0 - без ограничения (максимальная скорость)
+# Maximum simulation speed (ticks per second):
+# 0 - unlimited (maximum speed)
+MAX_TPS = 40
+
+# Максимальная частота кадров (FPS):
+# 0 - без ограничения (максимальный FPS)
+# Maximum frame rate (FPS):
+# 0 - unlimited (maximum FPS)
+MAX_FPS = 0
