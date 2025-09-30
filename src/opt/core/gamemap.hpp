@@ -1,8 +1,7 @@
 #ifndef KK_OPT_GAMEMAP_HPP
 #define KK_OPT_GAMEMAP_HPP
 
-#include <vector>
-#include <iterator>
+#include <memory>
 #include <modapi.h>
 #include "util.hpp"
 
@@ -11,7 +10,7 @@ constexpr Point operator * (Point a, Point b) { return {a.x * b.x, a.y * b.y}; }
 class GameMap
 {
 public:
-    GameMap(Point size, setup_dot_func_t factory);
+    GameMap(Point size, setup_dot_func_t filler);
 
     inline opt_ref<const MaterialData> at(Point pos) const noexcept;
 
