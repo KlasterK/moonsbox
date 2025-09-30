@@ -6,10 +6,9 @@
 
 class GameMap;
 
-namespace GameMapDrawing
+namespace drawing
 {
-    enum class LineEnds { Square, Round };
-    using namespace LineEnds;
+    enum LineEnds { Square, Round };
 
     void fill(GameMap& map, setup_dot_func_t factory);
 
@@ -17,7 +16,14 @@ namespace GameMapDrawing
 
     void draw_ellipse(GameMap& map, const Rect& rect, setup_dot_func_t factory);
 
-    void 
+    void draw_line(
+        GameMap &map, 
+        Point begin, 
+        Point end, 
+        int width, 
+        setup_dot_func_t factory, 
+        LineEnds ends
+    );
 }
 
 #endif // include guard
