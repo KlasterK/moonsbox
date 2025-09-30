@@ -7,5 +7,5 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/..")
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_DEBUG "${CMAKE_SOURCE_DIR}/..")
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_RELEASE "${CMAKE_SOURCE_DIR}/..")
 
-pybind11_add_module(pythonapi pythonapi.cpp)
-target_link_libraries(pythonapi PRIVATE core)
+pybind11_add_module(game pythonapi.cpp)
+target_link_libraries(game PRIVATE core)
