@@ -483,38 +483,45 @@ class Flour(BaseMaterial, display_name='Flour'):
 # ======== Electronics ========
 
 
-class BaseElec(BaseMaterial):
-    potential = 0
-    current = 0
+class _BaseElec(BaseMaterial):
+    min_potential = 0
+    max_potential = 0
+    min_source = None
+    max_source = None
 
-    def __post_init__(self, x, y):
-        total_v = 0
-        weights = 0
+    @property
+    def voltage(self):
+        return self.max_potential - self.min_potential
 
-        for _, _, nb_dot in _von_neumann_hood(self.map, x, y, MaterialTags.ELECTRIC):
-            r = self.resistance + nb_dot.resistance
-            if r > 0:
-                weight = 1 / r
-                total_v += nb_dot.voltage * weight
-                weights += weight
+    def update(self, x, y):
+        for _, _, dot in _von_neumann_hood(self.map, x, y, MaterialTags.ELECTRIC):
+            if dot.min_potential > self.min_potential:
+                dot.min_potential = self.min_potential
 
-        if weights > 0:
-            self.voltage = total_v / weights
+            if dot.max_potential < self.max_potential:
+                dot.max_potential = self.max_potential
+
+        # self.voltage = self.max_potential - self.min_potential
+
+        # for _, _, nb_dot in _von_neumann_hood(self.map, x, y, MaterialTags.ELECTRIC):
+        #     r = self.resistance + nb_dot.resistance
+        #     if r > 0:
+        #         weight = 1 / r
+        #         total_v += nb_dot.voltage * weight
+        #         weights += weight
+
+        # if weights > 0:
+        #     self.voltage = total_v / weights
 
 
-class Copper(BaseElec, display_name='Copper'):
+class Copper(_BaseElec, display_name='Copper'):
     heat_capacity = 0.7
     thermal_conductivity = 0.87
     tags = MaterialTags.SOLID | MaterialTags.ELECTRIC
     color = pygame.Color("#D47216")
 
-    resistance = 0.01
 
-    def update(self, x, y):
-        self._elec_update(x, y)
-
-
-class LightBulb(BaseElec, display_name='Light Bulb'):
+class LightBulb(_BaseElec, display_name='Light Bulb'):
     '''1 watt incandescent lamp.'''
 
     heat_capacity = 0.3
@@ -522,29 +529,29 @@ class LightBulb(BaseElec, display_name='Light Bulb'):
     tags = MaterialTags.SOLID | MaterialTags.ELECTRIC
     color = None
 
-    resistance = 1
-
-    def update(self, x, y):
-        self._elec_update(x, y)
+    # def update(self, x, y):
+    #     _BaseElec.update(self, x, y)
 
     @property
     def color(self):
-        power = abs(self.voltage**2) / self.resistance
+        # power = abs(self.voltage**2) / self.resistance
+        power = self.voltage
         return blend(pygame.Color("#4E4E4E84"), pygame.Color("#ffbb00"), power)
 
 
-class PotentialPlus1V(BaseElec, display_name='Potential +1 V'):
+class PotentialPlus1V(_BaseElec, display_name='Potential +1 V'):
     heat_capacity = 0.5
     thermal_conductivity = 0.3
     tags = MaterialTags.SOLID | MaterialTags.ELECTRIC
     color = pygame.Color("#542c5e")
 
     def update(self, x, y):
-        self.voltage = max(1, self.voltage)
-        self._elec_update(x, y)
+        self.max_potential = max(self.max_potential, 1)
+        self.min_potential = min(self.min_potential, 1)
+        super().update(x, y)
 
 
-class Potential0V(BaseElec, display_name='Potential 0 V'):
+class Potential0V(_BaseElec, display_name='Potential 0 V'):
     heat_capacity = 0.5
     thermal_conductivity = 0.5
     tags = MaterialTags.SOLID | MaterialTags.ELECTRIC
@@ -552,5 +559,6 @@ class Potential0V(BaseElec, display_name='Potential 0 V'):
     voltage = 0
 
     def update(self, x, y):
-        self.voltage = max(0, self.voltage)
-        self._elec_update(x, y)
+        self.max_potential = max(self.max_potential, 0)
+        self.min_potential = min(self.min_potential, 0)
+        super().update(x, y)
