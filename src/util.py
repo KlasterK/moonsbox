@@ -1,6 +1,7 @@
 from dataclasses import dataclass
-from typing import Literal
+from typing import Any, Literal
 
+import numpy as np
 import pygame
 
 from .config import (
@@ -94,3 +95,36 @@ def get_font() -> pygame.font.Font:
         )
 
     return _cached_font
+
+
+class FastPseudoRandomGenerator:
+    def __init__(self):
+        self._array = np.array(np.random.random(size=1234), dtype=np.float64)
+        self._index = 0
+
+    def random(self) -> float:
+        if self._index >= self._array.shape[0]:
+            self._index = 0
+
+        ret = self._array[self._index]
+        self._index += 1
+        return ret
+
+    def choice2(self, a: Any, b: Any) -> Any:
+        return a if self.random() > 0.5 else b
+
+    def randint(self, a: int, b: int) -> int:
+        if a > b:
+            a, b = b, a
+
+        # Scaling the value to needed range
+        result = a + int(self.random() * (b - a + 1))
+
+        # Guarantee being in range (needed because of rounding)
+        return min(b, max(a, result))
+
+
+_fast_random = FastPseudoRandomGenerator()
+fast_random = _fast_random.random
+fast_choice2 = _fast_random.choice2
+fast_randint = _fast_random.randint

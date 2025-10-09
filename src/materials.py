@@ -7,7 +7,7 @@ import numpy as np
 import pygame
 
 from .config import DEFAULT_TEMP
-from .util import blend
+from .util import blend, fast_random, fast_choice2, fast_randint
 from .soundengine import play_sound
 
 if TYPE_CHECKING:
@@ -15,49 +15,6 @@ if TYPE_CHECKING:
 
 
 available_materials = {}
-
-
-_pre_generated_random = np.array(np.random.random(size=1234), dtype=np.float64)
-_random_index = 0
-
-
-def _fast_choice2(a: Any, b: Any) -> Any:
-    global _random_index
-    if _random_index >= _pre_generated_random.shape[0]:
-        _random_index = 0
-
-    random_value = _pre_generated_random[_random_index]
-    _random_index += 1
-
-    return a if random_value > 0.5 else b
-
-
-def _fast_randint(a: int, b: int) -> int:
-    if a > b:
-        a, b = b, a
-
-    global _random_index
-    if _random_index >= _pre_generated_random.shape[0]:
-        _random_index = 0
-
-    random_value = _pre_generated_random[_random_index]
-    _random_index += 1
-
-    # Scaling the value to needed range
-    result = a + int(random_value * (b - a + 1))
-
-    # Guarantee being in range (needed because of rounding)
-    return min(b, max(a, result))
-
-
-def _fast_random() -> float:
-    global _random_index
-    if _random_index >= _pre_generated_random.shape[0]:
-        _random_index = 0
-
-    ret = _pre_generated_random[_random_index]
-    _random_index += 1
-    return ret
 
 
 def _von_neumann_hood(game_map, x, y, tags):
@@ -130,10 +87,10 @@ class BaseMaterial(abc.ABC):
         '''Updates physical processes of a dot.'''
 
     def _diffuse(self, x, y, tags, chance=0.01):
-        if _fast_random() > chance:
+        if fast_random() > chance:
             return
 
-        nb_pos = ((x - 1, y), (x + 1, y), (x, y - 1), (x, y + 1))[_fast_randint(0, 3)]
+        nb_pos = ((x - 1, y), (x + 1, y), (x, y - 1), (x, y + 1))[fast_randint(0, 3)]
         nb_dot = self.map[nb_pos]
 
         if nb_dot is None:
@@ -146,8 +103,8 @@ class BaseMaterial(abc.ABC):
     def _fall_light_gas(self, x, y):
         for remote_pos in (
             (x, y + 1),
-            _fast_choice2((x - 1, y), (x + 1, y)),
-            _fast_choice2((x - 1, y + 1), (x + 1, y + 1)),
+            fast_choice2((x - 1, y), (x + 1, y)),
+            fast_choice2((x - 1, y + 1), (x + 1, y + 1)),
         ):
             remote_dot = self.map[remote_pos]
             if remote_dot is not None and remote_dot.tags & MaterialTags.SPACE:
@@ -188,8 +145,8 @@ class BaseMaterial(abc.ABC):
 
         for remote_pos in (
             (x, y - 1),
-            _fast_choice2((x - 1, y), (x + 1, y)),
-            _fast_choice2((x - 1, y - 1), (x + 1, y - 1)),
+            fast_choice2((x - 1, y), (x + 1, y)),
+            fast_choice2((x - 1, y - 1), (x + 1, y - 1)),
         ):
             remote_dot = self.map[remote_pos]
             if remote_dot is not None and remote_dot.tags & MaterialTags.SPARSENESS:
@@ -200,7 +157,7 @@ class BaseMaterial(abc.ABC):
         self._diffuse(x, y, MaterialTags.LIQUID)
 
     def _fall_sand(self, x, y):
-        for nb_pos in (x, y - 1), _fast_choice2((x - 1, y - 1), (x + 1, y - 1)):
+        for nb_pos in (x, y - 1), fast_choice2((x - 1, y - 1), (x + 1, y - 1)):
             nb_dot = self.map[nb_pos]
 
             if nb_dot is None:
@@ -213,9 +170,9 @@ class BaseMaterial(abc.ABC):
 
     def _fall_ash(self, x, y):
         down = (x, y - 1)
-        side = _fast_choice2((x - 1, y - 1), (x + 1, y - 1))
+        side = fast_choice2((x - 1, y - 1), (x + 1, y - 1))
 
-        for remote_pos in (side,) + _fast_choice2((), (down,)):
+        for remote_pos in (side,) + fast_choice2((), (down,)):
             remote_dot = self.map[remote_pos]
 
             if remote_dot is not None and remote_dot.tags & MaterialTags.SPARSENESS:
@@ -413,10 +370,10 @@ class Tap(BaseMaterial, display_name='Tap'):
             for rx, ry, dot in _von_neumann_hood(self.map, x, y, MaterialTags.MOVABLE):
                 self._generate_type = type(dot)
                 break
-        elif _fast_randint(1, 6) == 6:
+        elif fast_randint(1, 6) == 6:
             for rx, ry, _ in _von_neumann_hood(self.map, x, y, MaterialTags.SPACE):
                 self.map[rx, ry] = self._generate_type(self.map, rx, ry)
-        elif _fast_randint(1, 30) == 16:  # exchange tap's generate type to other taps
+        elif fast_randint(1, 30) == 16:  # exchange tap's generate type to other taps
             for _, _, dot in _moore_hood(self.map, x, y, MaterialTags.SOLID):
                 if hasattr(dot, '_generate_type'):  # we could create a separate tag for taps
                     dot._generate_type = self._generate_type
@@ -464,7 +421,7 @@ class Fire(BaseMaterial, display_name='Fire'):
     temp = 1000  # about 800 *C, temp of wood burning
 
     def __post_init__(self, x, y):
-        self._time_to_live = _fast_randint(0, 20)
+        self._time_to_live = fast_randint(0, 20)
         play_sound('material.Fire')
 
     def update(self, x, y):
@@ -508,10 +465,10 @@ class Absorbent(BaseMaterial, display_name='Absorbent'):
     tags = MaterialTags.FLOAT
 
     def __post_init__(self, x, y):
-        grayscale = _fast_randint(0xDD, 0xFF)
-        yellowness = _fast_randint(0x11, 0x33)
+        grayscale = fast_randint(0xDD, 0xFF)
+        yellowness = fast_randint(0x11, 0x33)
         self.color = pygame.Color(grayscale, grayscale, grayscale - yellowness)
-        self._time_to_live = _fast_randint(0, 200)
+        self._time_to_live = fast_randint(0, 200)
 
     def update(self, x, y):
         for rx, ry, _ in _moore_hood(self.map, x, y, MaterialTags.LIQUID):
@@ -532,7 +489,7 @@ class Aerogel(BaseMaterial, display_name='Aerogel'):
     color = None
 
     def __post_init__(self, x, y):
-        grayscale = _fast_randint(0xAA, 0xBB)
+        grayscale = fast_randint(0xAA, 0xBB)
         self.color = pygame.Color(grayscale, grayscale, grayscale, 0x25)
 
 
@@ -544,7 +501,7 @@ class DryIce(BaseMaterial, display_name='Dry Ice'):
     temp = 175
 
     def __post_init__(self, x, y):
-        self._orig_color = blend(pygame.Color("#dbe2ee"), pygame.Color("#c2d9df"), _fast_random())
+        self._orig_color = blend(pygame.Color("#dbe2ee"), pygame.Color("#c2d9df"), fast_random())
 
     def update(self, x, y):
         if self.temp > 250:
