@@ -9,7 +9,6 @@ import time
 @dataclass
 class ConfigDefaults:
     DEFAULT_TEMP: int = 300
-    TEMP_IS_EXCHANGING: bool = True
     DEFAULT_DRAWING_WIDTH: int = 1
     DELTA_DRAWING_WIDTH: int = 1
     ZOOM_FACTOR: float = 0.1

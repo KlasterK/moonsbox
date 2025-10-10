@@ -8,14 +8,6 @@
 # 300 K = 26.85°C = 80.33°F -- room temperature
 DEFAULT_TEMP = 300
 
-# Включить передачу температуры между материалами:
-# true  - включить тепловую физику (игра может работать медленнее)
-# false - выключить тепловую физику (игра будет работать быстрее, но часть геймплея сломается)
-# Enable heat transfer between materials:
-# true  - enable heat physics (game may run slower)
-# false - disable heat physics (game will run faster, but a part of the gameplay will break)
-TEMP_IS_EXCHANGING = true
-
 # Начальный размер кисти для рисования (в клетках)
 # Initial brush size for drawing (in dots)
 DEFAULT_DRAWING_WIDTH = 1

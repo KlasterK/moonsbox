@@ -1,7 +1,6 @@
 import numpy as np
 import pygame
 
-from .config import TEMP_IS_EXCHANGING
 from .gamemap import GameMap
 from .materials import MaterialTags
 
@@ -16,29 +15,25 @@ class SimulationManager:
         view = self._map.get_view()
         size_x, size_y = self._map.size
 
-        if TEMP_IS_EXCHANGING:
-            for (x, y), dot in np.ndenumerate(view):
-                temp_delta = 0.0
+        for (x, y), dot in np.ndenumerate(view):
+            temp_delta = 0.0
 
-                for dx, dy in ((0, 1), (1, 0), (-1, 0), (0, -1)):
-                    nx, ny = x + dx, y + dy
-                    if 0 <= nx < size_x and 0 <= ny < size_y:
-                        nbr = view[nx, ny]
-                        temp_delta += (
-                            (nbr.temp - dot.temp)
-                            * min(nbr.thermal_conductivity, dot.thermal_conductivity)
-                            * (1 - dot.heat_capacity)
-                        )
+            for dx, dy in ((0, 1), (1, 0), (-1, 0), (0, -1)):
+                nx, ny = x + dx, y + dy
+                if 0 <= nx < size_x and 0 <= ny < size_y:
+                    nbr = view[nx, ny]
+                    temp_delta += (
+                        (nbr.temp - dot.temp)
+                        * min(nbr.thermal_conductivity, dot.thermal_conductivity)
+                        * (1 - dot.heat_capacity)
+                    )
 
-                dot.temp += temp_delta / 4
-                if dot.temp < 0:
-                    dot.temp = 0
+            dot.temp += temp_delta / 4
+            if dot.temp < 0:
+                dot.temp = 0
 
-        for x in range(size_x):
-            for y in range(size_y):
-                dot = view[x, y]
-                if not dot.tags & MaterialTags.GAS:
-                    dot.update(x, y)
+            if not dot.tags & MaterialTags.GAS:
+                dot.update(x, y)
 
         # We need to update gases separately, because the updating is going upwards,
         # and gas with y=0 will raise, then the same gas, now with y=1 will raise,

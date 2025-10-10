@@ -1,9 +1,6 @@
 # Default temperature for usual dots (default is 26.85 *C, 80.33 *F)
 DEFAULT_TEMP = 300
 
-# Set it to false to boost moonsbox (only if you do not need temperature)
-TEMP_IS_EXCHANGING = true
-
 # Default width of brush
 DEFAULT_DRAWING_WIDTH = 1
 
