@@ -1,13 +1,13 @@
 import abc
 import random
-from enum import Flag, auto
+from enum import Enum, Flag, auto
 from typing import TYPE_CHECKING, Any
 
 import numpy as np
 import pygame
 
 from .config import DEFAULT_TEMP
-from .util import blend, fast_random, fast_choice2, fast_randint
+from .util import blend, fast_randint, fast_random
 from .soundengine import play_sound
 
 if TYPE_CHECKING:
@@ -46,6 +46,14 @@ class MaterialTags(Flag):
     MOVABLE = BULK | LIQUID | GAS | FLOAT
 
 
+class PhysicalEntity(Enum):
+    NULL = 0
+    SAND = auto()
+    LIQUID = auto()
+    LIGHT_GAS = auto()
+    HEAVY_GAS = auto()
+
+
 class BaseMaterial(abc.ABC):
     '''Abstract base class for materials.'''
 
@@ -67,6 +75,7 @@ class BaseMaterial(abc.ABC):
         '''Color of a dot.'''
 
     temp = DEFAULT_TEMP
+    physical_entity = PhysicalEntity.NULL
 
     @property
     @abc.abstractmethod
@@ -85,100 +94,6 @@ class BaseMaterial(abc.ABC):
 
     def update(self, x: int, y: int) -> None:
         '''Updates physical processes of a dot.'''
-
-    def _diffuse(self, x, y, tags, chance=0.01):
-        if fast_random() > chance:
-            return
-
-        nb_pos = ((x - 1, y), (x + 1, y), (x, y - 1), (x, y + 1))[fast_randint(0, 3)]
-        nb_dot = self.map[nb_pos]
-
-        if nb_dot is None:
-            return
-
-        if nb_dot.tags & tags:
-            self.map[nb_pos] = self
-            self.map[x, y] = nb_dot
-
-    def _fall_light_gas(self, x, y):
-        for remote_pos in (
-            (x, y + 1),
-            fast_choice2((x - 1, y), (x + 1, y)),
-            fast_choice2((x - 1, y + 1), (x + 1, y + 1)),
-        ):
-            remote_dot = self.map[remote_pos]
-            if remote_dot is not None and remote_dot.tags & MaterialTags.SPACE:
-                self.map[remote_pos] = self
-                self.map[x, y] = remote_dot
-                return
-
-        self._diffuse(x, y, MaterialTags.GAS)
-
-    def _fall_heavy_gas(self, x, y):
-        neighbours = [
-            (x, y + 1),
-            (x + 1, y),
-            (x - 1, y),
-            (x, y - 1),
-            (x + 1, y + 1),
-            (x + 1, y - 1),
-            (x - 1, y + 1),
-            (x - 1, y - 1),
-        ]
-        np.random.shuffle(neighbours)
-
-        for remote_pos in neighbours:
-            remote_dot = self.map[remote_pos]
-            if remote_dot is not None and remote_dot.tags & MaterialTags.SPACE:
-                self.map[remote_pos] = self
-                self.map[x, y] = remote_dot
-                return
-
-        self._diffuse(x, y, MaterialTags.GAS)
-
-    def _fall_liquid(self, x, y):
-        remote_dot = self.map[x, y + 1]
-        if remote_dot is not None and remote_dot.tags & MaterialTags.BULK:
-            self.map[x, y + 1] = self
-            self.map[x, y] = remote_dot
-            return
-
-        for remote_pos in (
-            (x, y - 1),
-            fast_choice2((x - 1, y), (x + 1, y)),
-            fast_choice2((x - 1, y - 1), (x + 1, y - 1)),
-        ):
-            remote_dot = self.map[remote_pos]
-            if remote_dot is not None and remote_dot.tags & MaterialTags.SPARSENESS:
-                self.map[remote_pos] = self
-                self.map[x, y] = remote_dot
-                return
-
-        self._diffuse(x, y, MaterialTags.LIQUID)
-
-    def _fall_sand(self, x, y):
-        for nb_pos in (x, y - 1), fast_choice2((x - 1, y - 1), (x + 1, y - 1)):
-            nb_dot = self.map[nb_pos]
-
-            if nb_dot is None:
-                continue
-
-            if nb_dot.tags & MaterialTags.FLOWABLE:
-                self.map[nb_pos] = self
-                self.map[x, y] = nb_dot
-                return
-
-    def _fall_ash(self, x, y):
-        down = (x, y - 1)
-        side = fast_choice2((x - 1, y - 1), (x + 1, y - 1))
-
-        for remote_pos in (side,) + fast_choice2((), (down,)):
-            remote_dot = self.map[remote_pos]
-
-            if remote_dot is not None and remote_dot.tags & MaterialTags.SPARSENESS:
-                self.map[remote_pos] = self
-                self.map[x, y] = remote_dot
-                return
 
 
 class Space(BaseMaterial, display_name='Space'):  # air
@@ -211,14 +126,15 @@ class Sand(BaseMaterial, display_name='Sand'):
             if not self._is_glass:
                 self._is_glass = True
                 play_sound('convert.Sand_to_glass')
-            self._fall_liquid(x, y)
+            self.physical_entity = PhysicalEntity.LIQUID
             self.tags = MaterialTags.LIQUID
 
         elif not self._is_glass:
-            self._fall_sand(x, y)
+            self.physical_entity = PhysicalEntity.SAND
             self.tags = MaterialTags.BULK
 
         else:
+            self.physical_entity = PhysicalEntity.NULL
             self.tags = MaterialTags.SOLID
 
 
@@ -240,6 +156,7 @@ class _CommonWater(BaseMaterial):
 class Water(_CommonWater, display_name='Water'):
     tags = MaterialTags.LIQUID
     color = None
+    physical_entity = PhysicalEntity.LIQUID
 
     def __post_init__(self, x, y):
         self.color = pygame.Color(0, random.randint(0x95, 0xBB), 0x99)
@@ -251,8 +168,6 @@ class Water(_CommonWater, display_name='Water'):
             self._convert_to(Ice, x, y, 'convert.Water_freezes')
         elif self.temp > 375:
             self._convert_to(Steam, x, y, 'convert.Water_evaporates')
-        else:
-            self._fall_liquid(x, y)
 
 
 class Ice(_CommonWater, display_name='Ice'):
@@ -273,6 +188,7 @@ class Steam(Water, display_name='Steam'):
     temp = 420
     color = pygame.Color("#28BBC53D")
     tags = MaterialTags.GAS
+    physical_entity = PhysicalEntity.LIGHT_GAS
 
     def __post_init__(self, x, y):
         if not self._converting:
@@ -282,7 +198,7 @@ class Steam(Water, display_name='Steam'):
         if self.temp < 370:
             self._convert_to(Water, x, y, 'convert.Steam_condensates')
         else:
-            self._fall_light_gas(x, y)
+            self.physical_entity = PhysicalEntity.LIGHT_GAS
 
 
 class UnbreakableWall(BaseMaterial, display_name='Unbreakable Wall'):
@@ -303,9 +219,10 @@ class Lava(BaseMaterial, display_name='Lava'):
 
     def update(self, x, y):
         if self.temp > 400:  # 127 *C, 260 *F
-            self._fall_liquid(x, y)
+            self.physical_entity = PhysicalEntity.LIQUID
             self.tags = MaterialTags.LIQUID
         else:
+            self.physical_entity = PhysicalEntity.NULL
             self.tags = MaterialTags.SOLID
 
     @property
@@ -384,6 +301,7 @@ class Propane(BaseMaterial, display_name='Propane'):
     heat_capacity = 0.3  # factors that Space used to have
     thermal_conductivity = 0.5
     tags = MaterialTags.GAS
+    physical_entity = PhysicalEntity.LIGHT_GAS
 
     def update(self, x, y):
         if self.temp > 700:  # ~500 *C
@@ -395,23 +313,25 @@ class Propane(BaseMaterial, display_name='Propane'):
 
         elif self.tags & MaterialTags.SOLID:
             if self.temp > 85:
+                self.physical_entity = PhysicalEntity.LIQUID
                 self.tags = MaterialTags.LIQUID
                 self.color = pygame.Color("#5376B885")
 
         elif self.tags & MaterialTags.LIQUID:
             if self.temp < 80:
+                self.physical_entity = PhysicalEntity.NULL
                 self.tags = MaterialTags.SOLID
                 self.color = pygame.Color("#6D8EC9B8")
             elif self.temp > 235:
+                self.physical_entity = PhysicalEntity.LIGHT_GAS
                 self.tags = MaterialTags.GAS
                 self.color = pygame.Color("#385DA345")
-            self._fall_liquid(x, y)
 
         elif self.tags & MaterialTags.GAS:
             if self.temp < 230:
+                self.physical_entity = PhysicalEntity.LIQUID
                 self.tags = MaterialTags.LIQUID
                 self.color = pygame.Color("#5376B885")
-            self._fall_light_gas(x, y)
 
 
 class Fire(BaseMaterial, display_name='Fire'):
@@ -419,6 +339,7 @@ class Fire(BaseMaterial, display_name='Fire'):
     thermal_conductivity = 1  # very high
     tags = MaterialTags.GAS
     temp = 1000  # about 800 *C, temp of wood burning
+    physical_entity = PhysicalEntity.LIGHT_GAS
 
     def __post_init__(self, x, y):
         self._time_to_live = fast_randint(0, 20)
@@ -430,7 +351,6 @@ class Fire(BaseMaterial, display_name='Fire'):
             return
 
         self._time_to_live -= 1
-        self._fall_light_gas(x, y)
 
     @property
     def color(self):
@@ -455,7 +375,9 @@ class PureGlass(BaseMaterial, display_name='Glass'):
 
     def update(self, x, y):
         if self.temp > 1773:  # 1500 *C
-            self._fall_liquid(x, y)
+            self.physical_entity = PhysicalEntity.LIQUID
+        else:
+            self.physical_entity = PhysicalEntity.NULL
 
 
 class Absorbent(BaseMaterial, display_name='Absorbent'):
@@ -463,6 +385,7 @@ class Absorbent(BaseMaterial, display_name='Absorbent'):
     thermal_conductivity = 0.9
     color = pygame.Color("#eeeee3")
     tags = MaterialTags.FLOAT
+    physical_entity = PhysicalEntity.SAND
 
     def __post_init__(self, x, y):
         grayscale = fast_randint(0xDD, 0xFF)
@@ -479,7 +402,6 @@ class Absorbent(BaseMaterial, display_name='Absorbent'):
             self.map[x, y] = Space(self.map, x, y)
         else:
             self._time_to_live -= 1
-            self._fall_sand(x, y)
 
 
 class Aerogel(BaseMaterial, display_name='Aerogel'):
@@ -506,12 +428,13 @@ class DryIce(BaseMaterial, display_name='Dry Ice'):
     def update(self, x, y):
         if self.temp > 250:
             self.map[x, y] = Space(self.map, x, y)
+            self.physical_entity = PhysicalEntity.NULL
         elif self.temp > 195:
             self.tags = MaterialTags.GAS
-            self._fall_heavy_gas(x, y)
+            self.physical_entity = PhysicalEntity.HEAVY_GAS
         else:
             self.tags = MaterialTags.BULK
-            self._fall_sand(x, y)
+            self.physical_entity = PhysicalEntity.SAND
 
     @property
     def color(self):
