@@ -18,11 +18,12 @@ class SimulationManager:
 
     def tick(self, framerate: float = 0):
         self._view = self._map.get_view()
-        self._exchange_temp_and_update()
+        self._exchange_temp()
+        self._update_all()
         self._process_physics()
         self._clock.tick(framerate)
 
-    def _exchange_temp_and_update(self):
+    def _exchange_temp(self):
         size_x, size_y = self._map.size
 
         for (x, y), dot in np.ndenumerate(self._view):
@@ -42,6 +43,8 @@ class SimulationManager:
             if dot.temp < 0:
                 dot.temp = 0
 
+    def _update_all(self):
+        for (x, y), dot in np.ndenumerate(self._view):
             dot.update(x, y)
 
     def _process_physics(self):
