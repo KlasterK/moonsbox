@@ -24,16 +24,13 @@ and their interactions in a pixel world.
 - Make the first release of the game. (✓)
 - Spread the game. (✓)
 - Create a chat for the game. (✓)
-- Start developing native (C++) version of gamemap.py.
-- Native version of simulation.py.
-- Native version of renderer.py.
-- Native version of materials.py.
-- Add more materials.
-- Add alternative to keyboard controls in form of widgets.
-- Add full touchscreen support.
-- Make a release for Android.
-- Add visual config editing and all widgets are needed for it.
-- Add more and more materials.
+- Rewrite high-loaded core of the game in C++ (branch wip-cxx)
+- Add more materials
+- Add visual configuring
+- Create a launcher for the game with visual configuring, managing saves and captures, game updating
+- Add touchscreen support
+- Add building chain for Android
+- Make multiplayer prototype
 
 ## Controls
 
