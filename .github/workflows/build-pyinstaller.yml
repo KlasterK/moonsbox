@@ -7,6 +7,8 @@ on:
   pull_request:
     branches:
       - main
+  release:
+    types: [published]
 
 jobs:
   build:
@@ -72,6 +74,7 @@ jobs:
       shell: bash
       run: |
         ARCHIVE_NAME="moonsbox-${{ env.VERSION }}-${{ env.PLATFORM }}-${{ env.ARCH }}"
+        echo "ARCHIVE_NAME=$ARCHIVE_NAME" >> $GITHUB_ENV
         
         if [ "${{ env.PLATFORM }}" == "windows" ] || [ "${{ env.PLATFORM }}" == "macos" ]; then
           7z a -tzip "$ARCHIVE_NAME.zip" ./dist/*
@@ -80,9 +83,6 @@ jobs:
           tar czvf "$ARCHIVE_NAME.tar.gz" -C dist/ .
           echo "ARTIFACT_PATH=$ARCHIVE_NAME.tar.gz" >> $GITHUB_ENV
         fi
-
-        echo "ARCHIVE_NAME=$ARCHIVE_NAME" >> $GITHUB_ENV
-        echo "ARTIFACT_PATH=$ARTIFACT_PATH" >> $GITHUB_ENV
 
     - name: Upload artifact
       uses: actions/upload-artifact@v4
