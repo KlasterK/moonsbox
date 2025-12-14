@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - main
+    tags:
+      - "*"
   pull_request:
     branches:
       - main
@@ -23,8 +25,6 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
-      with:
-        fetch-depth: 0 # Fetch all the tags
 
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v5
@@ -46,51 +46,28 @@ jobs:
         pyinstaller pyinst_moonsbox.spec
 
     - name: Get Version and Architecture Info
-      id: version_info
       shell: bash
       run: |
-        # Try to get version from last tag name
-        VERSION=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
-        
-        # If no tag found, get version from git commit hash
-        if [ -z "$VERSION" ]; then
-          VERSION=$(git rev-parse --short HEAD)
-        fi
-        
-        # Determine architecture
-        ARCH=$(uname -m)
-        PLATFORM="${{ matrix.os }}"
-        
-        # Normalize architecture name
-        if [ "$PLATFORM" == "ubuntu-latest" ]; then PLATFORM="linux"; fi
-        if [ "$PLATFORM" == "windows-latest" ]; then PLATFORM="windows"; fi
-        if [ "$PLATFORM" == "macos-latest" ]; then PLATFORM="macos"; fi
+        echo "VERSION=$(git describe --tags --exact-match HEAD 2>/dev/null \
+             || git rev-parse --short HEAD)" >> $GITHUB_ENV
 
-        echo "VERSION=$VERSION" >> $GITHUB_ENV
-        echo "ARCH=$ARCH" >> $GITHUB_ENV
-        echo "PLATFORM=$PLATFORM" >> $GITHUB_ENV
+        echo "ARCH=$(uname -m)" >> $GITHUB_ENV
+        
+        if [ "${{ matrix.os }}" == "ubuntu-latest" ]; then 
+          echo "PLATFORM=linux" >> $GITHUB_ENV
+        elif [ "${{ matrix.os }}" == "windows-latest" ]; then 
+          echo "PLATFORM=windows" >> $GITHUB_ENV
+        elif [ "${{ matrix.os }}" == "macos-latest" ]; then 
+          echo "PLATFORM=macos" >> $GITHUB_ENV
+        fi
 
     - name: Move assets to dist/ folder
       shell: bash
       run: |
         cp -r assets/ dist/assets/
 
-    - name: Create final artifact archive
-      shell: bash
-      run: |
-        ARCHIVE_NAME="moonsbox-${{ env.VERSION }}-${{ env.PLATFORM }}-${{ env.ARCH }}"
-        echo "ARCHIVE_NAME=$ARCHIVE_NAME" >> $GITHUB_ENV
-        
-        if [ "${{ env.PLATFORM }}" == "windows" ] || [ "${{ env.PLATFORM }}" == "macos" ]; then
-          7z a -tzip "$ARCHIVE_NAME.zip" ./dist/*
-          echo "ARTIFACT_PATH=$ARCHIVE_NAME.zip" >> $GITHUB_ENV
-        else
-          tar czvf "$ARCHIVE_NAME.tar.gz" -C dist/ .
-          echo "ARTIFACT_PATH=$ARCHIVE_NAME.tar.gz" >> $GITHUB_ENV
-        fi
-
     - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
-        name: ${{ env.ARCHIVE_NAME }}
-        path: ${{ env.ARTIFACT_PATH }}
+        name: moonsbox-${{ env.VERSION }}-${{ env.PLATFORM }}-${{ env.ARCH }}
+        path: dist
