@@ -37,7 +37,6 @@ jobs:
     - name: Run PyInstaller build
       run: |
         pyinstaller pyinst_moonsbox.spec
-      shell: ${{ matrix.os == 'windows-latest' && 'powershell' || 'bash' }}
 
     - name: Get Version and Architecture Info
       id: version_info
