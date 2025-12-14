@@ -81,6 +81,9 @@ jobs:
           echo "ARTIFACT_PATH=$ARCHIVE_NAME.tar.gz" >> $GITHUB_ENV
         fi
 
+        echo "ARCHIVE_NAME=$ARCHIVE_NAME" >> $GITHUB_ENV
+        echo "ARTIFACT_PATH=$ARTIFACT_PATH" >> $GITHUB_ENV
+
     - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
