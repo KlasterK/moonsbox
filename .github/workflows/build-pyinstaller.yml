@@ -13,6 +13,7 @@ on:
 jobs:
   build:
     strategy:
+      fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
         python-version: ['3.13']
@@ -34,7 +35,11 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
-        pip install pyinstaller
+        pip install pyinstaller pillow
+        # pillow is needed here for windows-latest
+        # /assets/window_icon is in PNG format, but Windows requires ico format
+        # Without PIL, PyInstaller will fail, but with it, PyInstaller will convert
+        # the icon to proper format
 
     - name: Run PyInstaller build
       run: |
