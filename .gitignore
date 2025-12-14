@@ -20,3 +20,4 @@ __pycache__/
 .clangd
 /dist/*.exe
 /dist/assets
+/src/opt/build
