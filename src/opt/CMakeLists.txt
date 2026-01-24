@@ -11,8 +11,9 @@ find_package(pybind11 REQUIRED)
 pybind11_add_module(moox-opt
     main.cpp
     gamemap.hpp gamemap.cpp
-    renderer.hpp renderer.cpp
+    simulation.hpp simulation.cpp
     materialdefs.hpp
     materialcontroller.hpp
+    drawing.hpp drawing.cpp
 )
 target_include_directories(moox-opt PRIVATE include)
