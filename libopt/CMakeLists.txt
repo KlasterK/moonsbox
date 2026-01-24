@@ -1,19 +1,18 @@
 cmake_minimum_required(VERSION 3.20)
-project(moonsbox-opt LANGUAGES C CXX VERSION 0.0.1)
+project(moonsbox-opt LANGUAGES C CXX VERSION 0.1.0)
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package(Python 3.13 COMPONENTS Interpreter Development REQUIRED)
-set(PYBIND11_FINDPYTHON ON)
-find_package(pybind11 REQUIRED)
+find_package(SDL2 REQUIRED)
 
-pybind11_add_module(moox-opt
-    main.cpp
+add_executable(libopt
+    test.cpp
     gamemap.hpp gamemap.cpp
     simulation.hpp simulation.cpp
     materialdefs.hpp
     materialcontroller.hpp
-    drawing.hpp drawing.cpp
+    materials.hpp
+    drawing.hpp
 )
-target_include_directories(moox-opt PRIVATE include)
+target_link_libraries(libopt SDL2::SDL2)

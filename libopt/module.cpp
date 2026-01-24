@@ -56,6 +56,6 @@ PYBIND11_MODULE(opt, m)
             return std::array{pos[0], int(map.height() - 1 - pos[1])};
         })
         .def("bounds", [](GameMap &map, std::array<int, 2> pos) { return map.in_bounds(pos[0], pos[1]); })
-        .def("fill", &draw::fill)
+        .def("fill", &drawing::fill)
     ;
 }

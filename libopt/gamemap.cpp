@@ -2,7 +2,7 @@
 #include <format>
 #include <SDL2/SDL.h>
 
-auto &_makeSurface(size_t width, size_t height)
+auto &_make_surface(size_t width, size_t height)
 {
     auto *surf = SDL_CreateRGBSurfaceWithFormat(
         0, width, height, 32, SDL_PIXELFORMAT_RGBA8888
@@ -20,7 +20,7 @@ auto &_makeSurface(size_t width, size_t height)
 }
 
 _Layer<_SDLColorLayerTag>::_Layer(size_t width, size_t height)
-    : m_surface(_makeSurface(width, height))
+    : m_surface(_make_surface(width, height))
     , m_width(width)
     , m_height(height)
 {

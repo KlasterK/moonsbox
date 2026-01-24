@@ -16,4 +16,4 @@ public:
     }
 };
 
-#endif MOOX_MATERIALCONTROLLER_HPP
+#endif // MOOX_MATERIALCONTROLLER_HPP
