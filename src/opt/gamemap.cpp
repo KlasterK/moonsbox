@@ -1,67 +1,96 @@
 #include "gamemap.hpp"
+#include <format>
+#include <SDL2/SDL.h>
 
-#define MOOX_IMPLEMENT_FIELD(type, fn_at, fn_span, member_data) \
-    std::span<type> GameMap::fn_span() \
-    { \
-        return {member_data.get(), flat_size()}; \
-    } \
-    std::span<const type> GameMap::fn_span() const \
-    { \
-        return {member_data.get(), flat_size()}; \
-    } \
-    type& GameMap::fn_at(size_t x, size_t y) \
-    { \
-        return member_data[point_to_idx(x, y)]; \
-    } \
-    const type& GameMap::fn_at(size_t x, size_t y) const \
-    { \
-        return member_data[point_to_idx(x, y)]; \
-    } \
-// MOOX_IMPLEMENT_FIELD
-
-#define MOOX_IMPLFD_FROM_NAME(name) \
-    MOOX_IMPLEMENT_FIELD( \
-        std::remove_cvref_t<decltype(GameMap::m_##name##s[0])>, \
-        name, \
-        name##_span, \
-        m_##name##s \
-    ) \
-// MOOX_IMPLFD_FROM_NAME
-
-#define MOOX_IMPLFD_FROM_NAME_MEMBER_NAME(name, member_name) \
-    MOOX_IMPLEMENT_FIELD( \
-        std::remove_cvref_t<decltype(GameMap::member_name[0])>, \
-        name, \
-        name##_span, \
-        member_name \
-    ) \
-// MOOX_IMPLFD_FROM_NAME_MEMBER_NAME
-
-MOOX_IMPLFD_FROM_NAME(temp)
-MOOX_IMPLFD_FROM_NAME_MEMBER_NAME(heat_capacity, m_heat_capacities)
-MOOX_IMPLFD_FROM_NAME_MEMBER_NAME(thermal_conductivity, m_thermal_conductivities)
-MOOX_IMPLFD_FROM_NAME(color)
-MOOX_IMPLFD_FROM_NAME(tag)
-MOOX_IMPLFD_FROM_NAME(physical_behavior)
-MOOX_IMPLFD_FROM_NAME(aux)
-MOOX_IMPLFD_FROM_NAME(material_id)
-
-#define MOOX_CONST_NONCONST(nonconst_t, const_t, signature, code) \
-    nonconst_t GameMap::signature code \
-    const_t GameMap::signature const code \
-// MOOX_CONST_NONCONST
-
-MOOX_CONST_NONCONST(DotProxy, const DotProxy, make_proxy(size_t x, size_t y), 
+auto &_makeSurface(size_t width, size_t height)
 {
-    size_t idx = point_to_idx(x, y);
-    return DotProxy(
-        m_temps[idx],
-        m_heat_capacities[idx],
-        m_thermal_conductivities[idx],
-        m_colors[idx],
-        m_tags[idx],
-        m_physical_behaviors[idx],
-        m_auxs[idx],
-        m_material_ids[idx]
+    auto *surf = SDL_CreateRGBSurfaceWithFormat(
+        0, width, height, 32, SDL_PIXELFORMAT_RGBA8888
     );
-})
+
+    if(surf == nullptr)
+    {
+        throw std::runtime_error(std::format(
+            "GameMap::GameMap: SDL_CreateRGBSurfaceWithFormat failed: {}", 
+            SDL_GetError()
+        ));
+    }
+
+    return *surf;
+}
+
+_Layer<_SDLColorLayerTag>::_Layer(size_t width, size_t height)
+    : m_surface(_makeSurface(width, height))
+    , m_width(width)
+    , m_height(height)
+{
+
+}
+
+_Layer<_SDLColorLayerTag>::~_Layer() 
+{
+    SDL_FreeSurface(&m_surface);
+}
+
+uint32_t &_Layer<_SDLColorLayerTag>::operator()(size_t x, size_t y)
+{
+    size_t stride = m_surface.pitch / sizeof(uint32_t);
+    return static_cast<uint32_t *>(m_surface.pixels)[y * stride + x];
+}
+
+const uint32_t &_Layer<_SDLColorLayerTag>::operator()(size_t x, size_t y) const
+{
+    size_t stride = m_surface.pitch / sizeof(uint32_t);
+    return static_cast<const uint32_t *>(m_surface.pixels)[y * stride + x];
+}
+
+SDL_Surface &_Layer<_SDLColorLayerTag>::surface()
+{
+    return m_surface;
+}
+
+const SDL_Surface &_Layer<_SDLColorLayerTag>::surface() const
+{
+    return m_surface;
+}
+
+GameMap::GameMap(size_t width, size_t height)
+    : temps(width, height)
+    , heat_capacities(width, height)
+    , thermal_conductivities(width, height)
+    , colors(width, height)
+    , tags(width, height)
+    , physical_behaviors(width, height)
+    , auxs(width, height)
+    , material_ids(width, height)
+    , m_width(width)
+    , m_height(height)
+{}
+
+DotProxy GameMap::make_proxy(size_t x, size_t y)
+{
+    return DotProxy{
+        .temp = temps(x, y),
+        .heat_capacity = heat_capacities(x, y),
+        .thermal_conductivity = thermal_conductivities(x, y),
+        .color = colors(x, y),
+        .tags = tags(x, y),
+        .physical_behavior = physical_behaviors(x, y),
+        .aux = auxs(x, y),
+        .id = material_ids(x, y)
+    };
+}
+
+ConstDotProxy GameMap::make_proxy(size_t x, size_t y) const
+{
+    return ConstDotProxy{
+        .temp = temps(x, y),
+        .heat_capacity = heat_capacities(x, y),
+        .thermal_conductivity = thermal_conductivities(x, y),
+        .color = colors(x, y),
+        .tags = tags(x, y),
+        .physical_behavior = physical_behaviors(x, y),
+        .aux = auxs(x, y),
+        .id = material_ids(x, y)
+    };
+}

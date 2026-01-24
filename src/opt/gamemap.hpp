@@ -4,9 +4,63 @@
 #include <memory>
 #include <any>
 #include "materialdefs.hpp"
+#include <cassert>
 #include <cstdint>
 #include <span>
 
+
+template<typename T>
+class _Layer
+{
+public:
+    _Layer(size_t width, size_t height)
+        : m_data(std::make_unique<T[]>(width * height)) 
+        , m_width(width)
+        , m_height(height)
+    {}
+
+    _Layer& operator=(const _Layer&) = delete;
+    _Layer& operator=(_Layer &&)     = delete;
+    
+    T& operator()(size_t x, size_t y)
+    {
+        assert(x < m_width && y < m_height);
+        return m_data[y * m_width + x];
+    }
+    const T& operator()(size_t x, size_t y) const { return m_data[y * m_width + x]; }
+
+    std::span<T> span()
+    { 
+        return {m_data.get(), m_width * m_height};
+    }
+    std::span<const T> span() const { return {m_data.get(), m_width * m_height}; }
+
+private:
+    std::unique_ptr<T[]> m_data;
+    size_t m_width{}, m_height{};
+};
+
+
+struct SDL_Surface;
+struct _SDLColorLayerTag {};
+
+template<>
+class _Layer<_SDLColorLayerTag>
+{
+public:
+    _Layer(size_t width, size_t height);
+    ~_Layer();
+
+    uint32_t& operator()(size_t x, size_t y);
+    const uint32_t& operator()(size_t x, size_t y) const;
+
+    SDL_Surface& surface();
+    const SDL_Surface& surface() const;
+
+private:
+    SDL_Surface &m_surface;
+    size_t m_width{}, m_height{};
+};
 
 class GameMap
 {
@@ -23,56 +77,20 @@ public:
     inline bool in_bounds(size_t x, size_t y) const { return x < m_width && y < m_height; }
 
     DotProxy make_proxy(size_t x, size_t y);
-    const DotProxy make_proxy(size_t x, size_t y) const;
+    ConstDotProxy make_proxy(size_t x, size_t y) const;
 
-    std::span<float> temp_span();
-    std::span<const float> temp_span() const;
-    float& temp(size_t x, size_t y);
-    const float& temp(size_t x, size_t y) const;
-
-    std::span<float> heat_capacity_span();
-    std::span<const float> heat_capacity_span() const;
-    float& heat_capacity(size_t x, size_t y);
-    const float& heat_capacity(size_t x, size_t y) const;
-
-    std::span<float> thermal_conductivity_span();
-    std::span<const float> thermal_conductivity_span() const;
-    float& thermal_conductivity(size_t x, size_t y);
-    const float& thermal_conductivity(size_t x, size_t y) const;
-
-    std::span<uint32_t> color_span();
-    std::span<const uint32_t> color_span() const;
-    uint32_t& color(size_t x, size_t y);
-    const uint32_t& color(size_t x, size_t y) const;
-
-    std::span<MaterialTags> tag_span();
-    std::span<const MaterialTags> tag_span() const;
-    MaterialTags& tag(size_t x, size_t y);
-    const MaterialTags& tag(size_t x, size_t y) const;
-
-    std::span<MaterialPhysicalBehavior> physical_behavior_span();
-    std::span<const MaterialPhysicalBehavior> physical_behavior_span() const;
-    MaterialPhysicalBehavior& physical_behavior(size_t x, size_t y);
-    const MaterialPhysicalBehavior& physical_behavior(size_t x, size_t y) const;
-
-    std::span<std::any> aux_span();
-    std::span<const std::any> aux_span() const;
-    std::any& aux(size_t x, size_t y);
-    const std::any& aux(size_t x, size_t y) const;
-
-    std::span<MaterialID> material_id_span();
-    std::span<const MaterialID> material_id_span() const;
-    MaterialID& material_id(size_t x, size_t y);
-    const MaterialID& material_id(size_t x, size_t y) const;
+    _Layer<float> temps;
+    _Layer<float> heat_capacities;
+    _Layer<float> thermal_conductivities;
+    _Layer<_SDLColorLayerTag> colors;
+    _Layer<MaterialTags> tags;
+    _Layer<MaterialPhysicalBehavior> physical_behaviors;
+    _Layer<std::any> auxs;
+    _Layer<MaterialID> material_ids;
 
 private:
-    size_t m_width, m_height;
-    std::unique_ptr<float[]> m_temps, m_heat_capacities, m_thermal_conductivities;
-    std::unique_ptr<uint32_t[]> m_colors;
-    std::unique_ptr<MaterialTags[]> m_tags;
-    std::unique_ptr<MaterialPhysicalBehavior[]> m_physical_behaviors;
-    std::unique_ptr<std::any[]> m_auxs;
-    std::unique_ptr<MaterialID[]> m_material_ids;
+    size_t m_width{}, m_height{};
 };
+
 
 #endif // MOOX_GAMEMAP_HPP

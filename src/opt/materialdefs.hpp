@@ -1,3 +1,6 @@
+#ifndef MOOX_MATERIALDEFS_HPP
+#define MOOX_MATERIALDEFS_HPP
+
 #include <bitset>
 #include <any>
 #include <cstdint>
@@ -26,3 +29,14 @@ struct DotProxy
     MaterialID &id;
 };
 
+struct ConstDotProxy
+{
+    const float &temp, &heat_capacity, &thermal_conductivity;
+    const uint32_t &color;
+    const MaterialTags &tags;
+    const MaterialPhysicalBehavior &physical_behavior;
+    const std::any &aux;
+    const MaterialID &id;
+};
+
+#endif // MOOX_MATERIALDEFS_HPP

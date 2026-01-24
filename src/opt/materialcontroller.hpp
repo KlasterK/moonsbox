@@ -1,3 +1,6 @@
+#ifndef MOOX_MATERIALCONTROLLER_HPP
+#define MOOX_MATERIALCONTROLLER_HPP
+
 #include "materialdefs.hpp"
 
 class MaterialController
@@ -13,3 +16,4 @@ public:
     }
 };
 
+#endif MOOX_MATERIALCONTROLLER_HPP
