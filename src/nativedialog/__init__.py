@@ -6,11 +6,11 @@ import pygame._sdl2
 _IMPL = True
 try:
     from ._windows import *
-except ImportError:
+except Exception:
     # TODO: add native dialog for Apple platforms and X11 without using tkinter
     try:
         from ._tk import *
-    except ImportError:
+    except Exception:
         # TODO: add fallback impl using our UI system
         _IMPL = False
 
