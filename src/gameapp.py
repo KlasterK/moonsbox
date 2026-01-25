@@ -20,11 +20,10 @@ from .config import (
     MAX_TPS,
     MAX_FPS,
 )
-from .gamemap import GameMap
+from .libopt import GameMap, SimulationManager
 from .materialpalette import MaterialPalette
-from .materials import Sand
+from .materials import available_materials
 from .renderer import Renderer
-from .simulation import SimulationManager
 from .ui import (
     Button,
     HBoxLayout,
@@ -137,14 +136,9 @@ class GameApp:
         self._is_running = True
         self._is_paused = False
 
-        try:
-            from .opt import make_opt
-        except ImportError:
-            self._map = GameMap(MAP_SIZE)
-            self._sim = SimulationManager(self._map)
-            self._renderer = Renderer(self._map, self._screen, MAP_INNER_COLOR)
-        else:
-            self._map, self._sim, self._renderer = make_opt()
+        self._map = GameMap(MAP_SIZE)
+        self._sim = SimulationManager(self._map)
+        self._renderer = Renderer(self._map, self._screen, MAP_INNER_COLOR)
 
         self._camera = Camera(self._screen, self._map, VISIBLE_AREA)
 
@@ -154,7 +148,7 @@ class GameApp:
             PALETTE_MARGIN,
             self._screen,
         )
-        self._pal.selected_material = Sand
+        self._pal.selected_material = available_materials["Sand"]
 
         style = Stylesheet(
             Selector(ruleset=Ruleset(spacing=7.5)),

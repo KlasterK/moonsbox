@@ -16,10 +16,9 @@ from .config import (
     ASSETS_ROOT,
     MUSIC_VOLUME,
 )
-from .gamemap import GameMap
+from .libopt import GameMap, SimulationManager
 from .materialpalette import MaterialPalette
-from .materials import MaterialTags, Space
-from .simulation import SimulationManager
+from .materials import MaterialTags, available_materials
 from .soundengine import play_sound
 
 if TYPE_CHECKING:
@@ -69,7 +68,7 @@ class SimulationEventHandler(BaseEventHandler):
                 self._sim.tick()
 
             elif e.key == pygame.K_F6:
-                self._map.fill(Space)
+                self._map.fill(available_materials['Space'])
 
 
 class CameraEventHandler(BaseEventHandler):
@@ -324,7 +323,7 @@ class MaterialPaletteEventHandler(BaseEventHandler):
                 and e.button == pygame.BUTTON_X1  # navigate back
             ):
                 if not self._material_stack:
-                    self._pal.selected_material = Space
+                    self._pal.selected_material = available_materials['Space']
                 else:
                     self._pal.selected_material = self._material_stack.pop()
 
