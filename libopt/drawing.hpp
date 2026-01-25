@@ -67,7 +67,7 @@ void drawing::fill(GameMap &map, T material_factory)
     {
         for(size_t x{}; x < map.width(); ++x)
         {
-            material_factory(x, y);
+            material_factory(map, x, y);
         }
     }
 }
@@ -79,7 +79,7 @@ void drawing::rect(GameMap &map, Rect area, T material_factory)
     {
         for(size_t x = area[0]; x < std::min(map.width(), (size_t)area[0] + area[2]); ++x)
         {
-            material_factory(x, y);
+            material_factory(map, x, y);
         }
     }
 }

@@ -8,55 +8,45 @@
 class Space : public MaterialController
 {
 public:
-    Space(GameMap &map) : m_map(map) {}
-
-    inline void init_point(size_t x, size_t y) override
+    inline void init_point(GameMap &map, size_t x, size_t y) override
     {
-        m_map.temps(x, y) = 300.f;
-        m_map.heat_capacities(x, y) = 0.3f;
-        m_map.thermal_conductivities(x, y) = 1.f;
-        m_map.colors(x, y) = 0x00000000;
-        m_map.tags(x, y).reset().set(MtlTag::Space);
-        m_map.auxs(x, y).reset();
-        m_map.physical_behaviors(x, y) = MaterialPhysicalBehavior::Null;
-        m_map.material_ids(x, y) = material_id();
+        map.temps(x, y) = 300.f;
+        map.heat_capacities(x, y) = 0.3f;
+        map.thermal_conductivities(x, y) = 1.f;
+        map.colors(x, y) = 0x00000000;
+        map.tags(x, y).reset().set(MtlTag::Space);
+        map.auxs(x, y).reset();
+        map.physical_behaviors(x, y) = MaterialPhysicalBehavior::Null;
+        map.material_ids(x, y) = material_id();
     }
 
-    inline void static_update() override
+    inline void static_update(GameMap &) override
     {}
 
-    inline void dynamic_update() override
+    inline void dynamic_update(GameMap &) override
     {}
-
-private:
-    GameMap &m_map;
 };
 
 class Sand : public MaterialController
 {
 public:
-    Sand(GameMap &map) : m_map(map) {}
-
-    inline void init_point(size_t x, size_t y) override
+    inline void init_point(GameMap &map, size_t x, size_t y) override
     {
-        m_map.temps(x, y) = 300.f;
-        m_map.heat_capacities(x, y) = 0.3f;
-        m_map.thermal_conductivities(x, y) = 0.1f;
-        m_map.colors(x, y) = 0xFF9900FF | + (rand() % (0xFF - 0x99) * 0x10000);
-        m_map.tags(x, y).reset().set(MtlTag::Bulk);
-        m_map.auxs(x, y).reset();
-        m_map.physical_behaviors(x, y) = MaterialPhysicalBehavior::Sand;
-        m_map.material_ids(x, y) = material_id();
+        map.temps(x, y) = 300.f;
+        map.heat_capacities(x, y) = 0.3f;
+        map.thermal_conductivities(x, y) = 0.1f;
+        map.colors(x, y) = 0xFF9900FF | + (rand() % (0xFF - 0x99) * 0x10000);
+        map.tags(x, y).reset().set(MtlTag::Bulk);
+        map.auxs(x, y).reset();
+        map.physical_behaviors(x, y) = MaterialPhysicalBehavior::Sand;
+        map.material_ids(x, y) = material_id();
     }
 
-    inline void static_update() override
+    inline void static_update(GameMap &) override
     {}
 
-    inline void dynamic_update() override
+    inline void dynamic_update(GameMap &) override
     {}
-
-private:
-    GameMap &m_map;
 };
 
 #endif // MOOX_MATERIALS_HPP

@@ -94,8 +94,8 @@ void SimulationManager::tick()
     auto values_view = std::views::values(m_controllers);
     for(auto *ctl : values_view)
     {
-        ctl->static_update();
-        ctl->dynamic_update();
+        ctl->static_update(m_map);
+        ctl->dynamic_update(m_map);
     }
 
     static_assert(MaterialPhysicalBehaviorRevision == 20260124ULL);
