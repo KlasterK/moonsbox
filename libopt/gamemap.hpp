@@ -18,9 +18,14 @@ public:
         , m_width(width)
         , m_height(height)
     {}
-
-    _Layer& operator=(const _Layer&) = delete;
-    _Layer& operator=(_Layer &&)     = delete;
+    _Layer(_Layer &&) = default;
+    _Layer(const _Layer &other)
+        : m_data(std::make_unique<T[]>(other.m_width * other.m_height)) 
+        , m_width(other.m_width)
+        , m_height(other.m_height)
+    {
+        memcpy(m_data.get(), other.m_data.get(), m_width * m_height);
+    }
     
     T& operator()(size_t x, size_t y)
     {
@@ -49,6 +54,8 @@ class _Layer<_SDLColorLayerTag>
 {
 public:
     _Layer(size_t width, size_t height);
+    _Layer(_Layer &&);
+    _Layer(const _Layer &other);
     ~_Layer();
 
     uint32_t& operator()(size_t x, size_t y);
@@ -58,7 +65,7 @@ public:
     const SDL_Surface& surface() const;
 
 private:
-    SDL_Surface &m_surface;
+    SDL_Surface *m_surface;
     size_t m_width{}, m_height{};
 };
 
@@ -66,6 +73,8 @@ class GameMap
 {
 public:
     GameMap(size_t width, size_t height);
+    GameMap(GameMap &&) = default;
+    GameMap(const GameMap &) = default;
 
     inline size_t width()     const { return m_width; }
     inline size_t height()    const { return m_height; }
