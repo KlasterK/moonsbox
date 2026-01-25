@@ -76,9 +76,6 @@ public:
 
     inline bool in_bounds(size_t x, size_t y) const { return x < m_width && y < m_height; }
 
-    DotProxy make_proxy(size_t x, size_t y);
-    ConstDotProxy make_proxy(size_t x, size_t y) const;
-
     _Layer<float> temps;
     _Layer<float> heat_capacities;
     _Layer<float> thermal_conductivities;

@@ -25,26 +25,6 @@ constexpr auto MaterialPhysicalBehaviorRevision = 20260124ULL;
 
 using MaterialID = uintptr_t;
 
-struct DotProxy
-{
-    float &temp, &heat_capacity, &thermal_conductivity;
-    uint32_t &color;
-    MaterialTags &tags;
-    MaterialPhysicalBehavior &physical_behavior;
-    std::any &aux;
-    MaterialID &id;
-};
-
-struct ConstDotProxy
-{
-    const float &temp, &heat_capacity, &thermal_conductivity;
-    const uint32_t &color;
-    const MaterialTags &tags;
-    const MaterialPhysicalBehavior &physical_behavior;
-    const std::any &aux;
-    const MaterialID &id;
-};
-
 namespace MtlTag
 {
     constexpr bool IsSparseness(const MaterialTags &tags) 

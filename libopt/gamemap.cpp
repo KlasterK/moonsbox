@@ -66,31 +66,3 @@ GameMap::GameMap(size_t width, size_t height)
     , m_width(width)
     , m_height(height)
 {}
-
-DotProxy GameMap::make_proxy(size_t x, size_t y)
-{
-    return DotProxy{
-        .temp = temps(x, y),
-        .heat_capacity = heat_capacities(x, y),
-        .thermal_conductivity = thermal_conductivities(x, y),
-        .color = colors(x, y),
-        .tags = tags(x, y),
-        .physical_behavior = physical_behaviors(x, y),
-        .aux = auxs(x, y),
-        .id = material_ids(x, y)
-    };
-}
-
-ConstDotProxy GameMap::make_proxy(size_t x, size_t y) const
-{
-    return ConstDotProxy{
-        .temp = temps(x, y),
-        .heat_capacity = heat_capacities(x, y),
-        .thermal_conductivity = thermal_conductivities(x, y),
-        .color = colors(x, y),
-        .tags = tags(x, y),
-        .physical_behavior = physical_behaviors(x, y),
-        .aux = auxs(x, y),
-        .id = material_ids(x, y)
-    };
-}
