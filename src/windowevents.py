@@ -109,16 +109,6 @@ class DrawingEventHandler(BaseEventHandler):
         return ready_dot
 
     def process_event(self, e):
-        # mods = pygame.key.get_mods()
-        # buttons = pygame.mouse.get_pressed(3)
-
-        # if mods & pygame.KMOD_CTRL or buttons[0]:
-        #     self._map[
-        #         pygame.mouse.get_pos(),
-        #         ('convert', self._camera.get_area(), self._screen.get_size()),
-        #         '~y',
-        #     ] = self._selected_material()
-
         if (
             e.type == pygame.KEYDOWN
             and e.key in (pygame.K_LCTRL, pygame.K_RCTRL)
@@ -145,20 +135,12 @@ class DrawingEventHandler(BaseEventHandler):
                 mouse_pos = pygame.mouse.get_pos()
                 abs_pos = self._map.invy_pos(self._camera.convert_pos(mouse_pos))
 
-                # Drawing a line is slow so we won't do it if delta motion is too small
-                # min_delta = self._width // 3
-                # if (
-                #     abs(abs_pos[0] - self._previous_pos[0]) < min_delta
-                #     or abs(abs_pos[0] - self._previous_pos[0]) < min_delta
-                # ):
-                #     self._map.
-                # else:
                 self._map.draw_line(
                     self._previous_pos,
                     abs_pos,
                     self._width,
                     self._material_factory,
-                    'round' if DRAWING_IS_CIRCULAR else 'square',
+                    'none',
                 )
 
                 rect = pygame.Rect(0, 0, self._width, self._width)

@@ -6,6 +6,13 @@
 #include "simulation.hpp"
 #include "materials.hpp"
 #include <optional>
+#include "renderer.hpp"
+
+#define RAISE(x, y) (PyErr_SetString((x), (y)), nullptr)
+extern "C"
+{
+#include "include/pygame-ce/include/pygame.h"
+}
 
 namespace py = pybind11;
 
@@ -40,6 +47,8 @@ SimulationManager _make_simulation_manager(GameMap &map)
 
 PYBIND11_MODULE(libopt, m)
 {
+    import_pygame_surface();
+
     py::class_<DotProxy>(m, "DotProxy")
         .def_property("temp",
                       [](DotProxy self) 
@@ -142,8 +151,8 @@ PYBIND11_MODULE(libopt, m)
                 ends_value = drawing::LineEnds::Square;
             else if(ends == "round")
                 ends_value = drawing::LineEnds::Round;
-            else
-                throw py::value_error(std::format("Invalid line ends '{}'", ends));
+            else // ends == "none" or anything else
+                ends_value = drawing::LineEnds::None;
 
             drawing::line(map, begin, end, width, [&](GameMap &, size_t x, size_t y)
             {
@@ -151,8 +160,8 @@ PYBIND11_MODULE(libopt, m)
                 _assign_dot(map, py::cast<DotProxy>(obj), x, y);
             }, ends_value);
         })
-        .def("dump", [](GameMap &map, py::object) {})
-        .def("load", [](GameMap &map, py::object) {})
+        .def("dump", [](GameMap &, py::object) {})
+        .def("load", [](GameMap &, py::object) {})
     ;
 
     py::class_<SimulationManager>(m, "SimulationManager")
