@@ -20,10 +20,9 @@ from .config import (
     MAX_TPS,
     MAX_FPS,
 )
-from .libopt import GameMap, SimulationManager
+from .libopt import GameMap, SimulationManager, Renderer
 from .materialpalette import MaterialPalette
 from .materials import available_materials
-from .renderer import Renderer
 from .ui import (
     Button,
     HBoxLayout,
@@ -125,13 +124,7 @@ class GameApp:
 
         self._screen = pygame.display.get_surface()
         self._show_loading_screen()
-
         pygame.display.set_icon(get_image('window_icon'))
-
-        # TODO: enhance loading screen
-        self._screen.fill('black')
-        self._screen.blit(get_font().render('Loading...', True, DEBUG_COLOR), (10, 10))
-        pygame.display.flip()
 
         self._is_running = True
         self._is_paused = False
@@ -281,6 +274,8 @@ class GameApp:
         tps_pos = 10, 10
         fps_pos = 10, 10 + FONT_SIZE + 5 if ENABLE_TPS_COUNTER else 10
 
+        clock = pygame.Clock()
+
         while self._is_running:
             for event in pygame.event.get():
                 for handler in self._event_handlers:
@@ -300,14 +295,15 @@ class GameApp:
 
             if ENABLE_TPS_COUNTER:
                 self._screen.blit(
-                    font.render(f"TPS = {self._sim.get_tps():.2f}", True, DEBUG_COLOR), tps_pos
+                    font.render(f"TPS = {clock.get_fps():.2f}", True, DEBUG_COLOR), tps_pos
                 )
             if ENABLE_FPS_COUNTER:
                 self._screen.blit(
-                    font.render(f"FPS = {self._renderer.get_fps():.2f}", True, DEBUG_COLOR), fps_pos
+                    font.render(f"FPS = {clock.get_fps():.2f}", True, DEBUG_COLOR), fps_pos
                 )
 
             pygame.display.flip()
+            clock.tick()
 
     def stop(self) -> None:
         self._is_running = False
