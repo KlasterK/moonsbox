@@ -26,13 +26,13 @@ DRAWING_IS_DESTRUCTIVE = false
 WINDOW_CAPTION = "moonsbox"
 
 # Screen size on start
-SCREEN_SIZE = [560, 560]
+SCREEN_SIZE = [1520, 890]
 
 # Map size
-MAP_SIZE = [100, 100]
+MAP_SIZE = [720, 405]
 
 # Visible area on start (format is [x, y, width, height])
-VISIBLE_AREA = [-20, -20, 140, 140]
+VISIBLE_AREA = [-20, -20, 760, 445]
 
 # Increase to make material icons larger (but blurrier)
 PALETTE_ICON_SIZE = [64, 64]
@@ -72,10 +72,10 @@ FONT_IDENTIFIER = ""
 FONT_SOURCE = "auto"
 
 # If true, framerate is more smooth but locked to monitor's framerate
-ENABLE_VSYNC = true
+ENABLE_VSYNC = false
 
 # If true, FPS counter will be shown
-ENABLE_FPS_COUNTER = false
+ENABLE_FPS_COUNTER = true
 
 # If true, TPS (ticks per second) counter will be shown
 ENABLE_TPS_COUNTER = false
