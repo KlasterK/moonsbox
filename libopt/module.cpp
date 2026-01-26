@@ -179,4 +179,19 @@ PYBIND11_MODULE(libopt, m)
                               py::return_value_policy::reference);
         return d;
     });
+
+    py::class_<Renderer>(m, "Renderer")
+        .def(py::init([](GameMap &map, py::object dst_surf, py::object bg_color)
+        {
+            return Renderer(map, dst_surf, py::int_(bg_color));
+        }))
+        .def("render", [](Renderer &rnd, std::array<int, 4> area) { rnd.render(area); })
+        .def("render", [](Renderer &rnd, std::array<int, 4> area, float) { rnd.render(area); })
+        .def("get_fps", [](Renderer &) { return 0.0; })
+        .def("begin_capturing", [](Renderer &) {})
+        .def("end_capturing", [](Renderer &) {})
+        .def("is_capturing", [](Renderer &) { return false; })
+        .def("take_screenshot", [](Renderer &) {})
+        .def("next_render_mask", [](Renderer &) {})
+    ;
 }

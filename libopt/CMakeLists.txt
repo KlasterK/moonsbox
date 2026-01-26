@@ -24,12 +24,26 @@ pybind11_add_module(libopt
     materialcontroller.hpp
     materials.hpp
     drawing.hpp
+    renderer.hpp renderer.cpp
 )
 target_link_libraries(libopt PUBLIC SDL2::SDL2)
 target_precompile_headers(libopt PRIVATE
+    <SDL2/SDL.h>
     <pybind11/pybind11.h>
     <pybind11/stl.h>
     "drawing.hpp"
+)
+if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")   
+    target_compile_options(libopt PRIVATE -Wall -Wextra)
+endif()
+
+# pygame-ce
+target_include_directories(libopt PRIVATE ${SDL2_INCLUDE_DIRS})
+target_compile_definitions(libopt PRIVATE
+    PG_MAJOR_VERSION=2
+    PG_MINOR_VERSION=5  
+    PG_PATCH_VERSION=7
+    PG_VERSION_TAG=".dev1"
 )
 
 get_filename_component(ABS_DST ${LIBOPT_INSTALL_DIR} ABSOLUTE)

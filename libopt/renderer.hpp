@@ -1,0 +1,29 @@
+#ifndef MOOX_RENDERER_HPP
+#define MOOX_RENDERER_HPP
+
+#include "gamemap.hpp"
+#include <pybind11/pybind11.h>
+
+namespace py = pybind11;
+
+class Renderer
+{
+public:
+    Renderer(GameMap &map, py::object &dst_surface, uint32_t bg_color);
+    Renderer(Renderer &&) = default;
+    Renderer(const Renderer &) = delete;
+    Renderer &operator=(Renderer &&) = default;
+    Renderer &operator=(const Renderer &) = delete;
+    ~Renderer();
+    void render(std::array<int, 4> visible_area);
+
+private:
+    GameMap &m_map;
+    py::object m_dst_pgsurf;
+    struct SDL_Surface *m_scale_buffer{};
+    uint32_t m_bg_color{};
+    std::unique_ptr<uint8_t[]> m_row_buffer{};
+    size_t m_row_buffer_size{};
+};
+
+#endif // MOOX_RENDERER_HPP
