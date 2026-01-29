@@ -89,26 +89,26 @@ void _fall_sand(GameMap &map, size_t x, size_t y)
 
 void _fall_liquid(GameMap &map, size_t x, size_t y)
 {
-    if(_try_swap(map, x, y, x, y-1, MtlTag::IsFlowable))
+    if(_try_swap(map, x, y, x, y-1, MtlTag::IsSparseness))
         return;
 
     if(rand() > RAND_MAX / 2)
     {
-        if(_try_swap(map, x, y, x-1, y, MtlTag::IsFlowable))
+        if(_try_swap(map, x, y, x-1, y, MtlTag::IsSparseness))
             return;
     }
-    else if(_try_swap(map, x, y, x+1, y, MtlTag::IsFlowable))
+    else if(_try_swap(map, x, y, x+1, y, MtlTag::IsSparseness))
         return;
 
     if(rand() > RAND_MAX / 2)
     {
-        if(_try_swap(map, x, y, x-1, y-1, MtlTag::IsFlowable))
+        if(_try_swap(map, x, y, x-1, y-1, MtlTag::IsSparseness))
             return;
     }
-    else if(_try_swap(map, x, y, x+1, y-1, MtlTag::IsFlowable))
+    else if(_try_swap(map, x, y, x+1, y-1, MtlTag::IsSparseness))
         return;
 
-    if(rand() > RAND_MAX / 100)
+    if(rand() < RAND_MAX / 100)
         _diffuse(map, x, y, [](const MaterialTags &v){ return v.test(MtlTag::Liquid); });
 }
 
@@ -136,7 +136,7 @@ void _fall_light_gas(GameMap &map, size_t x, size_t y)
     else if(_try_swap(map, x, y, x+1, y+1, _test_space))
         return;
 
-    if(rand() > RAND_MAX / 100)
+    if(rand() < RAND_MAX / 100)
         _diffuse(map, x, y, _test_gas);
 }
 
@@ -154,7 +154,7 @@ void _fall_heavy_gas(GameMap &map, size_t x, size_t y)
         || _try_swap(map, x, y, x - 1, y - 1, _test_space)
     ) return;
 
-    if(rand() > RAND_MAX / 100)
+    if(rand() < RAND_MAX / 100)
         _diffuse(map, x, y, _test_gas);
 }
 
