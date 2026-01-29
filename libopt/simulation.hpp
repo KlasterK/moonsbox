@@ -15,6 +15,7 @@ public:
     
     bool register_controller(MaterialController &controller, const std::string &name);
     MaterialController *find_controller_by_name(const std::string &name);
+    MaterialController *find_controller_by_id(MaterialID id);
 
     void tick();
     inline bool is_paused() const  { return m_is_paused; }

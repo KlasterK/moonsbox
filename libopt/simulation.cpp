@@ -28,6 +28,16 @@ MaterialController *SimulationManager::find_controller_by_name(const std::string
     return it->second;
 }
 
+MaterialController *SimulationManager::find_controller_by_id(MaterialID id)
+{
+    auto id_as_ptr = reinterpret_cast<MaterialController *>(id);
+    for(auto &[_, ctl] : m_controllers)
+    {
+        if(ctl == id_as_ptr)
+            return ctl;
+    }
+    return nullptr;
+}
 
 float _calculate_delta_temp(const GameMap &map, size_t x, size_t y, size_t nx, size_t ny)
 {
