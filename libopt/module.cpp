@@ -34,14 +34,19 @@ void _assign_dot(GameMap &map, DotProxy proxy, int x, int y)
     map.material_ids(x, y) = proxy.map.material_ids(proxy.x, proxy.y);
 }
 
-Space g_space;
-Sand  g_sand;
+std::tuple<Space, Sand, Plus100K, Minus100K> g_materials_tuple{};
+std::unordered_map<std::string_view, MaterialController &> g_materials_map{
+    {"Space",  std::get<Space>(g_materials_tuple)},
+    {"Sand",   std::get<Sand>(g_materials_tuple)},
+    {"+100 K", std::get<Plus100K>(g_materials_tuple)},
+    {"-100 K", std::get<Minus100K>(g_materials_tuple)},
+};
 
 SimulationManager _make_simulation_manager(GameMap &map)
 {
     SimulationManager sim(map);
-    sim.register_controller(g_space, "Space");
-    sim.register_controller(g_sand, "Sand");
+    for(auto &[name, ctl] : g_materials_map)
+        sim.register_controller(ctl, name);
     return sim;
 }
 
@@ -90,7 +95,7 @@ PYBIND11_MODULE(libopt, m)
         { 
             GameMap map(size[0], size[1]);
             drawing::fill(map, [&](GameMap &map, size_t x, size_t y)
-                               { g_space.init_point(map, x, y); });
+                               { std::get<Space>(g_materials_tuple).init_point(map, x, y); });
             return map;
         }))
         .def_property_readonly("size", [](GameMap &map) 
@@ -181,12 +186,7 @@ PYBIND11_MODULE(libopt, m)
 
     m.def("ls_materials", []
     {
-        py::dict d;
-        d["Space"] = py::cast(static_cast<MaterialController *>(&g_space), 
-                              py::return_value_policy::reference);
-        d["Sand"]  = py::cast(static_cast<MaterialController *>(&g_sand), 
-                              py::return_value_policy::reference);
-        return d;
+        return py::cast(g_materials_map, py::return_value_policy::reference);
     });
 
     py::class_<Renderer>(m, "Renderer")
