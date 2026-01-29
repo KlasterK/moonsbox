@@ -10,19 +10,22 @@ SimulationManager::SimulationManager(GameMap &map)
 {}
 
 
-bool SimulationManager::register_controller(MaterialController &controller, std::string_view name)
+bool SimulationManager::register_controller(MaterialController &controller, const std::string &name)
 {
     auto [_, was_inserted] = m_controllers.insert({name, &controller});
+    if(was_inserted)
+        controller.on_register(*this);
     return was_inserted;
 }
 
 
-MaterialController *SimulationManager::find_controller_by_name(std::string_view name)
+MaterialController *SimulationManager::find_controller_by_name(const std::string &name)
 {
-    if(!m_controllers.contains(name))
+    auto it = m_controllers.find(name);
+    if(it == m_controllers.end())
         return nullptr;
     
-    return m_controllers[name];
+    return it->second;
 }
 
 
@@ -39,27 +42,120 @@ float _calculate_delta_temp(const GameMap &map, size_t x, size_t y, size_t nx, s
 }
 
 
-void _fall_sand(GameMap &map, size_t x, size_t y)
+bool _try_swap(GameMap &map, size_t src_x, size_t src_y, size_t dst_x, size_t dst_y, 
+               bool (*test)(const MaterialTags &))
 {
-    if(y < 1)
+    if(!map.in_bounds(dst_x, dst_y))
+        return false;
+
+    if(test(map.tags(dst_x, dst_y)))
+    {
+        drawing::swap(map, src_x, src_y, dst_x, dst_y);
+        return true;
+    }
+    return false;
+}
+
+
+void _diffuse(GameMap &map, size_t x, size_t y, bool (*test)(const MaterialTags &))
+{
+    auto positions = std::to_array<std::array<size_t, 2>>({
+        {x-1, y}, {x+1, y}, {x, y-1}, {x, y+1}
+    });
+
+    auto nb_pos = positions[rand() % positions.size()];
+    if(!map.in_bounds(nb_pos[0], nb_pos[1]))
         return;
     
-    if(MtlTag::IsFlowable(map.tags(x, y-1)))
-    {
-        drawing::swap(map, x, y, x, y-1);
+    if(test(map.tags(nb_pos[0], nb_pos[1])))
+        drawing::swap(map, x, y, nb_pos[0], nb_pos[1]);
+}
+
+
+void _fall_sand(GameMap &map, size_t x, size_t y)
+{
+    if(_try_swap(map, x, y, x, y-1, MtlTag::IsFlowable))
         return;
-    }
 
     if(rand() > RAND_MAX / 2)
     {
-        if(x > 0 && MtlTag::IsFlowable(map.tags(x-1, y-1)))
-            drawing::swap(map, x, y, x-1, y-1);
+        if(_try_swap(map, x, y, x-1, y-1, MtlTag::IsFlowable))
+            return;
     }
-    else
+    else if(_try_swap(map, x, y, x+1, y-1, MtlTag::IsFlowable))
+        return;
+}
+
+
+void _fall_liquid(GameMap &map, size_t x, size_t y)
+{
+    if(_try_swap(map, x, y, x, y-1, MtlTag::IsFlowable))
+        return;
+
+    if(rand() > RAND_MAX / 2)
     {
-        if(x < (map.width() - 1) && MtlTag::IsFlowable(map.tags(x+1, y-1)))
-            drawing::swap(map, x, y, x+1, y-1);
+        if(_try_swap(map, x, y, x-1, y, MtlTag::IsFlowable))
+            return;
     }
+    else if(_try_swap(map, x, y, x+1, y, MtlTag::IsFlowable))
+        return;
+
+    if(rand() > RAND_MAX / 2)
+    {
+        if(_try_swap(map, x, y, x-1, y-1, MtlTag::IsFlowable))
+            return;
+    }
+    else if(_try_swap(map, x, y, x+1, y-1, MtlTag::IsFlowable))
+        return;
+
+    if(rand() > RAND_MAX / 100)
+        _diffuse(map, x, y, [](const MaterialTags &v){ return v.test(MtlTag::Liquid); });
+}
+
+bool _test_space(const MaterialTags &v) { return v.test(MtlTag::Space); }
+bool _test_gas(const MaterialTags &v) { return v.test(MtlTag::Gas); }
+
+void _fall_light_gas(GameMap &map, size_t x, size_t y)
+{
+    if(_try_swap(map, x, y, x, y+1, _test_space))
+        return;
+
+    if(rand() > RAND_MAX / 2)
+    {
+        if(_try_swap(map, x, y, x-1, y, _test_space))
+            return;
+    }
+    else if(_try_swap(map, x, y, x+1, y, _test_space))
+        return;
+
+    if(rand() > RAND_MAX / 2)
+    {
+        if(_try_swap(map, x, y, x-1, y+1, _test_space))
+            return;
+    }
+    else if(_try_swap(map, x, y, x+1, y+1, _test_space))
+        return;
+
+    if(rand() > RAND_MAX / 100)
+        _diffuse(map, x, y, _test_gas);
+}
+
+
+void _fall_heavy_gas(GameMap &map, size_t x, size_t y)
+{
+    if (
+        _try_swap(map,    x, y, x,     y + 1, _test_space)
+        || _try_swap(map, x, y, x + 1, y,     _test_space)
+        || _try_swap(map, x, y, x - 1, y,     _test_space)
+        || _try_swap(map, x, y, x,     y - 1, _test_space)
+        || _try_swap(map, x, y, x + 1, y + 1, _test_space)
+        || _try_swap(map, x, y, x + 1, y - 1, _test_space)
+        || _try_swap(map, x, y, x - 1, y + 1, _test_space)
+        || _try_swap(map, x, y, x - 1, y - 1, _test_space)
+    ) return;
+
+    if(rand() > RAND_MAX / 100)
+        _diffuse(map, x, y, _test_gas);
 }
 
 
@@ -108,10 +204,10 @@ void SimulationManager::tick()
     static_assert(MaterialPhysicalBehaviorRevision == 20260124ULL);
     std::array phys_procedures{
         +[](GameMap &, size_t, size_t) {}, // Null
-        _fall_sand,                        // Sand
-        +[](GameMap &, size_t, size_t) {}, // Liquid
+        _fall_sand,
+        _fall_liquid,
         +[](GameMap &, size_t, size_t) {}, // LightGas
-        +[](GameMap &, size_t, size_t) {}, // HeavyGas
+        _fall_heavy_gas,
     };
 
     for(size_t y{}; y < h; ++y)
@@ -120,6 +216,15 @@ void SimulationManager::tick()
         {
             auto idx = static_cast<size_t>(m_map.physical_behaviors(x, y));
             phys_procedures[idx](m_map, x, y);
+        }
+    }
+
+    for(size_t y = h - 1; y < h; --y) // when y=0 decreases, it becomes SIZE_MAX and greater than h
+    {
+        for(size_t x{}; x < w; ++x)
+        {
+            if(m_map.physical_behaviors(x, y) == MaterialPhysicalBehavior::LightGas)
+                _fall_light_gas(m_map, x, y);
         }
     }
 }

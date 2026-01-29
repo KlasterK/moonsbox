@@ -6,9 +6,11 @@
 class MaterialController
 {
 public:
-    virtual void init_point(GameMap &map, size_t x, size_t y) = 0;
-    virtual void static_update(GameMap &map) = 0;
-    virtual void dynamic_update(GameMap &map) = 0;
+    virtual ~MaterialController() = default;
+    virtual void init_point(GameMap &map, size_t x, size_t y) {};
+    virtual void static_update(GameMap &map) {};
+    virtual void dynamic_update(GameMap &map) {};
+    virtual void on_register(class SimulationManager &) {};
 
     inline MaterialID material_id()
     {
