@@ -171,9 +171,9 @@ PYBIND11_MODULE(libopt, m)
 
     py::class_<SimulationManager>(m, "SimulationManager")
         .def(py::init([](GameMap &map) { return _make_simulation_manager(map); }))
-        .def("tick", [](SimulationManager &sim) { sim.tick(); })
-        .def("tick", [](SimulationManager &sim, py::object) { sim.tick(); })
-        .def("get_tps", []{ return 0.0; })
+        .def("tick", &SimulationManager::tick)
+        .def("is_paused", &SimulationManager::is_paused)
+        .def("set_paused", &SimulationManager::set_paused)
     ;
 
     py::class_<MaterialController>(m, "MaterialController")
@@ -194,12 +194,7 @@ PYBIND11_MODULE(libopt, m)
         {
             return Renderer(map, dst_surf, py::int_(bg_color));
         }))
-        .def("render", [](Renderer &rnd, std::array<int, 4> area) { rnd.render(area); })
-        .def("render", [](Renderer &rnd, std::array<int, 4> area, float) { rnd.render(area); })
-        .def("get_fps", [](Renderer &) { return 0.0; })
-        .def("begin_capturing", [](Renderer &) {})
-        .def("end_capturing", [](Renderer &) {})
-        .def("is_capturing", [](Renderer &) { return false; })
+        .def("render", &Renderer::render)
         .def("take_screenshot", [](Renderer &) {})
         .def("next_render_mask", [](Renderer &) {})
     ;

@@ -9,21 +9,18 @@ from .config import (
     DELTA_DRAWING_WIDTH,
     DRAWING_IS_CIRCULAR,
     DRAWING_IS_DESTRUCTIVE,
-    ENABLE_VSYNC,
-    SCREEN_SIZE,
     ZOOM_FACTOR,
     PALETTE_MOUSE_SELECTION_REQUIRES_DBL_CLICK,
     ASSETS_ROOT,
     MUSIC_VOLUME,
 )
-from .libopt import GameMap, SimulationManager
+from .libopt import GameMap, SimulationManager, Renderer
 from .materialpalette import MaterialPalette
 from .materials import MaterialTags, available_materials
 from .soundengine import play_sound
 
 if TYPE_CHECKING:
     from .gameapp import Camera, GameApp
-    from .renderer import Renderer
 
 
 class StopHandling(Exception):
@@ -53,9 +50,6 @@ class GameAppEventHandler(BaseEventHandler):
             if e.key == pygame.K_ESCAPE:
                 self._app.stop()
 
-            elif e.key == pygame.K_SPACE:  # `~ key
-                self._app.set_paused(not self._app.is_paused())
-
 
 class SimulationEventHandler(BaseEventHandler):
     def __init__(self, game_map: GameMap, simulation_manager: SimulationManager):
@@ -65,10 +59,16 @@ class SimulationEventHandler(BaseEventHandler):
     def process_event(self, e):
         if e.type == pygame.KEYDOWN:
             if e.key == pygame.K_F5:
+                old_pause_state = self._sim.is_paused()
+                self._sim.set_paused(False)
                 self._sim.tick()
+                self._sim.set_paused(old_pause_state)
 
             elif e.key == pygame.K_F6:
                 self._map.fill(available_materials['Space'])
+
+            elif e.key == pygame.K_SPACE:
+                self._sim.set_paused(not self._sim.is_paused())
 
 
 class CameraEventHandler(BaseEventHandler):
@@ -310,44 +310,17 @@ class MaterialPaletteEventHandler(BaseEventHandler):
                     self._pal.selected_material = self._material_stack.pop()
 
 
-class CapturingEventHandler(BaseEventHandler):
+class RendererEventHandler(BaseEventHandler):
     def __init__(self, rnd: 'Renderer'):
         self._rnd = rnd
 
     def process_event(self, e):
         if e.type == pygame.KEYDOWN:
-            if e.key == pygame.K_F12 and e.mod & pygame.KMOD_ALT:
-                if not self._rnd.is_capturing():
-                    self._rnd.begin_capturing()
-                    play_sound('ui.begin_capturing', 'ui', True)
-                else:
-                    self._rnd.end_capturing()
-                    play_sound('ui.end_capturing', 'ui', True)
-
-            elif e.key == pygame.K_r:
-                self._rnd.is_paused = True
-                if ENABLE_VSYNC:
-                    pygame.display.set_mode(
-                        SCREEN_SIZE,
-                        pygame.RESIZABLE | pygame.DOUBLEBUF | pygame.HWSURFACE | pygame.HWACCEL,
-                        vsync=0,
-                    )
-
-            elif e.key == pygame.K_F10:
+            if e.key == pygame.K_F10:
                 self._rnd.take_screenshot()
 
             elif e.key == pygame.K_v:
                 self._rnd.next_render_mask()
-
-        elif e.type == pygame.KEYUP:
-            if e.key == pygame.K_r:
-                self._rnd.is_paused = False
-                if ENABLE_VSYNC:
-                    pygame.display.set_mode(
-                        SCREEN_SIZE,
-                        pygame.RESIZABLE | pygame.DOUBLEBUF | pygame.HWSURFACE | pygame.HWACCEL,
-                        vsync=1,
-                    )
 
 
 class MusicEventHandler(BaseEventHandler):

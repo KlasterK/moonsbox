@@ -65,6 +65,13 @@ void _fall_sand(GameMap &map, size_t x, size_t y)
 
 void SimulationManager::tick()
 {
+    if(m_is_paused)
+    {
+        for(auto *ctl : std::views::values(m_controllers))
+            ctl->static_update(m_map);
+        return;
+    }
+    
     size_t w = m_map.width();
     size_t h = m_map.height();
     float temp_delta{};

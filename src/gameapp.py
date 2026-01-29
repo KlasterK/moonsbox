@@ -17,8 +17,6 @@ from .config import (
     SCREEN_SIZE,
     VISIBLE_AREA,
     WINDOW_CAPTION,
-    MAX_TPS,
-    MAX_FPS,
 )
 from .libopt import GameMap, SimulationManager, Renderer
 from .materialpalette import MaterialPalette
@@ -37,7 +35,7 @@ from .soundengine import play_sound
 from .util import get_font, get_image
 from .windowevents import (
     CameraEventHandler,
-    CapturingEventHandler,
+    RendererEventHandler,
     DrawingEventHandler,
     GameAppEventHandler,
     MaterialPaletteEventHandler,
@@ -127,7 +125,6 @@ class GameApp:
         pygame.display.set_icon(get_image('window_icon'))
 
         self._is_running = True
-        self._is_paused = False
 
         self._map = GameMap(MAP_SIZE)
         self._sim = SimulationManager(self._map)
@@ -253,7 +250,7 @@ class GameApp:
             SimulationEventHandler(self._map, self._sim),
             CameraEventHandler(self._camera),
             DrawingEventHandler(self._camera, self._map, self._pal),
-            CapturingEventHandler(self._renderer),
+            RendererEventHandler(self._renderer),
             MusicEventHandler('stream.ambient'),
         )
 
@@ -284,11 +281,11 @@ class GameApp:
                     except StopHandling:
                         break
 
-            if not self._is_paused:
-                self._sim.tick(MAX_TPS)
+            self._sim.tick()
 
             self._screen.fill(MAP_OUTER_COLOR)
-            self._renderer.render(self._camera.get_area(), MAX_FPS)
+            self._renderer.render(self._camera.get_area())
+
             self._pal.render()
             if not self._pal.is_visible():
                 self._ui.draw(self._screen)
@@ -310,9 +307,3 @@ class GameApp:
 
     def is_running(self) -> bool:
         return self._is_running
-
-    def set_paused(self, value: bool) -> None:
-        self._is_paused = value
-
-    def is_paused(self) -> bool:
-        return self._is_paused
