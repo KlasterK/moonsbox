@@ -6,6 +6,8 @@
 #include "simulation.hpp"
 #include "materials.hpp"
 #include <optional>
+#include <map>
+#include <tuple>
 #include "renderer.hpp"
 
 #define RAISE(x, y) (PyErr_SetString((x), (y)), nullptr)
@@ -34,19 +36,25 @@ void _assign_dot(GameMap &map, DotProxy proxy, int x, int y)
     map.material_ids(x, y) = proxy.map.material_ids(proxy.x, proxy.y);
 }
 
-std::tuple<Space, Sand, Plus100K, Minus100K> g_materials_tuple{};
-std::unordered_map<std::string_view, MaterialController &> g_materials_map{
-    {"Space",  std::get<Space>(g_materials_tuple)},
-    {"Sand",   std::get<Sand>(g_materials_tuple)},
-    {"+100 K", std::get<Plus100K>(g_materials_tuple)},
-    {"-100 K", std::get<Minus100K>(g_materials_tuple)},
-};
+std::tuple<
+    Space, Sand, Plus100K, Minus100K, Water, Ice, Steam
+> g_materials_tuple{};
 
-SimulationManager _make_simulation_manager(GameMap &map)
+auto g_materials_map = std::to_array<std::pair<std::string, MaterialController &>>({
+    {"Space",   std::get<Space>(g_materials_tuple)},
+    {"Sand",    std::get<Sand>(g_materials_tuple)},
+    {"+100 K",  std::get<Plus100K>(g_materials_tuple)},
+    {"-100 K",  std::get<Minus100K>(g_materials_tuple)},
+    {"Water",   std::get<Water>(g_materials_tuple)},
+    {"Ice",     std::get<Ice>(g_materials_tuple)},
+    {"Steam",   std::get<Steam>(g_materials_tuple)},
+});
+
+std::unique_ptr<SimulationManager> _make_simulation_manager(GameMap &map)
 {
-    SimulationManager sim(map);
+    auto sim = std::make_unique<SimulationManager>(map);
     for(auto &[name, ctl] : g_materials_map)
-        sim.register_controller(ctl, name);
+        sim->register_controller(ctl, name);
     return sim;
 }
 
@@ -169,7 +177,7 @@ PYBIND11_MODULE(libopt, m)
         .def("load", [](GameMap &, py::object) {})
     ;
 
-    py::class_<SimulationManager>(m, "SimulationManager")
+    py::class_<SimulationManager, std::unique_ptr<SimulationManager>>(m, "SimulationManager")
         .def(py::init([](GameMap &map) { return _make_simulation_manager(map); }))
         .def("tick", &SimulationManager::tick)
         .def("is_paused", &SimulationManager::is_paused)
@@ -186,7 +194,7 @@ PYBIND11_MODULE(libopt, m)
 
     m.def("ls_materials", []
     {
-        return py::cast(g_materials_map, py::return_value_policy::reference);
+        return py::dict(py::cast(g_materials_map, py::return_value_policy::reference));
     });
 
     py::class_<Renderer>(m, "Renderer")
