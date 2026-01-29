@@ -31,7 +31,6 @@ target_precompile_headers(libopt PRIVATE
     <SDL2/SDL.h>
     <pybind11/pybind11.h>
     <pybind11/stl.h>
-    "drawing.hpp"
 )
 if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")   
     target_compile_options(libopt PRIVATE -Wall -Wextra)
