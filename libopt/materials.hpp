@@ -3,7 +3,9 @@
 
 #include "gamemap.hpp"
 #include "materialcontroller.hpp"
+#include "simulation.hpp"
 #include <iostream>
+
 
 template<typename T>
 requires std::is_integral_v<T> && std::is_signed_v<T>
@@ -12,6 +14,7 @@ T _map_clamp(T value, T in_min, T in_max, T out_min, T out_max)
     T mapped = (value - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
     return std::clamp(mapped, std::min(out_min, out_max), std::max(out_min, out_max));
 }
+
 
 class Space : public MaterialController
 {
@@ -27,10 +30,8 @@ public:
         map.physical_behaviors(x, y) = MaterialPhysicalBehavior::Null;
         map.material_ids(x, y) = material_id();
     }
-
-    inline void static_update(GameMap &)  override {}
-    inline void dynamic_update(GameMap &) override {}
 };
+
 
 class Sand : public MaterialController
 {
@@ -84,12 +85,30 @@ public:
                         | SandColorB << 8
                         | _map_clamp(temp, 400, 1973, SandColorA, 0xAA)
                     );
+
+                if(temp > 1973)
+                {
+                    if(!aux->is_glass)
+                        aux->is_glass = true;
+                        
+                    map.physical_behaviors(x, y) = MaterialPhysicalBehavior::Liquid;
+                    map.tags(x, y).reset().set(MtlTag::Liquid);
+                }
+                else if(!aux->is_glass)
+                {
+                    map.physical_behaviors(x, y) = MaterialPhysicalBehavior::Sand;
+                    map.tags(x, y).reset().set(MtlTag::Bulk);
+                }
+                else
+                {
+                    map.physical_behaviors(x, y) = MaterialPhysicalBehavior::Null;
+                    map.tags(x, y).reset().set(MtlTag::Solid);
+                }
             }
         }
     }
-
-    inline void dynamic_update(GameMap &) override {}
 };
+
 
 class Plus100K : public MaterialController
 {
@@ -98,10 +117,8 @@ public:
     {
         map.temps(x, y) += 100.f;
     }
-
-    inline void static_update(GameMap &)  override {}
-    inline void dynamic_update(GameMap &) override {}
 };
+
 
 class Minus100K : public MaterialController
 {
@@ -110,9 +127,7 @@ public:
     {
         map.temps(x, y) -= 100.f;
     }
-
-    inline void static_update(GameMap &)  override {}
-    inline void dynamic_update(GameMap &) override {}
 };
+
 
 #endif // MOOX_MATERIALS_HPP
