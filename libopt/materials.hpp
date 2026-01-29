@@ -130,4 +130,175 @@ public:
 };
 
 
+class Water : public MaterialController
+{
+public:
+    inline void init_point(GameMap &map, size_t x, size_t y) override
+    {
+        map.temps(x, y) = 300.f;
+        map.heat_capacities(x, y) = 0.7f;
+        map.thermal_conductivities(x, y) = 0.3f;
+        map.colors(x, y) = 0x009599FF | rand() % (0xBB - 0x95) * 0x10000;
+        map.tags(x, y).reset().set(MtlTag::Liquid);
+        map.auxs(x, y).reset();
+        map.physical_behaviors(x, y) = MaterialPhysicalBehavior::Liquid;
+        map.material_ids(x, y) = material_id();
+    }
+
+    inline void static_update(GameMap &map) override
+    {
+        if(m_sim == nullptr)
+            throw std::logic_error("Water was never registered in SimulationManager");
+
+        if(m_steam == nullptr)
+        {
+            m_steam = m_sim->find_controller_by_name("Steam");
+            if(m_steam == nullptr)
+                throw std::logic_error("Water cannot not find Steam material in SimulationManager");
+        }
+
+        if(m_ice == nullptr)
+        {
+            m_ice = m_sim->find_controller_by_name("Ice");
+            if(m_ice == nullptr)
+                throw std::logic_error("Water cannot not find Ice material in SimulationManager");
+        }
+
+        for(size_t y{}; y < map.height(); ++y)
+        {
+            for(size_t x{}; x < map.width(); ++x)
+            {
+                if(map.material_ids(x, y) != this->material_id())
+                    continue;
+                
+                float temp = map.temps(x, y);
+                if(temp < 270.f)
+                // {
+                    m_ice->init_point(map, x, y);
+                // }
+                else if(temp > 375.f)
+                    m_steam->init_point(map, x, y);
+            }
+        }
+    }
+
+    inline void on_register(SimulationManager &sim) override
+    {
+        m_sim = &sim;
+    }
+
+private:
+    SimulationManager *m_sim = nullptr;
+    MaterialController *m_steam = nullptr, *m_ice = nullptr;
+};
+
+
+class Ice : public MaterialController
+{
+public:
+    inline void init_point(GameMap &map, size_t x, size_t y) override
+    {
+        map.temps(x, y) = 220.f;
+        map.heat_capacities(x, y) = 0.7f;
+        map.thermal_conductivities(x, y) = 0.3f;
+        map.colors(x, y) = 0x66C8E0B7;
+        map.tags(x, y).reset().set(MtlTag::Solid);
+        map.auxs(x, y).reset();
+        map.physical_behaviors(x, y) = MaterialPhysicalBehavior::Null;
+        map.material_ids(x, y) = material_id();
+    }
+
+    inline void static_update(GameMap &map) override
+    {
+        if(m_sim == nullptr)
+            throw std::logic_error("Ice was never registered in SimulationManager");
+
+        if(m_water == nullptr)
+        {
+            m_water = m_sim->find_controller_by_name("Water");
+            if(m_water == nullptr)
+                throw std::logic_error("Ice cannot not find Water material in SimulationManager");
+        }
+
+        for(size_t y{}; y < map.height(); ++y)
+        {
+            for(size_t x{}; x < map.width(); ++x)
+            {
+                if(map.material_ids(x, y) != this->material_id())
+                    continue;
+                
+                if(float temp = map.temps(x, y); temp > 275.f)
+                {
+                    m_water->init_point(map, x, y);
+                    map.temps(x, y) = temp;
+                }
+            }
+        }
+    }
+
+    inline void on_register(SimulationManager &sim) override
+    {
+        m_sim = &sim;
+    }
+
+private:
+    SimulationManager *m_sim = nullptr;
+    MaterialController *m_water = nullptr;
+};
+
+
+class Steam : public MaterialController
+{
+public:
+    inline void init_point(GameMap &map, size_t x, size_t y) override
+    {
+        map.temps(x, y) = 420.f;
+        map.heat_capacities(x, y) = 0.7f;
+        map.thermal_conductivities(x, y) = 0.3f;
+        map.colors(x, y) = 0x28BBC53D;
+        map.tags(x, y).reset().set(MtlTag::Gas);
+        map.auxs(x, y).reset();
+        map.physical_behaviors(x, y) = MaterialPhysicalBehavior::LightGas;
+        map.material_ids(x, y) = material_id();
+    }
+
+    inline void static_update(GameMap &map) override
+    {
+        if(m_sim == nullptr)
+            throw std::logic_error("Steam was never registered in SimulationManager");
+
+        if(m_water == nullptr)
+        {
+            m_water = m_sim->find_controller_by_name("Water");
+            if(m_water == nullptr)
+                throw std::logic_error("Steam cannot not find Water material in SimulationManager");
+        }
+
+        for(size_t y{}; y < map.height(); ++y)
+        {
+            for(size_t x{}; x < map.width(); ++x)
+            {
+                if(map.material_ids(x, y) != this->material_id())
+                    continue;
+                
+                if(float temp = map.temps(x, y); temp < 370.f)
+                {
+                    m_water->init_point(map, x, y);
+                    map.temps(x, y) = temp;
+                }
+            }
+        }
+    }
+
+    inline void on_register(SimulationManager &sim) override
+    {
+        m_sim = &sim;
+    }
+
+private:
+    SimulationManager *m_sim = nullptr;
+    MaterialController *m_water = nullptr;
+};
+
+
 #endif // MOOX_MATERIALS_HPP
