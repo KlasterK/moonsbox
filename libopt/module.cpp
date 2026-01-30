@@ -38,18 +38,20 @@ void _assign_dot(GameMap &map, DotProxy proxy, int x, int y)
 
 std::tuple<
     Space, Sand, Plus100K, Minus100K, Water, Ice, Steam,
-    Tap
+    Tap, UnbreakableWall, BlackHole
 > g_materials_tuple{};
 
 auto g_materials_map = std::to_array<std::pair<std::string, MaterialController &>>({
-    {"Space",   std::get<Space>(g_materials_tuple)},
-    {"Sand",    std::get<Sand>(g_materials_tuple)},
-    {"+100 K",  std::get<Plus100K>(g_materials_tuple)},
-    {"-100 K",  std::get<Minus100K>(g_materials_tuple)},
-    {"Water",   std::get<Water>(g_materials_tuple)},
-    {"Ice",     std::get<Ice>(g_materials_tuple)},
-    {"Steam",   std::get<Steam>(g_materials_tuple)},
-    {"Tap",     std::get<Tap>(g_materials_tuple)},
+    {"Space",               std::get<Space>(g_materials_tuple)},
+    {"Sand",                std::get<Sand>(g_materials_tuple)},
+    {"+100 K",              std::get<Plus100K>(g_materials_tuple)},
+    {"-100 K",              std::get<Minus100K>(g_materials_tuple)},
+    {"Water",               std::get<Water>(g_materials_tuple)},
+    {"Ice",                 std::get<Ice>(g_materials_tuple)},
+    {"Steam",               std::get<Steam>(g_materials_tuple)},
+    {"Tap",                 std::get<Tap>(g_materials_tuple)},
+    {"Unbreakable Wall",    std::get<UnbreakableWall>(g_materials_tuple)},
+    {"Black Hole",          std::get<BlackHole>(g_materials_tuple)},
 });
 
 std::unique_ptr<SimulationManager> _make_simulation_manager(GameMap &map)

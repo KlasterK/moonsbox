@@ -101,8 +101,8 @@ class Camera:
 
     def convert_pos(self, onscreen_pos: tuple[int, int]) -> tuple[int, int]:
         absolute_pos = (
-            math.floor(onscreen_pos[0] * self._scale[0] + self._pos[0] + 0.5),
-            math.floor(onscreen_pos[1] * self._scale[1] + self._pos[1] + 0.5),
+            math.floor(onscreen_pos[0] * self._scale[0] + self._pos[0] - 1),
+            math.floor(onscreen_pos[1] * self._scale[1] + self._pos[1] - 1),
         )
 
         return absolute_pos
