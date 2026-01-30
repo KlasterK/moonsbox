@@ -24,22 +24,6 @@ _Layer<_SDLColorLayerTag>::_Layer(_Layer &&other)
     other.m_surface = nullptr;
 }
 
-_Layer<_SDLColorLayerTag>::_Layer(const _Layer &other)
-{
-    m_width = other.m_width;
-    m_height = other.m_height;
-    m_surface = SDL_ConvertSurface(
-        other.m_surface, 
-        other.m_surface->format, 
-        0 // flags
-    );
-    if(m_surface == nullptr)
-        throw std::runtime_error(std::format(
-            "_Layer<_SDLColorLayerTag>::_Layer: SDL_ConvertSurface failed: {}", 
-            SDL_GetError()
-        ));
-}
-
 _Layer<_SDLColorLayerTag>::~_Layer()
 {
     if(m_surface)

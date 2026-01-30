@@ -135,10 +135,9 @@ void drawing::line(GameMap &map, SignedPoint begin, SignedPoint end,
         int step_y = begin[1] < end[1] ? 1 : -1;
 
         int error{};
-        int radius = std::max(0, width / 2);
 
         // 4-connected line algorithm
-        for(size_t i{}; i < delta_x + delta_y; ++i)
+        for(int i{}; i < delta_x + delta_y; ++i)
         {
             int e1 = error + delta_y;
             int e2 = error - delta_x;
