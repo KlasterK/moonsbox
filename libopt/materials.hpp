@@ -15,14 +15,14 @@ T _map_clamp(T value, T in_min, T in_max, T out_min, T out_max)
     return std::clamp(mapped, std::min(out_min, out_max), std::max(out_min, out_max));
 }
 
-std::array g_von_neumann_deltas{
+constexpr std::array g_von_neumann_deltas{
     std::array{-1, 0}, 
     std::array{1, 0}, 
     std::array{0, -1}, 
     std::array{0, 1},
 };
 
-std::array g_moore_deltas{
+constexpr std::array g_moore_deltas{
     std::array{-1, 0}, 
     std::array{1, 0}, 
     std::array{0, -1}, 
@@ -484,6 +484,82 @@ public:
 private:
     SimulationManager *m_sim = nullptr;
     MaterialController *m_space = nullptr;
+};
+
+
+class Propane : public MaterialController
+{
+public:
+    inline void init_point(GameMap &map, size_t x, size_t y) override
+    {
+        map.temps(x, y) = 300.f;
+        map.heat_capacities(x, y) = 0.3f;
+        map.thermal_conductivities(x, y) = 0.5f;
+        map.colors(x, y) = 0x385DA345;
+        map.tags(x, y).reset().set(MtlTag::Gas);
+        map.auxs(x, y).reset();
+        map.physical_behaviors(x, y) = MaterialPhysicalBehavior::LightGas;
+        map.material_ids(x, y) = material_id();
+    }
+
+    inline void static_update(GameMap &map) override
+    {
+        for(size_t y{}; y < map.height(); ++y)
+        {
+            for(size_t x{}; x < map.width(); ++x)
+            {
+                if(map.material_ids(x, y) != this->material_id())
+                    continue;
+                
+                float temp = map.temps(x, y);
+                auto tags = map.tags(x, y);
+
+                if(temp > 700.f)
+                {
+                    // explode
+                }
+                else if(tags.test(MtlTag::Solid))
+                {
+                    if(temp > 85.f)
+                    {
+                        map.physical_behaviors(x, y) = MaterialPhysicalBehavior::Liquid;
+                        map.tags(x, y).reset().set(MtlTag::Liquid);
+                        map.colors(x, y) = 0x5376B885;
+                    }
+                }
+                else if(tags.test(MtlTag::Liquid))
+                {
+                    if(temp < 80.f)
+                    {
+                        map.physical_behaviors(x, y) = MaterialPhysicalBehavior::Null;
+                        map.tags(x, y).reset().set(MtlTag::Solid);
+                        map.colors(x, y) = 0x6D8EC9B8;
+                    }
+                    else if(temp > 235.f)
+                    {
+                        map.physical_behaviors(x, y) = MaterialPhysicalBehavior::LightGas;
+                        map.tags(x, y).reset().set(MtlTag::Gas);
+                        map.colors(x, y) = 0x385DA345;
+                    }
+                }
+                else if(tags.test(MtlTag::Gas))
+                {
+                    if(temp < 230.f)
+                    {
+                        map.physical_behaviors(x, y) = MaterialPhysicalBehavior::Liquid;
+                        map.tags(x, y).reset().set(MtlTag::Liquid);
+                        map.colors(x, y) = 0x5376B885;
+                    }
+                }
+            }
+        }
+    }
+
+    inline bool is_placeable_on(GameMap &map, size_t x, size_t y) override
+    {
+        auto &tags = map.tags(x, y);
+        return MtlTag::IsSparseness(tags);
+    }
 };
 
 
