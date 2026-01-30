@@ -125,6 +125,12 @@ public:
             }
         }
     }
+
+    inline bool is_placeable_on(GameMap &map, size_t x, size_t y) override
+    {
+        auto &tags = map.tags(x, y);
+        return MtlTag::IsMovable(tags) || tags.test(MtlTag::Space);
+    }
 };
 
 
@@ -191,9 +197,7 @@ public:
                 
                 float temp = map.temps(x, y);
                 if(temp < 270.f)
-                // {
                     m_ice->init_point(map, x, y);
-                // }
                 else if(temp > 375.f)
                     m_steam->init_point(map, x, y);
             }
@@ -203,6 +207,11 @@ public:
     inline void on_register(SimulationManager &sim) override
     {
         m_sim = &sim;
+    }
+
+    inline bool is_placeable_on(GameMap &map, size_t x, size_t y) override
+    {
+        return MtlTag::IsFlowable(map.tags(x, y));
     }
 
 private:
@@ -313,6 +322,11 @@ public:
         m_sim = &sim;
     }
 
+    inline bool is_placeable_on(GameMap &map, size_t x, size_t y) override
+    {
+        return MtlTag::IsSparseness(map.tags(x, y));
+    }
+
 private:
     SimulationManager *m_sim = nullptr;
     MaterialController *m_water = nullptr;
@@ -368,10 +382,11 @@ public:
                 {
                     for(auto [dx, dy] : g_von_neumann_deltas)
                     {
-                        if(!map.in_bounds(x+dx, y+dy) || !map.tags(x+dx, y+dy).test(MtlTag::Space))
+                         if(!map.in_bounds(x+dx, y+dy))
                             continue;
-                        
-                        (**aux).init_point(map, x+dx, y+dy);
+
+                        if(map.tags(x+dx, y+dy).test(MtlTag::Space))
+                            (**aux).init_point(map, x+dx, y+dy);
                     }
                 }
                 else if(rand() % 30 == 0)
@@ -381,10 +396,8 @@ public:
                         if(!map.in_bounds(x+dx, y+dy))
                             continue;
                         
-                        if(map.material_ids(x+dx, y+dy) != material_id())
-                            continue;
-                        
-                        map.auxs(x+dx, y+dy) = *aux;
+                        if(map.material_ids(x+dx, y+dy) == material_id())
+                            map.auxs(x+dx, y+dy) = *aux;
                     }
                 }
             }

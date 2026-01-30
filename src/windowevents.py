@@ -100,13 +100,11 @@ class DrawingEventHandler(BaseEventHandler):
         self._is_hold_drawing_event_sent = False
 
     def _material_factory(self, game_map, x, y):
-        ready_dot = self._pal.selected_material(game_map, x, y)
-
-        if ready_dot.tags & MaterialTags.SPACE:
-            return ready_dot
-        elif not DRAWING_IS_DESTRUCTIVE and not game_map[x, y].tags & MaterialTags.SPACE:
-            return game_map[x, y]
-        return ready_dot
+        if not DRAWING_IS_DESTRUCTIVE and not self._pal.selected_material.is_placeable_on(
+            game_map, x, y
+        ):
+            return
+        self._pal.selected_material(game_map, x, y)
 
     def process_event(self, e):
         if (

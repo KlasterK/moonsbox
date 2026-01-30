@@ -136,27 +136,15 @@ PYBIND11_MODULE(libopt, m)
         })
         .def("fill", [](GameMap &map, py::function material_factory) 
         {
-            drawing::fill(map, [&](GameMap &, size_t x, size_t y)
-            {
-                auto obj = material_factory(map, x, y);
-                _assign_dot(map, py::cast<DotProxy>(obj), x, y);
-            });
+            drawing::fill(map, material_factory);
         })
         .def("draw_rect", [](GameMap &map, drawing::Rect area, py::function material_factory) 
         {
-            drawing::rect(map, area, [&](GameMap &, size_t x, size_t y)
-            {
-                auto obj = material_factory(map, x, y);
-                _assign_dot(map, py::cast<DotProxy>(obj), x, y);
-            });
+            drawing::rect(map, area, material_factory);
         })
         .def("draw_ellipse", [](GameMap &map, drawing::Rect area, py::function material_factory) 
         {
-            drawing::ellipse(map, area, [&](GameMap &, size_t x, size_t y)
-            {
-                auto obj = material_factory(map, x, y);
-                _assign_dot(map, py::cast<DotProxy>(obj), x, y);
-            });
+            drawing::ellipse(map, area, material_factory);
         })
         .def("draw_line", [](GameMap &map, std::array<int, 2> begin, std::array<int, 2> end, 
                              int width, py::function material_factory, std::string_view ends) 
@@ -169,11 +157,7 @@ PYBIND11_MODULE(libopt, m)
             else // ends == "none" or anything else
                 ends_value = drawing::LineEnds::None;
 
-            drawing::line(map, begin, end, width, [&](GameMap &, size_t x, size_t y)
-            {
-                auto obj = material_factory(map, x, y);
-                _assign_dot(map, py::cast<DotProxy>(obj), x, y);
-            }, ends_value);
+            drawing::line(map, begin, end, width, material_factory, ends_value);
         })
         .def("dump", [](GameMap &, py::object) {})
         .def("load", [](GameMap &, py::object) {})
@@ -192,6 +176,7 @@ PYBIND11_MODULE(libopt, m)
             ctl.init_point(map, x, y);
             return DotProxy(map, x, y);
         })
+        .def("is_placeable_on", &MaterialController::is_placeable_on)
     ;
 
     m.def("ls_materials", []

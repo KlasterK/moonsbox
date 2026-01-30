@@ -7,10 +7,11 @@ class MaterialController
 {
 public:
     virtual ~MaterialController() = default;
-    virtual void init_point(GameMap &, size_t, size_t) {};
-    virtual void static_update(GameMap &) {};
-    virtual void dynamic_update(GameMap &) {};
-    virtual void on_register(class SimulationManager &) {};
+    virtual void init_point(GameMap &, size_t, size_t) {}
+    virtual void static_update(GameMap &) {}
+    virtual void dynamic_update(GameMap &) {}
+    virtual void on_register(class SimulationManager &) {}
+    virtual bool is_placeable_on(GameMap &, size_t, size_t) { return true; }
 
     inline MaterialID material_id()
     {
