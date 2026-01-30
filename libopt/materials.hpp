@@ -15,6 +15,24 @@ T _map_clamp(T value, T in_min, T in_max, T out_min, T out_max)
     return std::clamp(mapped, std::min(out_min, out_max), std::max(out_min, out_max));
 }
 
+std::array g_von_neumann_deltas{
+    std::array{-1, 0}, 
+    std::array{1, 0}, 
+    std::array{0, -1}, 
+    std::array{0, 1},
+};
+
+std::array g_moore_deltas{
+    std::array{-1, 0}, 
+    std::array{1, 0}, 
+    std::array{0, -1}, 
+    std::array{0, 1},
+    std::array{-1, 1}, 
+    std::array{1, 1}, 
+    std::array{-1, -1}, 
+    std::array{-1, 1},
+};
+
 
 class Space : public MaterialController
 {
@@ -298,6 +316,88 @@ public:
 private:
     SimulationManager *m_sim = nullptr;
     MaterialController *m_water = nullptr;
+};
+
+
+class Tap : public MaterialController
+{
+public:
+    inline void init_point(GameMap &map, size_t x, size_t y) override
+    {
+        map.temps(x, y) = 300.f;
+        map.heat_capacities(x, y) = 0.2f;
+        map.thermal_conductivities(x, y) = 0.6f;
+        map.colors(x, y) = 0x67A046FF;
+        map.tags(x, y).reset().set(MtlTag::Solid);
+        map.auxs(x, y).reset();
+        map.physical_behaviors(x, y) = MaterialPhysicalBehavior::Null;
+        map.material_ids(x, y) = material_id();
+    }
+
+    inline void dynamic_update(GameMap &map) override
+    {
+        if(m_sim == nullptr)
+            throw std::logic_error("Tap was never registered in SimulationManager");
+
+        for(size_t y{}; y < map.height(); ++y)
+        {
+            for(size_t x{}; x < map.width(); ++x)
+            {
+                if(map.material_ids(x, y) != this->material_id())
+                    continue;
+                
+                auto *aux = std::any_cast<MaterialController *>(&map.auxs(x, y));
+                if(aux == nullptr)
+                {
+                    for(auto [dx, dy] : g_von_neumann_deltas)
+                    {
+                        if(!map.in_bounds(x+dx, y+dy) || !MtlTag::IsMovable(map.tags(x+dx, y+dy)))
+                            continue;
+
+                        auto *ctl = m_sim->find_controller_by_id(map.material_ids(x+dx, y+dy));
+                        if(ctl == nullptr)
+                            continue;
+                        map.auxs(x, y) = ctl;
+                        break;
+                    }
+
+                    continue;
+                }
+
+                if(rand() % 6 == 0)
+                {
+                    for(auto [dx, dy] : g_von_neumann_deltas)
+                    {
+                        if(!map.in_bounds(x+dx, y+dy) || !map.tags(x+dx, y+dy).test(MtlTag::Space))
+                            continue;
+                        
+                        (**aux).init_point(map, x+dx, y+dy);
+                    }
+                }
+                else if(rand() % 30 == 0)
+                {
+                    for(auto [dx, dy] : g_moore_deltas)
+                    {
+                        if(!map.in_bounds(x+dx, y+dy))
+                            continue;
+                        
+                        if(map.material_ids(x+dx, y+dy) != material_id())
+                            continue;
+                        
+                        map.auxs(x+dx, y+dy) = *aux;
+                    }
+                }
+            }
+        }
+    }
+
+    inline void on_register(SimulationManager &sim) override
+    {
+        m_sim = &sim;
+    }
+
+private:
+    SimulationManager *m_sim = nullptr;
 };
 
 
