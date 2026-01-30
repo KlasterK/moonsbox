@@ -504,6 +504,18 @@ public:
 
     inline void static_update(GameMap &map) override
     {
+        if(m_sim == nullptr)
+            throw std::logic_error("Propane was never registered in SimulationManager");
+
+        if(m_fire == nullptr)
+        {
+            m_fire = m_sim->find_controller_by_name("Fire");
+            if(m_fire == nullptr)
+                throw std::logic_error(
+                    "Propane cannot not find Fire material in SimulationManager"
+                );
+        }
+
         for(size_t y{}; y < map.height(); ++y)
         {
             for(size_t x{}; x < map.width(); ++x)
@@ -516,7 +528,17 @@ public:
 
                 if(temp > 700.f)
                 {
-                    // explode
+                    m_fire->init_point(map, x, y);
+                    map.temps(x, y) = 2800.f;
+                    
+                    for(auto [dx, dy] : g_moore_deltas)
+                    {
+                        if(map.material_ids(x+dx, y+dy) != this->material_id())
+                            continue;
+                        
+                        m_fire->init_point(map, x, y);
+                        map.temps(x, y) = 2800.f;
+                    }
                 }
                 else if(tags.test(MtlTag::Solid))
                 {
@@ -560,7 +582,81 @@ public:
         auto &tags = map.tags(x, y);
         return MtlTag::IsSparseness(tags);
     }
+
+    inline void on_register(SimulationManager &sim)
+    {
+        m_sim = &sim;
+    }
+
+private:
+    SimulationManager *m_sim = nullptr;
+    MaterialController *m_fire = nullptr;
 };
 
+
+class Fire : public MaterialController
+{
+private:
+    static constexpr size_t   StepsCount    = 20;
+    static constexpr uint32_t MinTTLColor   = 0xFF000044;
+    static constexpr uint32_t MaxTTLColor   = 0xFFFF00FF;
+    static constexpr uint32_t ColorStep     = (0xFF - 0x00) / StepsCount * 0x10000 
+                                            + (0xFF - 0x44) / StepsCount;
+
+public:
+    inline void init_point(GameMap &map, size_t x, size_t y) override
+    {
+        map.temps(x, y) = 1000.f;
+        map.heat_capacities(x, y) = 1.f;
+        map.thermal_conductivities(x, y) = 1.f;
+        map.colors(x, y) = MaxTTLColor - ColorStep * (rand() % StepsCount);
+        map.tags(x, y).reset().set(MtlTag::Gas);
+        map.auxs(x, y).reset();
+        map.physical_behaviors(x, y) = MaterialPhysicalBehavior::LightGas;
+        map.material_ids(x, y) = material_id();
+    }
+
+    inline void dynamic_update(GameMap &map) override
+    {
+        if(m_sim == nullptr)
+            throw std::logic_error("Fire was never registered in SimulationManager");
+
+        if(m_space == nullptr)
+        {
+            m_space = m_sim->find_controller_by_name("Space");
+            if(m_space == nullptr)
+                throw std::logic_error(
+                    "Fire cannot not find Space material in SimulationManager"
+                );
+        }
+
+        for(size_t y{}; y < map.height(); ++y)
+        {
+            for(size_t x{}; x < map.width(); ++x)
+            {
+                if(map.material_ids(x, y) != this->material_id())
+                    continue;
+                
+                map.colors(x, y) -= ColorStep;
+                if(map.colors(x, y) <= MinTTLColor)
+                    m_space->init_point(map, x, y);
+            }
+        }
+    }
+
+    inline void on_register(SimulationManager &sim)
+    {
+        m_sim = &sim;
+    }
+
+    inline bool is_placeable_on(GameMap &map, size_t x, size_t y)
+    {
+        return map.tags(x, y).test(MtlTag::Space);
+    }
+
+private:
+    SimulationManager *m_sim = nullptr;
+    MaterialController *m_space = nullptr;
+};
 
 #endif // MOOX_MATERIALS_HPP
