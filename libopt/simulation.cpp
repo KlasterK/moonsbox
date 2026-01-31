@@ -1,5 +1,7 @@
 #include "simulation.hpp"
 #include "drawing.hpp"
+#include <cstddef>
+#include <random>
 #include <ranges>
 #include <algorithm>
 
@@ -152,16 +154,25 @@ void _fall_light_gas(GameMap &map, size_t x, size_t y)
 
 void _fall_heavy_gas(GameMap &map, size_t x, size_t y)
 {
-    if (
-        _try_swap(map,    x, y, x,     y + 1, _test_space)
-        || _try_swap(map, x, y, x + 1, y,     _test_space)
-        || _try_swap(map, x, y, x - 1, y,     _test_space)
-        || _try_swap(map, x, y, x,     y - 1, _test_space)
-        || _try_swap(map, x, y, x + 1, y + 1, _test_space)
-        || _try_swap(map, x, y, x + 1, y - 1, _test_space)
-        || _try_swap(map, x, y, x - 1, y + 1, _test_space)
-        || _try_swap(map, x, y, x - 1, y - 1, _test_space)
-    ) return;
+    static auto deltas = std::to_array({
+        std::array{0,  1},
+        std::array{0,  -1},
+        std::array{-1, 1},
+        std::array{-1, 0},
+        std::array{-1, -1},
+        std::array{1,  1},
+        std::array{1,  0},
+        std::array{1,  -1},
+    });    
+    static std::random_device rd;
+    static std::mt19937 gen(rd());
+    std::shuffle(deltas.begin(), deltas.end(), gen);
+
+    for(size_t i{}; i < deltas.size(); ++i)
+    {
+        if(_try_swap(map, x, y, x + deltas[i][0], y + deltas[i][1], _test_space))
+            return;
+    }
 
     if(rand() < RAND_MAX / 100)
         _diffuse(map, x, y, _test_gas);
