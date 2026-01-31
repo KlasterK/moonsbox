@@ -10,7 +10,7 @@ SimulationManager::SimulationManager(GameMap &map)
 {}
 
 
-bool SimulationManager::register_controller(MaterialController &controller, const std::string &name)
+bool SimulationManager::register_controller(MaterialController &controller, std::string_view name)
 {
     auto [_, was_inserted] = m_controllers.insert({name, &controller});
     if(was_inserted)
@@ -19,7 +19,7 @@ bool SimulationManager::register_controller(MaterialController &controller, cons
 }
 
 
-MaterialController *SimulationManager::find_controller_by_name(const std::string &name)
+MaterialController *SimulationManager::find_controller_by_name(std::string_view name)
 {
     auto it = m_controllers.find(name);
     if(it == m_controllers.end())

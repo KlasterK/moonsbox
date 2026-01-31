@@ -41,7 +41,7 @@ std::tuple<
     Tap, UnbreakableWall, BlackHole, Propane, Fire, PureGlass
 > g_materials_tuple{};
 
-auto g_materials_map = std::to_array<std::pair<std::string, MaterialController &>>({
+auto g_materials_map = std::to_array<std::pair<std::string_view, MaterialController &>>({
     {"Space",               std::get<Space>(g_materials_tuple)},
     {"Sand",                std::get<Sand>(g_materials_tuple)},
     {"+100 K",              std::get<Plus100K>(g_materials_tuple)},
