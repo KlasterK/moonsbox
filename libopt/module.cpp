@@ -196,6 +196,16 @@ PYBIND11_MODULE(libopt, m)
         }))
         .def("render", &Renderer::render)
         .def("take_screenshot", [](Renderer &) {})
-        .def("next_render_mask", [](Renderer &) {})
+        .def("next_render_mask", [](Renderer &renderer)
+        {
+            auto v = renderer.get_mode();
+            if(v == Renderer::Mode::Normal)
+                v = Renderer::Mode::Thermal;
+            else if(v == Renderer::Mode::Thermal)
+                v = Renderer::Mode::Normal;
+            else
+                throw std::logic_error("Renderer.next_render_mask: unknown mode value, the binding is outdated!");
+            renderer.set_mode(v);
+        })
     ;
 }

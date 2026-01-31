@@ -20,6 +20,8 @@ Renderer::~Renderer()
 {
     if(m_scale_buffer)
         SDL_FreeSurface(m_scale_buffer);
+    if(m_thermal_buffer)
+        SDL_FreeSurface(m_thermal_buffer);
 }
 
 void Renderer::render(std::array<int, 4> visible_area)
@@ -67,6 +69,41 @@ void Renderer::render(std::array<int, 4> visible_area)
         );
     }
 
+    SDL_Rect src_rect{x_begin, (int)m_map.height() - y_map_end, inner_w, inner_h};
+    SDL_Surface *src_surface = nullptr;
+    if(m_mode == Mode::Normal)
+    {
+        src_surface = &m_map.colors.surface();
+    }
+    else if(m_mode == Mode::Thermal)
+    {
+        src_surface = m_thermal_buffer;
+        // TODO: implement faster algorithm of thermal vision
+        for(size_t y = src_rect.y; y < src_rect.y + src_rect.h; ++y)
+        {
+            for(size_t x = src_rect.x; x < src_rect.x + src_rect.w; ++x)
+            {
+                uint32_t rgba = m_map.colors(x, y);
+                // 50 % of grayscale
+                int32_t darkscale = (
+                    ((rgba >> 24) & 0xFF)
+                    + ((rgba >> 16) & 0xFF)
+                    + ((rgba >> 8) & 0xFF)
+                ) / 6;
+                float temp_factor = m_map.temps(x, y) / 500.f;
+                uint32_t result_color = (
+                    (std::min(0xFF, darkscale + static_cast<int32_t>(temp_factor * 0xBF)) << 24)
+                    | (std::clamp(darkscale + static_cast<int32_t>((temp_factor - 1) * 0x3F),
+                                  0x00, 0xFF) << 16)
+                    | (darkscale << 8)
+                    | 0xFF
+                );
+                auto addr = (uint32_t *)src_surface->pixels;
+                addr[y * src_surface->pitch / 4 + x] = result_color;
+            }
+        }
+    }
+
     // Fill buffer surface with bg color and blit scaled
     uint32_t bg_color_native = SDL_MapRGBA(
         pgSurface_AsSurface(m_dst_pgsurf.ptr())->format,
@@ -77,8 +114,7 @@ void Renderer::render(std::array<int, 4> visible_area)
         0xFF
     );
     SDL_FillRect(m_scale_buffer, nullptr, bg_color_native);
-    SDL_Rect src_rect{x_begin, (int)m_map.height() - y_map_end, inner_w, inner_h};
-    SDL_BlitScaled(&m_map.colors.surface(), &src_rect, m_scale_buffer, nullptr);
+    SDL_BlitScaled(src_surface, &src_rect, m_scale_buffer, nullptr);
 
     // Y-flip buffer surface
     if((int)m_row_buffer_size != blit_w * 4)
@@ -118,4 +154,30 @@ void Renderer::render(std::array<int, 4> visible_area)
             memcpy(dst_row, scale_row, blit_w * 4);
         }
     }
+}
+
+Renderer::Mode Renderer::get_mode()
+{
+    return m_mode;
+}
+
+void Renderer::set_mode(Mode v)
+{
+    if(v == Mode::Normal)
+    {
+        if(m_thermal_buffer)
+        {
+            SDL_FreeSurface(m_thermal_buffer);
+            m_thermal_buffer = nullptr;
+        }
+    }
+    else if(v == Mode::Thermal)
+    {
+        if(m_thermal_buffer == nullptr)
+            m_thermal_buffer = SDL_CreateRGBSurfaceWithFormat(
+                0, m_map.width(), m_map.height(), 32, SDL_PIXELFORMAT_RGBX8888
+            );
+    }
+    else throw std::logic_error("Renderer::set_mode: invalid Mode value");
+    m_mode = v;
 }
