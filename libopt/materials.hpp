@@ -1,10 +1,11 @@
 #ifndef MOOX_MATERIALS_HPP
 #define MOOX_MATERIALS_HPP
 
+#include <algorithm>
 #include "gamemap.hpp"
 #include "materialcontroller.hpp"
+#include "materialdefs.hpp"
 #include "simulation.hpp"
-#include <iostream>
 
 
 template<typename T>
@@ -476,7 +477,7 @@ public:
         }
     }
 
-    inline void on_register(SimulationManager &sim)
+    inline void on_register(SimulationManager &sim) override
     {
         m_sim = &sim;
     }
@@ -583,7 +584,7 @@ public:
         return MtlTag::IsSparseness(tags);
     }
 
-    inline void on_register(SimulationManager &sim)
+    inline void on_register(SimulationManager &sim) override
     {
         m_sim = &sim;
     }
@@ -644,12 +645,12 @@ public:
         }
     }
 
-    inline void on_register(SimulationManager &sim)
+    inline void on_register(SimulationManager &sim) override
     {
         m_sim = &sim;
     }
 
-    inline bool is_placeable_on(GameMap &map, size_t x, size_t y)
+    inline bool is_placeable_on(GameMap &map, size_t x, size_t y) override
     {
         return map.tags(x, y).test(MtlTag::Space);
     }
@@ -705,11 +706,58 @@ public:
             }
         }
     }
+};
+
+
+class Lava : public MaterialController
+{
+public:
+    inline void init_point(GameMap &map, size_t x, size_t y) override
+    {
+        map.temps(x, y) = 1200.f;
+        map.heat_capacities(x, y) = 0.8f;
+        map.thermal_conductivities(x, y) = 0.5f;
+        map.tags(x, y).reset().set(MtlTag::Liquid);
+        map.auxs(x, y).reset();
+        map.physical_behaviors(x, y) = MaterialPhysicalBehavior::Liquid;
+        map.material_ids(x, y) = material_id();
+    }
+
+    inline void static_update(GameMap &map) override
+    {
+        for(size_t y{}; y < map.height(); ++y)
+        {
+            for(size_t x{}; x < map.width(); ++x)
+            {
+                if(map.material_ids(x, y) != this->material_id())
+                    continue;
+                
+                auto temp = static_cast<int32_t>(map.temps(x, y));
+                if(temp > 800)
+                {
+                    map.colors(x, y) = (
+                        0xFF0000FF
+                        | _map_clamp(temp, 800, 1200, 0x00, 0xFF) << 16
+                    );
+                    map.physical_behaviors(x, y) = MaterialPhysicalBehavior::Liquid;
+                    map.tags(x, y).reset().set(MtlTag::Liquid);
+                }
+                else
+                {
+                    map.colors(x, y) = (
+                        0x000000FF
+                        | _map_clamp(temp, 400, 800, 0x44, 0xFF) << 24
+                    );
+                    map.physical_behaviors(x, y) = MaterialPhysicalBehavior::Null;
+                    map.tags(x, y).reset().set(MtlTag::Solid);
+                }
+            }
+        }
+    }
 
     inline bool is_placeable_on(GameMap &map, size_t x, size_t y) override
     {
-        auto &tags = map.tags(x, y);
-        return MtlTag::IsMovable(tags) || tags.test(MtlTag::Space);
+        return MtlTag::IsFlowable(map.tags(x, y));
     }
 };
 
