@@ -39,7 +39,7 @@ void _assign_dot(GameMap &map, DotProxy proxy, int x, int y)
 std::tuple<
     Space, Sand, Plus100K, Minus100K, Water, Ice, Steam,
     Tap, UnbreakableWall, BlackHole, Propane, Fire, PureGlass,
-    Lava, Absorbent
+    Lava, Absorbent, Aerogel, DryIce
 > g_materials_tuple{};
 
 auto g_materials_map = std::to_array<std::pair<std::string_view, MaterialController &>>({
@@ -58,6 +58,8 @@ auto g_materials_map = std::to_array<std::pair<std::string_view, MaterialControl
     {"Glass",               std::get<PureGlass>(g_materials_tuple)},
     {"Lava",                std::get<Lava>(g_materials_tuple)},
     {"Absorbent",           std::get<Absorbent>(g_materials_tuple)},
+    {"Aerogel",             std::get<Aerogel>(g_materials_tuple)},
+    {"Dry Ice",             std::get<DryIce>(g_materials_tuple)},
 });
 
 std::unique_ptr<SimulationManager> _make_simulation_manager(GameMap &map)
