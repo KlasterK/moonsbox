@@ -762,4 +762,81 @@ public:
 };
 
 
+class Absorbent : public MaterialController
+{
+public:
+    inline void init_point(GameMap &map, size_t x, size_t y) override
+    {
+        uint32_t grayscale = 0xDD + rand() % (0xFF - 0xDD);
+        uint32_t yellowness = 0x11 + rand() % (0x33 - 0x11);
+        map.colors(x, y) = grayscale << 24 | grayscale << 16 
+                         | (grayscale - yellowness) << 8 | 0xFF;
+        map.temps(x, y) = 300.f;
+        map.heat_capacities(x, y) = 0.3f;
+        map.thermal_conductivities(x, y) = 0.1f;
+        map.tags(x, y).reset().set(MtlTag::Float);
+        map.auxs(x, y).emplace<int32_t>(rand() % 200);
+        map.physical_behaviors(x, y) = MaterialPhysicalBehavior::Sand;
+        map.material_ids(x, y) = material_id();
+    }
+
+    inline void dynamic_update(GameMap &map) override
+    {
+        if(m_sim == nullptr)
+            throw std::logic_error("Absorbent was never registered in SimulationManager");
+
+        if(m_space == nullptr)
+        {
+            m_space = m_sim->find_controller_by_name("Space");
+            if(m_space == nullptr)
+                throw std::logic_error(
+                    "Absorbent cannot not find Space material in SimulationManager"
+                );
+        }
+
+        for(size_t y{}; y < map.height(); ++y)
+        {
+            for(size_t x{}; x < map.width(); ++x)
+            {
+                if(map.material_ids(x, y) != this->material_id())
+                    continue;
+                
+                auto *ttl = std::any_cast<int32_t>(&map.auxs(x, y));
+                if(ttl == nullptr)
+                    continue;
+
+                for(auto [dx, dy] : g_moore_deltas)
+                {
+                    if(!map.in_bounds(x+dx, y+dy) || !map.tags(x+dx, y+dy).test(MtlTag::Liquid))
+                        continue;
+
+                    m_space->init_point(map, x+dx, y+dy);
+                    *ttl -= 50;
+                }
+
+                if(*ttl < 0)
+                    m_space->init_point(map, x, y);
+                else
+                    *ttl -= 1;
+            }
+        }
+    }
+
+    inline bool is_placeable_on(GameMap &map, size_t x, size_t y) override
+    {
+        auto &tags = map.tags(x, y);
+        return MtlTag::IsMovable(tags) || tags.test(MtlTag::Space);
+    }
+
+    inline void on_register(SimulationManager &sim) override
+    {
+        m_sim = &sim;
+    }
+
+private:
+    SimulationManager *m_sim = nullptr;
+    MaterialController *m_space = nullptr;
+};
+
+
 #endif // MOOX_MATERIALS_HPP

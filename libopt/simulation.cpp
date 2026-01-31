@@ -2,7 +2,6 @@
 #include "drawing.hpp"
 #include <ranges>
 #include <algorithm>
-#include <functional>
 
 
 SimulationManager::SimulationManager(GameMap &map)
