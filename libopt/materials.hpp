@@ -880,14 +880,14 @@ public:
     inline void static_update(GameMap &map) override
     {
         if(m_sim == nullptr)
-            throw std::logic_error("Absorbent was never registered in SimulationManager");
+            throw std::logic_error("DryIce was never registered in SimulationManager");
 
         if(m_space == nullptr)
         {
             m_space = m_sim->find_controller_by_name("Space");
             if(m_space == nullptr)
                 throw std::logic_error(
-                    "Absorbent cannot not find Space material in SimulationManager"
+                    "DryIce cannot not find Space material in SimulationManager"
                 );
         }
 

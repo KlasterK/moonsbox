@@ -1,13 +1,11 @@
 #include <Python.h>
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
+#include <tuple>
 #include "gamemap.hpp"
 #include "drawing.hpp"
 #include "simulation.hpp"
 #include "materials.hpp"
-#include <optional>
-#include <map>
-#include <tuple>
 #include "renderer.hpp"
 
 #define RAISE(x, y) (PyErr_SetString((x), (y)), nullptr)
