@@ -4,6 +4,7 @@
 #include <tuple>
 #include "gamemap.hpp"
 #include "drawing.hpp"
+#include "materialregistry.hpp"
 #include "simulation.hpp"
 #include "materials.hpp"
 #include "renderer.hpp"
@@ -40,7 +41,7 @@ std::tuple<
     Lava, Absorbent, Aerogel, DryIce
 > g_materials_tuple{};
 
-auto g_materials_map = std::to_array<std::pair<std::string_view, MaterialController &>>({
+auto g_materials_table = std::to_array<std::pair<std::string_view, MaterialController &>>({
     {"Space",               std::get<Space>(g_materials_tuple)},
     {"Sand",                std::get<Sand>(g_materials_tuple)},
     {"+100 K",              std::get<Plus100K>(g_materials_tuple)},
@@ -60,17 +61,16 @@ auto g_materials_map = std::to_array<std::pair<std::string_view, MaterialControl
     {"Dry Ice",             std::get<DryIce>(g_materials_tuple)},
 });
 
-std::unique_ptr<SimulationManager> _make_simulation_manager(GameMap &map)
-{
-    auto sim = std::make_unique<SimulationManager>(map);
-    for(auto &[name, ctl] : g_materials_map)
-        sim->register_controller(ctl, name);
-    return sim;
-}
+MaterialRegistry g_material_registry;
 
 PYBIND11_MODULE(libopt, m)
 {
     import_pygame_surface();
+
+    for(auto &[name, ctl] : g_materials_table)
+    {
+        g_material_registry.register_controller(ctl, name);
+    }
 
     py::class_<DotProxy>(m, "DotProxy")
         .def_property("temp",
@@ -171,8 +171,11 @@ PYBIND11_MODULE(libopt, m)
         .def("load", [](GameMap &, py::object) {})
     ;
 
-    py::class_<SimulationManager, std::unique_ptr<SimulationManager>>(m, "SimulationManager")
-        .def(py::init([](GameMap &map) { return _make_simulation_manager(map); }))
+    py::class_<SimulationManager>(m, "SimulationManager")
+        .def(py::init([](GameMap &map)
+        {
+            return SimulationManager(map, g_material_registry);
+        }))
         .def("tick", &SimulationManager::tick)
         .def("is_paused", &SimulationManager::is_paused)
         .def("set_paused", &SimulationManager::set_paused)
@@ -189,7 +192,7 @@ PYBIND11_MODULE(libopt, m)
 
     m.def("ls_materials", []
     {
-        return py::dict(py::cast(g_materials_map, py::return_value_policy::reference));
+        return py::dict(py::cast(g_materials_table, py::return_value_policy::reference));
     });
 
     py::class_<Renderer>(m, "Renderer")

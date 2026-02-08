@@ -25,6 +25,10 @@ pybind11_add_module(libopt
     materials.hpp
     drawing.hpp
     renderer.hpp renderer.cpp
+    materialregistry.hpp materialregistry.cpp
+    savecontainer.hpp
+    minizipsavecontainer.hpp minizipsavecontainer.cpp
+
 )
 target_link_libraries(libopt PUBLIC SDL2::SDL2)
 target_precompile_headers(libopt PRIVATE

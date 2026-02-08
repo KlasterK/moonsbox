@@ -25,11 +25,11 @@ public:
     virtual void init_point(GameMap &, size_t, size_t) {}
     virtual void static_update(GameMap &) {}
     virtual void dynamic_update(GameMap &) {}
-    virtual void on_register(class SimulationManager &) {}
+    virtual void on_register(class MaterialRegistry &) {}
     virtual bool is_placeable_on(GameMap &, size_t, size_t) { return true; }
 
-    virtual std::vector<uint8_t> serialize(GameMap &, size_t, size_t) { return {}; }
-    virtual bool deserialize(GameMap &, size_t, size_t, std::span<const uint8_t>) { return {}; }
+    virtual std::vector<uint8_t> serialize(const GameMap &, size_t, size_t) { return {}; }
+    virtual bool deserialize(GameMap &, size_t, size_t, std::span<const uint8_t>) { return false; }
 
     inline MaterialID material_id()
     {

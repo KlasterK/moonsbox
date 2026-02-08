@@ -6,39 +6,11 @@
 #include <algorithm>
 
 
-SimulationManager::SimulationManager(GameMap &map)
+SimulationManager::SimulationManager(GameMap &map, MaterialRegistry &registry)
     : m_map(map)
+    , m_registry(registry)
 {}
 
-
-bool SimulationManager::register_controller(MaterialController &controller, std::string_view name)
-{
-    auto [_, was_inserted] = m_controllers.insert({name, &controller});
-    if(was_inserted)
-        controller.on_register(*this);
-    return was_inserted;
-}
-
-
-MaterialController *SimulationManager::find_controller_by_name(std::string_view name)
-{
-    auto it = m_controllers.find(name);
-    if(it == m_controllers.end())
-        return nullptr;
-    
-    return it->second;
-}
-
-MaterialController *SimulationManager::find_controller_by_id(MaterialID id)
-{
-    auto id_as_ptr = reinterpret_cast<MaterialController *>(id);
-    for(auto &[_, ctl] : m_controllers)
-    {
-        if(ctl == id_as_ptr)
-            return ctl;
-    }
-    return nullptr;
-}
 
 float _calculate_delta_temp(const GameMap &map, size_t x, size_t y, size_t nx, size_t ny)
 {
@@ -183,7 +155,7 @@ void SimulationManager::tick()
 {
     if(m_is_paused)
     {
-        for(auto *ctl : std::views::values(m_controllers))
+        for(auto *ctl : std::views::values(m_registry))
             ctl->static_update(m_map);
         return;
     }
@@ -214,8 +186,7 @@ void SimulationManager::tick()
         }
     }
 
-    auto values_view = std::views::values(m_controllers);
-    for(auto *ctl : values_view)
+    for(auto *ctl : std::views::values(m_registry))
     {
         ctl->static_update(m_map);
         ctl->dynamic_update(m_map);

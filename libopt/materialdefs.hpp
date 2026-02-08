@@ -2,7 +2,6 @@
 #define MOOX_MATERIALDEFS_HPP
 
 #include <bitset>
-#include <any>
 #include <cstdint>
 
 namespace MtlTag

@@ -15,7 +15,7 @@ public:
     Renderer(GameMap &map, py::object &dst_surface, uint32_t bg_color);
     Renderer(Renderer &&) = default;
     Renderer(const Renderer &) = delete;
-    Renderer &operator=(Renderer &&) = default;
+    Renderer &operator=(Renderer &&) = delete;
     Renderer &operator=(const Renderer &) = delete;
     ~Renderer();
 

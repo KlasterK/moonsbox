@@ -2,8 +2,8 @@
 #define MOOX_DRAWING_HPP
 
 #include "gamemap.hpp"
-#include "materialcontroller.hpp"
 #include <algorithm>
+#include <cmath>
 
 namespace drawing
 {

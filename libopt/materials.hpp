@@ -5,7 +5,7 @@
 #include "gamemap.hpp"
 #include "materialcontroller.hpp"
 #include "materialdefs.hpp"
-#include "simulation.hpp"
+#include "materialregistry.hpp"
 
 
 template<typename T>
@@ -172,19 +172,19 @@ public:
 
     inline void static_update(GameMap &map) override
     {
-        if(m_sim == nullptr)
+        if(m_registry == nullptr)
             throw std::logic_error("Water was never registered in SimulationManager");
 
         if(m_steam == nullptr)
         {
-            m_steam = m_sim->find_controller_by_name("Steam");
+            m_steam = m_registry->find_controller_by_name("Steam");
             if(m_steam == nullptr)
                 throw std::logic_error("Water cannot not find Steam material in SimulationManager");
         }
 
         if(m_ice == nullptr)
         {
-            m_ice = m_sim->find_controller_by_name("Ice");
+            m_ice = m_registry->find_controller_by_name("Ice");
             if(m_ice == nullptr)
                 throw std::logic_error("Water cannot not find Ice material in SimulationManager");
         }
@@ -205,9 +205,9 @@ public:
         }
     }
 
-    inline void on_register(SimulationManager &sim) override
+    inline void on_register(MaterialRegistry &registry) override
     {
-        m_sim = &sim;
+        m_registry = &registry;
     }
 
     inline bool is_placeable_on(GameMap &map, size_t x, size_t y) override
@@ -216,7 +216,7 @@ public:
     }
 
 private:
-    SimulationManager *m_sim = nullptr;
+    MaterialRegistry *m_registry = nullptr;
     MaterialController *m_steam = nullptr, *m_ice = nullptr;
 };
 
@@ -238,12 +238,12 @@ public:
 
     inline void static_update(GameMap &map) override
     {
-        if(m_sim == nullptr)
+        if(m_registry == nullptr)
             throw std::logic_error("Ice was never registered in SimulationManager");
 
         if(m_water == nullptr)
         {
-            m_water = m_sim->find_controller_by_name("Water");
+            m_water = m_registry->find_controller_by_name("Water");
             if(m_water == nullptr)
                 throw std::logic_error("Ice cannot not find Water material in SimulationManager");
         }
@@ -264,13 +264,13 @@ public:
         }
     }
 
-    inline void on_register(SimulationManager &sim) override
+    inline void on_register(MaterialRegistry &registry) override
     {
-        m_sim = &sim;
+        m_registry = &registry;
     }
 
 private:
-    SimulationManager *m_sim = nullptr;
+    MaterialRegistry *m_registry = nullptr;
     MaterialController *m_water = nullptr;
 };
 
@@ -292,12 +292,12 @@ public:
 
     inline void static_update(GameMap &map) override
     {
-        if(m_sim == nullptr)
+        if(m_registry == nullptr)
             throw std::logic_error("Steam was never registered in SimulationManager");
 
         if(m_water == nullptr)
         {
-            m_water = m_sim->find_controller_by_name("Water");
+            m_water = m_registry->find_controller_by_name("Water");
             if(m_water == nullptr)
                 throw std::logic_error("Steam cannot not find Water material in SimulationManager");
         }
@@ -318,9 +318,9 @@ public:
         }
     }
 
-    inline void on_register(SimulationManager &sim) override
+    inline void on_register(MaterialRegistry &registry) override
     {
-        m_sim = &sim;
+        m_registry = &registry;
     }
 
     inline bool is_placeable_on(GameMap &map, size_t x, size_t y) override
@@ -329,7 +329,7 @@ public:
     }
 
 private:
-    SimulationManager *m_sim = nullptr;
+    MaterialRegistry *m_registry = nullptr;
     MaterialController *m_water = nullptr;
 };
 
@@ -351,7 +351,7 @@ public:
 
     inline void dynamic_update(GameMap &map) override
     {
-        if(m_sim == nullptr)
+        if(m_registry == nullptr)
             throw std::logic_error("Tap was never registered in SimulationManager");
 
         for(size_t y{}; y < map.height(); ++y)
@@ -369,7 +369,7 @@ public:
                         if(!map.in_bounds(x+dx, y+dy) || !MtlTag::IsMovable(map.tags(x+dx, y+dy)))
                             continue;
 
-                        auto *ctl = m_sim->find_controller_by_id(map.material_ids(x+dx, y+dy));
+                        auto *ctl = m_registry->find_controller_by_id(map.material_ids(x+dx, y+dy));
                         if(ctl == nullptr)
                             continue;
                         map.auxs(x, y) = ctl;
@@ -405,13 +405,13 @@ public:
         }
     }
 
-    inline void on_register(SimulationManager &sim) override
+    inline void on_register(MaterialRegistry &registry) override
     {
-        m_sim = &sim;
+        m_registry = &registry;
     }
 
 private:
-    SimulationManager *m_sim = nullptr;
+    MaterialRegistry *m_registry = nullptr;
 };
 
 
@@ -449,12 +449,12 @@ public:
 
     inline void dynamic_update(GameMap &map) override
     {
-        if(m_sim == nullptr)
+        if(m_registry == nullptr)
             throw std::logic_error("BlackHole was never registered in SimulationManager");
 
         if(m_space == nullptr)
         {
-            m_space = m_sim->find_controller_by_name("Space");
+            m_space = m_registry->find_controller_by_name("Space");
             if(m_space == nullptr)
                 throw std::logic_error(
                     "BlackHole cannot not find Space material in SimulationManager"
@@ -477,13 +477,13 @@ public:
         }
     }
 
-    inline void on_register(SimulationManager &sim) override
+    inline void on_register(MaterialRegistry &registry) override
     {
-        m_sim = &sim;
+        m_registry = &registry;
     }
 
 private:
-    SimulationManager *m_sim = nullptr;
+    MaterialRegistry *m_registry = nullptr;
     MaterialController *m_space = nullptr;
 };
 
@@ -505,12 +505,12 @@ public:
 
     inline void static_update(GameMap &map) override
     {
-        if(m_sim == nullptr)
+        if(m_registry == nullptr)
             throw std::logic_error("Propane was never registered in SimulationManager");
 
         if(m_fire == nullptr)
         {
-            m_fire = m_sim->find_controller_by_name("Fire");
+            m_fire = m_registry->find_controller_by_name("Fire");
             if(m_fire == nullptr)
                 throw std::logic_error(
                     "Propane cannot not find Fire material in SimulationManager"
@@ -584,13 +584,13 @@ public:
         return MtlTag::IsSparseness(tags);
     }
 
-    inline void on_register(SimulationManager &sim) override
+    inline void on_register(MaterialRegistry &registry) override
     {
-        m_sim = &sim;
+        m_registry = &registry;
     }
 
 private:
-    SimulationManager *m_sim = nullptr;
+    MaterialRegistry *m_registry = nullptr;
     MaterialController *m_fire = nullptr;
 };
 
@@ -619,12 +619,12 @@ public:
 
     inline void dynamic_update(GameMap &map) override
     {
-        if(m_sim == nullptr)
+        if(m_registry == nullptr)
             throw std::logic_error("Fire was never registered in SimulationManager");
 
         if(m_space == nullptr)
         {
-            m_space = m_sim->find_controller_by_name("Space");
+            m_space = m_registry->find_controller_by_name("Space");
             if(m_space == nullptr)
                 throw std::logic_error(
                     "Fire cannot not find Space material in SimulationManager"
@@ -645,9 +645,9 @@ public:
         }
     }
 
-    inline void on_register(SimulationManager &sim) override
+    inline void on_register(MaterialRegistry &registry) override
     {
-        m_sim = &sim;
+        m_registry = &registry;
     }
 
     inline bool is_placeable_on(GameMap &map, size_t x, size_t y) override
@@ -656,7 +656,7 @@ public:
     }
 
 private:
-    SimulationManager *m_sim = nullptr;
+    MaterialRegistry *m_registry = nullptr;
     MaterialController *m_space = nullptr;
 };
 
@@ -782,12 +782,12 @@ public:
 
     inline void dynamic_update(GameMap &map) override
     {
-        if(m_sim == nullptr)
+        if(m_registry == nullptr)
             throw std::logic_error("Absorbent was never registered in SimulationManager");
 
         if(m_space == nullptr)
         {
-            m_space = m_sim->find_controller_by_name("Space");
+            m_space = m_registry->find_controller_by_name("Space");
             if(m_space == nullptr)
                 throw std::logic_error(
                     "Absorbent cannot not find Space material in SimulationManager"
@@ -828,13 +828,13 @@ public:
         return MtlTag::IsMovable(tags) || tags.test(MtlTag::Space);
     }
 
-    inline void on_register(SimulationManager &sim) override
+    inline void on_register(MaterialRegistry &registry) override
     {
-        m_sim = &sim;
+        m_registry = &registry;
     }
 
 private:
-    SimulationManager *m_sim = nullptr;
+    MaterialRegistry *m_registry = nullptr;
     MaterialController *m_space = nullptr;
 };
 
@@ -879,12 +879,12 @@ public:
 
     inline void static_update(GameMap &map) override
     {
-        if(m_sim == nullptr)
+        if(m_registry == nullptr)
             throw std::logic_error("DryIce was never registered in SimulationManager");
 
         if(m_space == nullptr)
         {
-            m_space = m_sim->find_controller_by_name("Space");
+            m_space = m_registry->find_controller_by_name("Space");
             if(m_space == nullptr)
                 throw std::logic_error(
                     "DryIce cannot not find Space material in SimulationManager"
@@ -927,13 +927,13 @@ public:
         return MtlTag::IsMovable(tags) || tags.test(MtlTag::Space);
     }
 
-    inline void on_register(SimulationManager &sim) override
+    inline void on_register(MaterialRegistry &registry) override
     {
-        m_sim = &sim;
+        m_registry = &registry;
     }
 
 private:
-    SimulationManager *m_sim = nullptr;
+    MaterialRegistry *m_registry = nullptr;
     MaterialController *m_space = nullptr;
 };
 
