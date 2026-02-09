@@ -34,7 +34,7 @@ inline std::optional<SaveSubfileName> _check_make_subfile_name(const std::string
     assert(buf.size() >= std::tuple_size_v<SaveSubfileName>);
 
     SaveSubfileName subfile_name;
-    for(int i{}; i < std::tuple_size_v<SaveSubfileName>; ++i)
+    for(size_t i{}; i < std::tuple_size_v<SaveSubfileName>; ++i)
     {
         if(!std::isalpha(buf[i]))
             return std::nullopt;
@@ -47,7 +47,7 @@ inline std::optional<SaveSubfileName> _check_make_subfile_name(const std::string
 inline std::string _make_string_from_subfile_name(SaveSubfileName subfile_name)
 {
     std::string out(1 + std::tuple_size_v<SaveSubfileName>, 0);
-    for(int i{}; i < std::tuple_size_v<SaveSubfileName>; ++i)
+    for(size_t i{}; i < std::tuple_size_v<SaveSubfileName>; ++i)
     {
         out[i] = subfile_name[i];
     }
@@ -133,7 +133,7 @@ std::optional<std::pair<std::vector<uint8_t>, SaveFileSemantics>>
         return std::nullopt;
 
     // Read header to get file semantics
-    SubfileHeader hdr;
+    SubfileHeader hdr{};
     if(sizeof(SubfileHeader) != unzReadCurrentFile(m_file, &hdr, sizeof(SubfileHeader)))
     {
         unzCloseCurrentFile(m_file);
@@ -143,15 +143,16 @@ std::optional<std::pair<std::vector<uint8_t>, SaveFileSemantics>>
     SaveFileSemantics semantics;
     if(hdr.semantics == SubfileHeaderSemanticsValue::ColorLayer)
         semantics = SaveFileSemantics::ColorLayer;
-    if(hdr.semantics == SubfileHeaderSemanticsValue::Meta)
+    else if(hdr.semantics == SubfileHeaderSemanticsValue::Meta)
         semantics = SaveFileSemantics::Meta;
-    if(hdr.semantics == SubfileHeaderSemanticsValue::DataLayer)
+    else if(hdr.semantics == SubfileHeaderSemanticsValue::DataLayer)
         semantics = SaveFileSemantics::DataLayer;
     else
         semantics = SaveFileSemantics::Unknown;
 
     std::vector<uint8_t> data(info.uncompressed_size - sizeof(SubfileHeader));
-    if(data.size() != unzReadCurrentFile(m_file, data.data(), sizeof(SubfileHeader)))
+    int nread = unzReadCurrentFile(m_file, data.data(), data.size());
+    if(nread < 0 || data.size() != static_cast<size_t>(nread))
     {
         unzCloseCurrentFile(m_file);
         return std::nullopt;
@@ -206,6 +207,7 @@ void MinizipWriteSaveContainer::store_file(SaveSubfileName name, std::span<const
         compression = Z_BEST_SPEED;
         break;
     default:
+        break;
     }
 
     if(ZIP_OK != zipOpenNewFileInZip(
@@ -221,12 +223,12 @@ void MinizipWriteSaveContainer::store_file(SaveSubfileName name, std::span<const
             ": zipOpenNewFileInZip returned != ZIP_OK"
         );
 
-    SubfileHeader hdr;
+    SubfileHeader hdr{};
     if(semantics == SaveFileSemantics::ColorLayer)
         hdr.semantics = SubfileHeaderSemanticsValue::ColorLayer;
-    if(semantics == SaveFileSemantics::Meta)
+    else if(semantics == SaveFileSemantics::Meta)
         hdr.semantics = SubfileHeaderSemanticsValue::Meta;
-    if(semantics == SaveFileSemantics::DataLayer)
+    else if(semantics == SaveFileSemantics::DataLayer)
         hdr.semantics = SubfileHeaderSemanticsValue::DataLayer;
     else
         hdr.semantics = SubfileHeaderSemanticsValue::Unknown;
