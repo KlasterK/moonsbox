@@ -3,6 +3,7 @@
 
 #include "materialdefs.hpp"
 #include "gamemap.hpp"
+#include "saving.hpp"
 #include <vector>
 #include <span>
 
@@ -12,12 +13,7 @@ public:
     enum class DeserializationError
     {
         Success, VersionTooOld, VersionTooNew, InvalidDataLength, 
-        InvalidDataFormat, BrokenInvariant
-    };
-
-    struct SaveVersion
-    {
-        int major, minor, patch, revision;
+        InvalidDataFormat, BrokenInvariant, NotImplemented
     };
 
 public:
@@ -28,8 +24,12 @@ public:
     virtual void on_register(class MaterialRegistry &) {}
     virtual bool is_placeable_on(GameMap &, size_t, size_t) { return true; }
 
-    virtual std::vector<uint8_t> serialize(const GameMap &, size_t, size_t) { return {}; }
-    virtual bool deserialize(GameMap &, size_t, size_t, std::span<const uint8_t>) { return false; }
+    virtual std::pair<std::vector<uint8_t>, saving::SaveVersion> 
+        serialize(const GameMap &, size_t, size_t) { return {}; }
+
+    virtual DeserializationError deserialize(
+        GameMap &, size_t, size_t, std::span<const uint8_t>, saving::SaveVersion
+    ) { return DeserializationError::NotImplemented; }
 
     inline MaterialID material_id()
     {
