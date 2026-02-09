@@ -24,6 +24,15 @@ _Layer<_SDLColorLayerTag>::_Layer(_Layer &&other)
     other.m_surface = nullptr;
 }
 
+_Layer<_SDLColorLayerTag> &_Layer<_SDLColorLayerTag>::operator=(_Layer<_SDLColorLayerTag> &&other)
+{
+    m_width = other.m_width;
+    m_height = other.m_height;
+    m_surface = other.m_surface;
+    other.m_surface = nullptr;
+    return *this;
+}
+
 _Layer<_SDLColorLayerTag>::~_Layer()
 {
     if(m_surface)

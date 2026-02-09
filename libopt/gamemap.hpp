@@ -19,7 +19,9 @@ public:
         , m_height(height)
     {}
     _Layer(_Layer &&) = default;
-    _Layer(const _Layer &other) = delete;
+    _Layer(const _Layer &) = delete;
+    _Layer &operator=(_Layer &&) = default;
+    _Layer &operator=(const _Layer &) = default;
     
     T& operator()(size_t x, size_t y)
     {
@@ -49,7 +51,9 @@ class _Layer<_SDLColorLayerTag>
 public:
     _Layer(size_t width, size_t height);
     _Layer(_Layer &&);
-    _Layer(const _Layer &other) = delete;
+    _Layer(const _Layer &) = delete;
+    _Layer &operator=(_Layer &&);
+    _Layer &operator=(const _Layer &) = default;
     ~_Layer();
 
     uint32_t& operator()(size_t x, size_t y);
@@ -69,6 +73,8 @@ public:
     GameMap(size_t width, size_t height);
     GameMap(GameMap &&) = default;
     GameMap(const GameMap &) = delete;
+    GameMap &operator=(GameMap &&) = default;
+    GameMap &operator=(const GameMap &) = delete;
 
     inline size_t width()     const { return m_width; }
     inline size_t height()    const { return m_height; }
