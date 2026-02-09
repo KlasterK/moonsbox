@@ -3,6 +3,7 @@
 #include "materialdefs.hpp"
 #include "savecontainer.hpp"
 #include "materialregistry.hpp"
+#include <cstdint>
 #include <initializer_list>
 #include <stdexcept>
 #include <tuple>
@@ -64,12 +65,13 @@ auto _to_u8_span(std::span<const T> span)
 std::string _write_main_header(WriteSaveContainer &container, const GameMap &map)
 {
     MainHeader main_hdr{
+        .signature={},
         .game_version=CurrentGameVersion,
         .map_width=static_cast<uint32_t>(map.width()),
         .map_height=static_cast<uint32_t>(map.height()),
         .main_header_crc32_zlib=0,
         .creation_unix_timestamp=static_cast<uint32_t>(time(nullptr)),
-        .unused={0}
+        .unused={},
     };
     std::memcpy(&main_hdr, MoonsboxSignature, sizeof(MainHeader::signature));
     main_hdr.main_header_crc32_zlib = crc32(0, reinterpret_cast<uint8_t *>(&main_hdr), 
@@ -82,12 +84,12 @@ std::string _write_main_header(WriteSaveContainer &container, const GameMap &map
     }
     catch(const std::exception &e)
     {
-        return std::move(std::format(
+        return std::format(
             "Failed to write main header to save container"
             "\n\nWriteSaveContainer::store_file thrown an exception."
             "\nwhat(): {}",
             e.what()
-        ));
+        );
     }
     return "";
 }
@@ -132,12 +134,43 @@ std::string _write_basic_layers(WriteSaveContainer &container, const GameMap &ma
     }
     catch(const std::exception &e)
     {
-        return std::move(std::format(
+        return std::format(
             "Failed to write {} layer to save container"
             "\n\nWriteSaveContainer::store_file thrown an exception."
             "\nwhat(): {}",
             current_layer, e.what()
-        ));
+        );
+    }
+    return "";
+}
+
+std::string _write_tags_layer(WriteSaveContainer &container, const GameMap &map)
+{
+    static_assert(MtlTag::N <= sizeof(uint64_t) * 8);
+
+    std::vector<uint8_t> vec;
+    vec.resize(map.flat_size() * sizeof(uint64_t));
+
+    auto *u64_data = reinterpret_cast<uint64_t *>(vec.data());
+    auto tags_span = map.tags.span();
+
+    for(size_t i{}; i < map.flat_size(); ++i)
+    {
+        u64_data[i] = tags_span[i].to_ullong();
+    }
+
+    try
+    {
+        container.store_file(TagsSubfileName, vec, SaveFileSemantics::DataLayer);
+    }
+    catch(const std::exception &e)
+    {
+        return std::format(
+            "Failed to write tags layer to save container"
+            "\n\nWriteSaveContainer::store_file thrown an exception."
+            "\nwhat(): {}",
+            e.what()
+        );
     }
     return "";
 }
@@ -150,6 +183,9 @@ std::expected<void, std::string> saving::serialize(
         return std::unexpected(std::move(str));
 
     if(auto str = _write_basic_layers(container, map); !str.empty())
+        return std::unexpected(std::move(str));
+
+    if(auto str = _write_tags_layer(container, map); !str.empty())
         return std::unexpected(std::move(str));
 
     return {};
@@ -203,6 +239,26 @@ std::string _read_basic_layers(const ReadSaveContainer &container, GameMap &map)
     return {};
 }
 
+std::string _read_tags_layer(const ReadSaveContainer &container, GameMap &map)
+{
+    auto file_opt = container.load_file(TagsSubfileName);
+    if(!file_opt)
+        return "Container subfile of tags layer not found";
+
+    auto [vec, sem] = *file_opt;
+    if(vec.size() != map.flat_size() * sizeof(uint64_t))
+        return "Subfile of tags layer is wrong size";
+
+    const auto *u64_data = reinterpret_cast<const uint64_t *>(vec.data());
+    auto tags_span = map.tags.span();
+
+    for(size_t i{}; i < map.flat_size(); ++i)
+    {
+        tags_span[i] = MaterialTags(u64_data[i]);
+    }
+    return {};
+}
+
 std::expected<GameMap, std::string> saving::deserialize(
     const ReadSaveContainer &container, const MaterialRegistry &registry
 )
@@ -246,6 +302,9 @@ std::expected<GameMap, std::string> saving::deserialize(
             space->init_point(map, x, y);
     
     if(auto str = _read_basic_layers(container, map); !str.empty())
+        return std::unexpected(std::move(str));
+    
+    if(auto str = _read_tags_layer(container, map); !str.empty())
         return std::unexpected(std::move(str));
 
     return map;
