@@ -206,8 +206,7 @@ class GameApp:
                     file_types = {'Moonsbox Save': '*.kk-save', 'All Files': '*.*'}
                     file_name = nativedialog.ask_open_file('Load Save', file_types, 'user')
                     if file_name:
-                        with open(file_name, 'rb') as file:
-                            self._map.load(file)
+                        self._map.load(file_name)
                 except (IOError, ValueError) as e:
                     nativedialog.inform(
                         'Load Error',
@@ -227,8 +226,7 @@ class GameApp:
                         'Save Map', file_types, 'user', '.kk-save'
                     )
                     if file_name:
-                        with open(file_name, 'wb') as file:
-                            self._map.dump(file)
+                        self._map.dump(file_name)
                 except (IOError, ValueError) as e:
                     nativedialog.inform(
                         'Save Error',

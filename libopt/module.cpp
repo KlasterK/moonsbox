@@ -5,6 +5,8 @@
 #include "gamemap.hpp"
 #include "drawing.hpp"
 #include "materialregistry.hpp"
+#include "minizipsavecontainer.hpp"
+#include "saving.hpp"
 #include "simulation.hpp"
 #include "materials.hpp"
 #include "renderer.hpp"
@@ -167,8 +169,29 @@ PYBIND11_MODULE(libopt, m)
 
             drawing::line(map, begin, end, width, material_factory, ends_value);
         })
-        .def("dump", [](GameMap &, py::object) {})
-        .def("load", [](GameMap &, py::object) {})
+        .def("dump", [](GameMap &map, std::string_view file_name) 
+        {
+            MinizipWriteSaveContainer container(file_name);
+            auto result = saving::serialize(container, map, g_material_registry);
+            if(!result.has_value())
+            {
+                throw std::runtime_error(result.error().c_str());
+            }
+            if(!container.close())
+            {
+                throw std::runtime_error("Container cannot close");
+            }
+        })
+        .def("load", [](GameMap &map, std::string_view file_name)
+        {
+            MinizipReadSaveContainer container(file_name);
+            auto result = saving::deserialize(container, g_material_registry);
+            if(!result.has_value())
+            {
+                throw std::runtime_error(result.error().c_str());
+            }
+            map = std::move(*result);
+        })
     ;
 
     py::class_<SimulationManager>(m, "SimulationManager")
