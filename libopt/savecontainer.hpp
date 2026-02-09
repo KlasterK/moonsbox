@@ -28,11 +28,11 @@ public:
 
 public:
     virtual ~ReadSaveContainer() = default;
-    virtual bool has_file(SaveSubfileName) = 0;
-    virtual ContainedFilesStats get_contained_files_stats() = 0;
-    virtual void get_file_names(std::vector<SaveSubfileName> &) = 0;
+    virtual bool has_file(SaveSubfileName) const = 0;
+    virtual ContainedFilesStats get_contained_files_stats() const = 0;
+    virtual void get_file_names(std::vector<SaveSubfileName> &) const = 0;
     virtual std::optional<std::pair<std::vector<uint8_t>, SaveFileSemantics>> 
-        load_file(SaveSubfileName) = 0;
+        load_file(SaveSubfileName) const = 0;
 };
 
 
@@ -40,7 +40,7 @@ class WriteSaveContainer
 {
 public:
     virtual ~WriteSaveContainer() = default;
-    virtual void store_file(SaveSubfileName, std::span<uint8_t>, SaveFileSemantics) = 0;
+    virtual void store_file(SaveSubfileName, std::span<const uint8_t>, SaveFileSemantics) = 0;
     virtual bool close() = 0;
 };
 

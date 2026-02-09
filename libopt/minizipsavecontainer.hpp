@@ -10,11 +10,11 @@ class MinizipReadSaveContainer : public ReadSaveContainer
 {
 public:
     MinizipReadSaveContainer(std::filesystem::path file_path);
-    bool has_file(SaveSubfileName name) override;
-    ContainedFilesStats get_contained_files_stats() override;
-    void get_file_names(std::vector<SaveSubfileName> &out_names) override;
+    bool has_file(SaveSubfileName name) const override;
+    ContainedFilesStats get_contained_files_stats() const override;
+    void get_file_names(std::vector<SaveSubfileName> &out_names) const override;
     std::optional<std::pair<std::vector<uint8_t>, SaveFileSemantics>> 
-        load_file(SaveSubfileName name) override;
+        load_file(SaveSubfileName name) const override;
 
     ~MinizipReadSaveContainer();
     MinizipReadSaveContainer(const MinizipReadSaveContainer &) = delete;
@@ -30,7 +30,8 @@ class MinizipWriteSaveContainer : public WriteSaveContainer
 {
 public:
     MinizipWriteSaveContainer(std::filesystem::path file_path);
-    void store_file(SaveSubfileName name, std::span<uint8_t> data, SaveFileSemantics sem) override;
+    void store_file(SaveSubfileName name, std::span<const uint8_t> data, 
+                    SaveFileSemantics sem) override;
     bool close() override;
 
     ~MinizipWriteSaveContainer();

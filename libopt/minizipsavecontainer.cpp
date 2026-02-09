@@ -74,17 +74,17 @@ MinizipReadSaveContainer::~MinizipReadSaveContainer()
                      ": unzClose returned != UNZ_OK" << std::endl;
 }
 
-bool MinizipReadSaveContainer::has_file(SaveSubfileName name)
+bool MinizipReadSaveContainer::has_file(SaveSubfileName name) const
 {
     return UNZ_OK == unzLocateFile(m_file, _make_string_from_subfile_name(name).c_str(), 1);
 }
 
-ReadSaveContainer::ContainedFilesStats MinizipReadSaveContainer::get_contained_files_stats()
+ReadSaveContainer::ContainedFilesStats MinizipReadSaveContainer::get_contained_files_stats() const
 {
     throw std::logic_error("MinizipReadSaveContainer::get_contained_files_stats: not implemented");
 }
 
-void MinizipReadSaveContainer::get_file_names(std::vector<SaveSubfileName> &out_names)
+void MinizipReadSaveContainer::get_file_names(std::vector<SaveSubfileName> &out_names) const
 {
     size_t added_items_idx_begin = out_names.size();
 
@@ -115,7 +115,7 @@ void MinizipReadSaveContainer::get_file_names(std::vector<SaveSubfileName> &out_
 }
 
 std::optional<std::pair<std::vector<uint8_t>, SaveFileSemantics>>
-    MinizipReadSaveContainer::load_file(SaveSubfileName name)
+    MinizipReadSaveContainer::load_file(SaveSubfileName name) const
 {
     // Find file by name and select it
     if(UNZ_OK != unzLocateFile(m_file, _make_string_from_subfile_name(name).c_str(), 1))
@@ -184,7 +184,7 @@ MinizipWriteSaveContainer::~MinizipWriteSaveContainer()
                      ": zipClose returned != ZIP_OK" << std::endl;
 }
 
-void MinizipWriteSaveContainer::store_file(SaveSubfileName name, std::span<uint8_t> data, 
+void MinizipWriteSaveContainer::store_file(SaveSubfileName name, std::span<const uint8_t> data, 
                                            SaveFileSemantics semantics)
 {
     if(!m_file)
