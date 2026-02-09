@@ -3,17 +3,22 @@
 #include "materialdefs.hpp"
 #include "savecontainer.hpp"
 #include "materialregistry.hpp"
+
+#include <zlib.h>
+#include <SDL2/SDL.h>
+
+#include <algorithm>
 #include <cstdint>
 #include <initializer_list>
+#include <limits>
 #include <stdexcept>
 #include <tuple>
-#include <zlib.h>
 #include <cstddef>
 #include <cstring>
 #include <exception>
-#include <SDL2/SDL.h>
 #include <format>
 #include <optional>
+#include <ranges>
 
 #pragma pack(push, 1)
     struct PackedVersion
@@ -47,6 +52,8 @@ constexpr SaveSubfileName HeatCapacitiesSubfileName{'m', 'o', 'h', 'c'};
 constexpr SaveSubfileName ThermalConductivitiesSubfileName{'m', 'o', 't', 'c'};
 constexpr SaveSubfileName TagsSubfileName{'m', 'o', 't', 'g'};
 constexpr SaveSubfileName PhysicalBehaviorsSubfileName{'m', 'o', 'p', 'b'};
+constexpr SaveSubfileName MaterialIndicesSubfileName{'m', 'o', 'm', 'i'};
+constexpr SaveSubfileName MaterialNamesSubfileName{'m', 'o', 'm', 'n'};
 
 template<typename T>
 auto _to_u8_span(const T *ptr, size_t items_count = 1)
@@ -175,9 +182,96 @@ std::string _write_tags_layer(WriteSaveContainer &container, const GameMap &map)
     return "";
 }
 
-std::expected<void, std::string> saving::serialize(
-    WriteSaveContainer &container, const GameMap &map, const MaterialRegistry &registry
-)
+std::string _write_material_ids_layer(WriteSaveContainer &container, const GameMap &map, 
+                                      const MaterialRegistry &registry)
+{
+    auto ids_span = map.material_ids.span();
+    std::vector<MaterialID> sorted_unique_ids(map.flat_size());
+    std::memcpy(sorted_unique_ids.data(), ids_span.data(), ids_span.size_bytes());
+
+    // Sort and pick unique IDs for faster search
+    std::ranges::sort(sorted_unique_ids.begin(), sorted_unique_ids.end());
+    auto non_unique_range = std::ranges::unique(sorted_unique_ids);
+    sorted_unique_ids.erase(non_unique_range.begin(), sorted_unique_ids.end());
+    sorted_unique_ids.shrink_to_fit();
+
+    assert(sorted_unique_ids.size() <= std::numeric_limits<uint32_t>::max());
+
+    // Write a file with MaterialIDs indices
+    {
+        std::vector<uint8_t> indices_vec(sizeof(uint32_t) * map.flat_size());
+        auto *indices_u32 = reinterpret_cast<uint32_t *>(indices_vec.data());
+
+        MaterialID previous_id = 0;
+        size_t previous_idx = 0;
+
+        for(size_t i{}; i < ids_span.size(); ++i)
+        {
+            if(previous_id != ids_span[i])
+            {
+                previous_id = ids_span[i];
+                previous_idx = std::ranges::lower_bound(sorted_unique_ids, previous_id) 
+                            - sorted_unique_ids.begin();
+            }
+            indices_u32[i] = previous_idx;
+        }
+
+        try 
+        {
+            container.store_file(
+                MaterialIndicesSubfileName, 
+                indices_vec, 
+                SaveFileSemantics::DataLayer
+            );
+        } 
+        catch (const std::exception &e)
+        {
+            return std::format(
+                "Failed to write material IDs indices layer to save container"
+                "\n\nWriteSaveContainer::store_file thrown an exception."
+                "\nwhat(): {}",
+                e.what()
+            );
+        }
+    }
+
+    // Write a file with MaterialIDs names
+    std::vector<uint8_t> names_vec;
+    for(auto &id : sorted_unique_ids)
+    {
+        auto name_opt = registry.get_name_by_id(id);
+        for(char c : name_opt.value())
+        {
+            names_vec.push_back(c);
+        }
+        names_vec.push_back('\0');
+    }
+    names_vec.push_back('\0');
+
+    try 
+    {
+        container.store_file(
+            MaterialNamesSubfileName, 
+            names_vec, 
+            SaveFileSemantics::DataLayer
+        );
+    } 
+    catch (const std::exception &e)
+    {
+        return std::format(
+            "Failed to write material names to save container"
+            "\n\nWriteSaveContainer::store_file thrown an exception."
+            "\nwhat(): {}",
+            e.what()
+        );
+    }
+
+    return {};
+}
+
+std::expected<void, std::string> saving::serialize(WriteSaveContainer &container, 
+                                                   const GameMap &map, 
+                                                   const MaterialRegistry &registry)
 {
     if(auto str = _write_main_header(container, map); !str.empty())
         return std::unexpected(std::move(str));
@@ -186,6 +280,9 @@ std::expected<void, std::string> saving::serialize(
         return std::unexpected(std::move(str));
 
     if(auto str = _write_tags_layer(container, map); !str.empty())
+        return std::unexpected(std::move(str));
+
+    if(auto str = _write_material_ids_layer(container, map, registry); !str.empty())
         return std::unexpected(std::move(str));
 
     return {};
@@ -230,7 +327,7 @@ std::string _read_basic_layers(const ReadSaveContainer &container, GameMap &map)
         if(!file_opt)
             return std::format("Container subfile of {} layer not found", visible_name);
 
-        auto [vec, sem] = *file_opt;
+        auto &[vec, _] = *file_opt;
         if(vec.size() != map.flat_size() * elem_size)
             return std::format("Subfile of {} layer is wrong size", visible_name);
 
@@ -245,7 +342,7 @@ std::string _read_tags_layer(const ReadSaveContainer &container, GameMap &map)
     if(!file_opt)
         return "Container subfile of tags layer not found";
 
-    auto [vec, sem] = *file_opt;
+    auto &[vec, _] = *file_opt;
     if(vec.size() != map.flat_size() * sizeof(uint64_t))
         return "Subfile of tags layer is wrong size";
 
@@ -255,6 +352,72 @@ std::string _read_tags_layer(const ReadSaveContainer &container, GameMap &map)
     for(size_t i{}; i < map.flat_size(); ++i)
     {
         tags_span[i] = MaterialTags(u64_data[i]);
+    }
+    return {};
+}
+
+std::string _read_material_ids_layer(const ReadSaveContainer &container, GameMap &map, 
+                                     const MaterialRegistry &registry) 
+{
+    auto names_file_opt = container.load_file(MaterialNamesSubfileName);
+    if(!names_file_opt)
+        return "Container subfile of material names not found";
+
+    auto &[read_names_vec, _] = *names_file_opt;
+    std::vector<MaterialID> ids_vec;
+
+    // Get MaterialIDs indices from names subfile
+    {
+        auto it = read_names_vec.begin();
+        for(;;)
+        {
+            auto nul_it = std::find(it, read_names_vec.end(), '\0');
+            if(nul_it == read_names_vec.end())
+                break;
+            
+            std::string_view name(
+                reinterpret_cast<char *>(it.base()), 
+                static_cast<size_t>(nul_it - it)
+            );
+            it = nul_it + 1;
+
+            if(name.empty())
+                continue;
+
+            auto *ctl_ptr = registry.find_controller_by_name(name);
+            if(ctl_ptr == nullptr)
+                return std::format(
+                    "Material with name {} not found",
+                    "\n\nMaterial with this name is used in the save,"
+                    " but it's not present in the registry.",
+                    name
+                );
+
+            ids_vec.push_back(ctl_ptr->material_id());
+        }
+    }
+
+    auto file_opt = container.load_file(MaterialIndicesSubfileName);
+    if(!file_opt)
+        return "Container subfile of material IDs indices layer not found";
+
+    auto &[vec, _] = *file_opt;
+    if(vec.size() != map.flat_size() * sizeof(uint32_t))
+        return "Subfile of tags layer is wrong size";
+
+    const auto *u32_indices = reinterpret_cast<const uint32_t *>(vec.data());
+    auto ids_span = map.material_ids.span();
+
+    for(size_t i{}; i < map.flat_size(); ++i)
+    {
+        uint32_t idx = u32_indices[i];
+        if(idx >= ids_vec.size())
+            return std::format(
+                "Material index {} went out of bounds (only {} materials in save)",
+                idx, vec.size()
+            );
+        
+        ids_span[i] = ids_vec[idx];
     }
     return {};
 }
@@ -305,6 +468,9 @@ std::expected<GameMap, std::string> saving::deserialize(
         return std::unexpected(std::move(str));
     
     if(auto str = _read_tags_layer(container, map); !str.empty())
+        return std::unexpected(std::move(str));
+    
+    if(auto str = _read_material_ids_layer(container, map, registry); !str.empty())
         return std::unexpected(std::move(str));
 
     return map;
