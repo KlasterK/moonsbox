@@ -31,7 +31,7 @@ pybind11_add_module(libopt
     materialregistry.hpp materialregistry.cpp
     savecontainer.hpp
     minizipsavecontainer.hpp minizipsavecontainer.cpp
-
+    saving.hpp saving.cpp
 )
 target_link_libraries(libopt PUBLIC SDL2::SDL2 ZLIB::ZLIB minizip)
 target_precompile_headers(libopt PRIVATE
