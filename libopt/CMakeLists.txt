@@ -11,6 +11,9 @@ set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(SDL2 REQUIRED)
+find_package(ZLIB REQUIRED)
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(MINIZIP minizip REQUIRED)
 
 find_package(Python 3.13 COMPONENTS Interpreter Development REQUIRED)
 set(PYBIND11_FINDPYTHON ON)
@@ -30,7 +33,7 @@ pybind11_add_module(libopt
     minizipsavecontainer.hpp minizipsavecontainer.cpp
 
 )
-target_link_libraries(libopt PUBLIC SDL2::SDL2)
+target_link_libraries(libopt PUBLIC SDL2::SDL2 ZLIB::ZLIB minizip)
 target_precompile_headers(libopt PRIVATE
     <SDL2/SDL.h>
     <pybind11/pybind11.h>
