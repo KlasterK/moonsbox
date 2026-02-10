@@ -547,7 +547,7 @@ std::string _read_arbitrary_data_layer(const ReadSaveContainer &container, GameM
             err_msg = "Version too old.";
             break;
         case VersionTooNew:
-            err_msg = "Version too old.";
+            err_msg = "Version too new.";
             break;
         case InvalidDataLength:
             err_msg = "Invalid data length.";
@@ -557,6 +557,9 @@ std::string _read_arbitrary_data_layer(const ReadSaveContainer &container, GameM
             break;
         case BrokenInvariant:
             err_msg = "Broken invariant.";
+            break;
+        case MissingDependency:
+            err_msg = "Missing dependency.";
             break;
         case Success:
         case NotImplemented:

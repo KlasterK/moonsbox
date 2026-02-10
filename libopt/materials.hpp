@@ -2,6 +2,9 @@
 #define MOOX_MATERIALS_HPP
 
 #include <algorithm>
+#include <cstring>
+#include <format>
+#include <stdexcept>
 #include "gamemap.hpp"
 #include "materialcontroller.hpp"
 #include "materialdefs.hpp"
@@ -41,7 +44,7 @@ public:
     inline void init_point(GameMap &map, size_t x, size_t y) override
     {
         map.temps(x, y) = 300.f;
-        map.heat_capacities(x, y) = 0.3f;
+        map.heat_capacities(x, y) = 0.01f;
         map.thermal_conductivities(x, y) = 1.f;
         map.colors(x, y) = 0x00000000;
         map.tags(x, y).reset().set(MtlTag::Space);
@@ -63,6 +66,36 @@ private:
     };
 
 public:
+    inline std::pair<std::vector<uint8_t>, saving::SaveVersion> 
+        serialize(const GameMap &map, size_t x, size_t y) override
+    {
+        auto *aux = std::any_cast<Aux>(&map.auxs(x, y));
+        if(aux == nullptr)
+            return {};
+
+        return {
+            {aux->is_glass, static_cast<uint8_t>(aux->sand_color_g)}, 
+            {2, 0, 0, 0}
+        };
+    }
+
+    inline DeserializationResult deserialize(GameMap &map, size_t x, size_t y, 
+                                            std::span<const uint8_t> data, 
+                                            saving::SaveVersion ver) override
+    { 
+        if(data.size() != 2)
+            return DeserializationResult::InvalidDataLength;
+
+        if(ver.major < 2)
+            return DeserializationResult::VersionTooOld;
+
+        if(ver.major > 2 || ver.minor > 0)
+            return DeserializationResult::VersionTooNew;
+
+        map.auxs(x, y).emplace<Aux>(data[0], data[1]);
+        return DeserializationResult::Success;
+    }
+
     inline void init_point(GameMap &map, size_t x, size_t y) override
     {
         map.temps(x, y) = 300.f;
@@ -337,6 +370,49 @@ private:
 class Tap : public MaterialController
 {
 public:
+    inline std::pair<std::vector<uint8_t>, saving::SaveVersion> 
+        serialize(const GameMap &map, size_t x, size_t y) override
+    {
+        auto *aux = std::any_cast<MaterialController *>(&map.auxs(x, y));
+        if(aux == nullptr)
+            return {};
+
+        auto name_opt = m_registry->get_name_of_controller(*aux);
+        if(!name_opt)
+            throw std::logic_error(std::format(
+                "Tap::serialize: material controller at 0x{:x}"
+                " was never registered in the registry",
+                reinterpret_cast<uintptr_t>(*aux)
+            ));
+
+        std::vector<uint8_t> vec(name_opt->size());
+        std::memcpy(vec.data(), name_opt->data(), name_opt->size());
+
+        return {
+            std::move(vec),
+            {2, 0, 0, 0}
+        };
+    }
+
+    inline DeserializationResult deserialize(GameMap &map, size_t x, size_t y, 
+                                            std::span<const uint8_t> data, 
+                                            saving::SaveVersion ver) override
+    { 
+        if(ver.major < 2)
+            return DeserializationResult::VersionTooOld;
+
+        if(ver.major > 2 || ver.minor > 0)
+            return DeserializationResult::VersionTooNew;
+
+        std::string_view name{reinterpret_cast<const char *>(data.data()), data.size()};
+        auto *ctl = m_registry->find_controller_by_name(name);
+        if(ctl == nullptr)
+            return DeserializationResult::MissingDependency;
+        
+        map.auxs(x, y) = ctl;
+        return DeserializationResult::Success;
+    }
+
     inline void init_point(GameMap &map, size_t x, size_t y) override
     {
         map.temps(x, y) = 300.f;
@@ -762,6 +838,36 @@ public:
 class Absorbent : public MaterialController
 {
 public:
+    inline std::pair<std::vector<uint8_t>, saving::SaveVersion> 
+        serialize(const GameMap &map, size_t x, size_t y) override
+    {
+        auto *aux = std::any_cast<int32_t>(&map.auxs(x, y));
+        if(aux == nullptr)
+            return {};
+
+        return {
+            {static_cast<uint8_t>(*aux)},
+            {2, 0, 0, 0}
+        };
+    }
+
+    inline DeserializationResult deserialize(GameMap &map, size_t x, size_t y, 
+                                            std::span<const uint8_t> data, 
+                                            saving::SaveVersion ver) override
+    { 
+        if(data.size() != 1)
+            return DeserializationResult::InvalidDataLength;
+
+        if(ver.major < 2)
+            return DeserializationResult::VersionTooOld;
+
+        if(ver.major > 2 || ver.minor > 0)
+            return DeserializationResult::VersionTooNew;
+
+        map.auxs(x, y).emplace<int32_t>(data[0]);
+        return DeserializationResult::Success;
+    }
+
     inline void init_point(GameMap &map, size_t x, size_t y) override
     {
         uint32_t grayscale = 0xDD + rand() % (0xFF - 0xDD);
