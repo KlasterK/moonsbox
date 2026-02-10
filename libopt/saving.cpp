@@ -20,6 +20,9 @@
 #include <format>
 #include <optional>
 #include <ranges>
+#include <bit>
+
+static_assert(std::endian::native == std::endian::little);
 
 #pragma pack(push, 1)
     struct PackedVersion
@@ -39,6 +42,13 @@
         uint8_t unused[24];
     };
     static_assert(sizeof(MainHeader) == 64);
+
+    struct ArbitraryDataHeader
+    {
+        uint32_t skipped_dots_count;
+        uint32_t data_size;
+        PackedVersion version;
+    };
 #pragma pack(pop)
 
 constexpr uint8_t MoonsboxSignature[16] = {'m', 'o', 'o', 'n', 's', 'b', 'o', 'x',
@@ -55,6 +65,7 @@ constexpr SaveSubfileName TagsSubfileName{'m', 'o', 't', 'g'};
 constexpr SaveSubfileName PhysicalBehaviorsSubfileName{'m', 'o', 'p', 'b'};
 constexpr SaveSubfileName MaterialIndicesSubfileName{'m', 'o', 'm', 'i'};
 constexpr SaveSubfileName MaterialNamesSubfileName{'m', 'o', 'm', 'n'};
+constexpr SaveSubfileName ArbitraryDataSubfileName{'m', 'o', 'a', 'd'};
 
 template<typename T>
 auto _to_u8_span(const T *ptr, size_t items_count = 1)
@@ -270,6 +281,66 @@ std::string _write_material_ctls_layer(WriteSaveContainer &container, const Game
     return {};
 }
 
+std::string _write_arbitrary_data_layer(WriteSaveContainer &container, const GameMap &map)
+{
+    uint32_t no_data_dots_count{};
+    std::vector<uint8_t> file_data;
+
+    for(size_t y{}; y < map.height(); ++y)
+    {
+        for(size_t x{}; x < map.width(); ++x)
+        {
+            auto *ctl = map.material_ctls(x, y);
+
+            auto [dot_data_vec, dot_data_version] = ctl->serialize(map, x, y);
+            if(dot_data_vec.empty())
+            {
+                ++no_data_dots_count;
+                continue;
+            }
+
+            size_t block_begin_idx = file_data.size();
+            size_t hdr_data_size = sizeof(ArbitraryDataHeader) + dot_data_vec.size();
+            file_data.resize(file_data.size() + hdr_data_size);
+
+            auto *hdr = reinterpret_cast<ArbitraryDataHeader *>(&file_data[block_begin_idx]);
+            *hdr = {
+                .skipped_dots_count=no_data_dots_count,
+                .data_size=static_cast<uint32_t>(dot_data_vec.size()),
+                .version={
+                    .major=static_cast<uint8_t>(dot_data_version.major),
+                    .minor=static_cast<uint8_t>(dot_data_version.minor),
+                    .patch=static_cast<uint8_t>(dot_data_version.patch),
+                    .revision=static_cast<uint8_t>(dot_data_version.revision),
+                },
+            };
+
+            std::memcpy(hdr + 1, dot_data_vec.data(), dot_data_vec.size());
+            no_data_dots_count = 0;
+        }
+    }
+
+    try 
+    {
+        container.store_file(
+            ArbitraryDataSubfileName, 
+            file_data, 
+            SaveFileSemantics::DataLayer
+        );
+    } 
+    catch (const std::exception &e)
+    {
+        return std::format(
+            "Failed to write arbitrary data layer to save container"
+            "\n\nWriteSaveContainer::store_file thrown an exception."
+            "\nwhat(): {}",
+            e.what()
+        );
+    }
+
+    return {};
+}
+
 std::expected<void, std::string> saving::serialize(WriteSaveContainer &container, 
                                                    const GameMap &map, 
                                                    const MaterialRegistry &registry)
@@ -284,6 +355,9 @@ std::expected<void, std::string> saving::serialize(WriteSaveContainer &container
         return std::unexpected(std::move(str));
 
     if(auto str = _write_material_ctls_layer(container, map, registry); !str.empty())
+        return std::unexpected(std::move(str));
+
+    if(auto str = _write_arbitrary_data_layer(container, map); !str.empty())
         return std::unexpected(std::move(str));
 
     return {};
@@ -423,6 +497,87 @@ std::string _read_material_ctls_layer(const ReadSaveContainer &container, GameMa
     return {};
 }
 
+std::string _read_arbitrary_data_layer(const ReadSaveContainer &container, GameMap &map, 
+                                       const MaterialRegistry &registry)
+{
+    auto file_opt = container.load_file(ArbitraryDataSubfileName);
+    if(!file_opt)
+        return "Container subfile of arbitrary data layer not found";
+
+    const auto &[vec, _] = *file_opt;
+    size_t map_idx{};
+
+    for(auto block_begin_it = vec.begin();;)
+    {
+        const auto *hdr = reinterpret_cast<const ArbitraryDataHeader *>(block_begin_it.base());
+
+        map_idx += hdr->skipped_dots_count;
+        if(map_idx >= map.flat_size())
+            return "Failed to parse arbitrary data layer"
+                   "\n\nSkipped dots count went out of map bounds";
+        
+        if(hdr->data_size > vec.end() - block_begin_it - sizeof(ArbitraryDataHeader))
+            return "Failed to parse arbitrary data layer"
+                   "\n\nDot data size went out of file bounds";
+
+        const auto *data_ptr_u8 = reinterpret_cast<const uint8_t *>(hdr + 1);
+
+        auto *ctl = reinterpret_cast<MaterialController *>(map.material_ctls.span()[map_idx]);
+
+        saving::SaveVersion ver{
+            .major=hdr->version.major,
+            .minor=hdr->version.minor,
+            .patch=hdr->version.patch,
+            .revision=hdr->version.revision,
+        };
+
+        auto err = ctl->deserialize(
+            map, 
+            map_idx % map.width(), 
+            map_idx / map.width(), 
+            {data_ptr_u8, hdr->data_size}, 
+            ver
+        );
+
+        std::string_view err_msg;
+        switch(err)
+        {
+            using enum MaterialController::DeserializationError;
+        case VersionTooOld:
+            err_msg = "Version too old.";
+            break;
+        case VersionTooNew:
+            err_msg = "Version too old.";
+            break;
+        case InvalidDataLength:
+            err_msg = "Invalid data length.";
+            break;
+        case InvalidDataFormat:
+            err_msg = "Invalid data format.";
+            break;
+        case BrokenInvariant:
+            err_msg = "Broken invariant.";
+            break;
+        case Success:
+        case NotImplemented:
+            break;
+        }
+
+        if(!err_msg.empty())
+            return std::format(
+                "{} material refused to deserialize data\n\n{}",
+                registry.get_name_of_controller(ctl).value(), err_msg
+            );
+
+        block_begin_it += sizeof(ArbitraryDataHeader) + hdr->data_size;
+        if(static_cast<size_t>(vec.end() - block_begin_it) < sizeof(ArbitraryDataHeader))
+            break;
+        ++map_idx;
+    }
+
+    return {};
+}
+
 std::expected<GameMap, std::string> saving::deserialize(const ReadSaveContainer &container, 
                                                         const MaterialRegistry &registry)
 {
@@ -471,6 +626,9 @@ std::expected<GameMap, std::string> saving::deserialize(const ReadSaveContainer 
         return std::unexpected(std::move(str));
     
     if(auto str = _read_material_ctls_layer(container, map, registry); !str.empty())
+        return std::unexpected(std::move(str));
+    
+    if(auto str = _read_arbitrary_data_layer(container, map, registry); !str.empty())
         return std::unexpected(std::move(str));
 
     return map;
