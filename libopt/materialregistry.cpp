@@ -27,20 +27,18 @@ MaterialController *MaterialRegistry::find_controller_by_name(std::string_view n
     return it->second;
 }
 
-MaterialController *MaterialRegistry::find_controller_by_id(MaterialID id) const
+std::optional<std::string_view> 
+    MaterialRegistry::get_name_of_controller(const MaterialController *ctl) const
 {
-    auto it = m_ctl_name_map.find(reinterpret_cast<MaterialController *>(id));
-    if(it == m_ctl_name_map.end())
-        return nullptr;
-    
-    return it->first;
-}
-
-std::optional<std::string_view> MaterialRegistry::get_name_by_id(MaterialID id) const
-{
-    auto it = m_ctl_name_map.find(reinterpret_cast<MaterialController *>(id));
+    // We only store pointers so const cast is not a problem
+    auto it = m_ctl_name_map.find(const_cast<MaterialController *>(ctl));
     if(it == m_ctl_name_map.end())
         return std::nullopt;
     
     return it->second;
+}
+
+bool MaterialRegistry::is_controller_registered(const MaterialController *ctl) const
+{
+    return m_ctl_name_map.contains(const_cast<MaterialController *>(ctl));
 }

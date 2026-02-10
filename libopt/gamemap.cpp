@@ -81,7 +81,7 @@ GameMap::GameMap(size_t width, size_t height)
     , tags(width, height)
     , physical_behaviors(width, height)
     , auxs(width, height)
-    , material_ids(width, height)
+    , material_ctls(width, height)
     , m_width(width)
     , m_height(height)
 {}

@@ -2,7 +2,6 @@
 #define MOOX_MATERIALDEFS_HPP
 
 #include <bitset>
-#include <cstdint>
 
 namespace MtlTag
 {
@@ -21,8 +20,6 @@ enum class MaterialPhysicalBehavior
     Null, Sand, Liquid, LightGas, HeavyGas
 };
 constexpr auto MaterialPhysicalBehaviorRevision = 20260124ULL;
-
-using MaterialID = uintptr_t;
 
 namespace MtlTag
 {

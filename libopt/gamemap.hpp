@@ -92,7 +92,7 @@ public:
     _Layer<MaterialTags> tags;
     _Layer<MaterialPhysicalBehavior> physical_behaviors;
     _Layer<std::any> auxs;
-    _Layer<MaterialID> material_ids;
+    _Layer<class MaterialController *> material_ctls;
 
 private:
     size_t m_width{}, m_height{};

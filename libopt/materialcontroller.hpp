@@ -1,7 +1,6 @@
 #ifndef MOOX_MATERIALCONTROLLER_HPP
 #define MOOX_MATERIALCONTROLLER_HPP
 
-#include "materialdefs.hpp"
 #include "gamemap.hpp"
 #include "saving.hpp"
 #include <vector>
@@ -30,11 +29,6 @@ public:
     virtual DeserializationError deserialize(
         GameMap &, size_t, size_t, std::span<const uint8_t>, saving::SaveVersion
     ) { return DeserializationError::NotImplemented; }
-
-    inline MaterialID material_id()
-    {
-        return reinterpret_cast<MaterialID>(this);
-    }
 };
 
 #endif // MOOX_MATERIALCONTROLLER_HPP

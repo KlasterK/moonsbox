@@ -34,7 +34,7 @@ void _assign_dot(GameMap &map, DotProxy proxy, int x, int y)
     map.tags(x, y) = proxy.map.tags(proxy.x, proxy.y);
     map.physical_behaviors(x, y) = proxy.map.physical_behaviors(proxy.x, proxy.y);
     map.auxs(x, y) = proxy.map.auxs(proxy.x, proxy.y);
-    map.material_ids(x, y) = proxy.map.material_ids(proxy.x, proxy.y);
+    map.material_ctls(x, y) = proxy.map.material_ctls(proxy.x, proxy.y);
 }
 
 std::tuple<

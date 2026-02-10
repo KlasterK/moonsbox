@@ -47,7 +47,7 @@ public:
         map.tags(x, y).reset().set(MtlTag::Space);
         map.auxs(x, y).reset();
         map.physical_behaviors(x, y) = MaterialPhysicalBehavior::Null;
-        map.material_ids(x, y) = material_id();
+        map.material_ctls(x, y) = this;
     }
 };
 
@@ -71,7 +71,7 @@ public:
         map.tags(x, y).reset().set(MtlTag::Bulk);
         map.auxs(x, y).emplace<Aux>(false, 0x99 + rand() % (0xFF - 0x99));
         map.physical_behaviors(x, y) = MaterialPhysicalBehavior::Sand;
-        map.material_ids(x, y) = material_id();
+        map.material_ctls(x, y) = this;
     }
 
     inline void static_update(GameMap &map) override
@@ -80,7 +80,7 @@ public:
         {
             for(size_t x{}; x < map.width(); ++x)
             {
-                if(map.material_ids(x, y) != this->material_id())
+                if(map.material_ctls(x, y) != this)
                     continue;
                 
                 auto *aux = std::any_cast<Aux>(&map.auxs(x, y));
@@ -167,7 +167,7 @@ public:
         map.tags(x, y).reset().set(MtlTag::Liquid);
         map.auxs(x, y).reset();
         map.physical_behaviors(x, y) = MaterialPhysicalBehavior::Liquid;
-        map.material_ids(x, y) = material_id();
+        map.material_ctls(x, y) = this;
     }
 
     inline void static_update(GameMap &map) override
@@ -193,7 +193,7 @@ public:
         {
             for(size_t x{}; x < map.width(); ++x)
             {
-                if(map.material_ids(x, y) != this->material_id())
+                if(map.material_ctls(x, y) != this)
                     continue;
                 
                 float temp = map.temps(x, y);
@@ -233,7 +233,7 @@ public:
         map.tags(x, y).reset().set(MtlTag::Solid);
         map.auxs(x, y).reset();
         map.physical_behaviors(x, y) = MaterialPhysicalBehavior::Null;
-        map.material_ids(x, y) = material_id();
+        map.material_ctls(x, y) = this;
     }
 
     inline void static_update(GameMap &map) override
@@ -252,7 +252,7 @@ public:
         {
             for(size_t x{}; x < map.width(); ++x)
             {
-                if(map.material_ids(x, y) != this->material_id())
+                if(map.material_ctls(x, y) != this)
                     continue;
                 
                 if(float temp = map.temps(x, y); temp > 275.f)
@@ -287,7 +287,7 @@ public:
         map.tags(x, y).reset().set(MtlTag::Gas);
         map.auxs(x, y).reset();
         map.physical_behaviors(x, y) = MaterialPhysicalBehavior::LightGas;
-        map.material_ids(x, y) = material_id();
+        map.material_ctls(x, y) = this;
     }
 
     inline void static_update(GameMap &map) override
@@ -306,7 +306,7 @@ public:
         {
             for(size_t x{}; x < map.width(); ++x)
             {
-                if(map.material_ids(x, y) != this->material_id())
+                if(map.material_ctls(x, y) != this)
                     continue;
                 
                 if(float temp = map.temps(x, y); temp < 370.f)
@@ -346,7 +346,7 @@ public:
         map.tags(x, y).reset().set(MtlTag::Solid);
         map.auxs(x, y).reset();
         map.physical_behaviors(x, y) = MaterialPhysicalBehavior::Null;
-        map.material_ids(x, y) = material_id();
+        map.material_ctls(x, y) = this;
     }
 
     inline void dynamic_update(GameMap &map) override
@@ -358,7 +358,7 @@ public:
         {
             for(size_t x{}; x < map.width(); ++x)
             {
-                if(map.material_ids(x, y) != this->material_id())
+                if(map.material_ctls(x, y) != this)
                     continue;
                 
                 auto *aux = std::any_cast<MaterialController *>(&map.auxs(x, y));
@@ -369,10 +369,7 @@ public:
                         if(!map.in_bounds(x+dx, y+dy) || !MtlTag::IsMovable(map.tags(x+dx, y+dy)))
                             continue;
 
-                        auto *ctl = m_registry->find_controller_by_id(map.material_ids(x+dx, y+dy));
-                        if(ctl == nullptr)
-                            continue;
-                        map.auxs(x, y) = ctl;
+                        map.auxs(x, y) = map.material_ctls(x+dx, y+dy);
                         break;
                     }
 
@@ -397,7 +394,7 @@ public:
                         if(!map.in_bounds(x+dx, y+dy))
                             continue;
                         
-                        if(map.material_ids(x+dx, y+dy) == material_id())
+                        if(map.material_ctls(x+dx, y+dy) == this)
                             map.auxs(x+dx, y+dy) = *aux;
                     }
                 }
@@ -427,7 +424,7 @@ public:
         map.tags(x, y).reset().set(MtlTag::Solid);
         map.auxs(x, y).reset();
         map.physical_behaviors(x, y) = MaterialPhysicalBehavior::Null;
-        map.material_ids(x, y) = material_id();
+        map.material_ctls(x, y) = this;
     }
 };
 
@@ -444,7 +441,7 @@ public:
         map.tags(x, y).reset().set(MtlTag::Solid);
         map.auxs(x, y).reset();
         map.physical_behaviors(x, y) = MaterialPhysicalBehavior::Null;
-        map.material_ids(x, y) = material_id();
+        map.material_ctls(x, y) = this;
     }
 
     inline void dynamic_update(GameMap &map) override
@@ -465,7 +462,7 @@ public:
         {
             for(size_t x{}; x < map.width(); ++x)
             {
-                if(map.material_ids(x, y) != this->material_id())
+                if(map.material_ctls(x, y) != this)
                     continue;
                 
                 for(auto [dx, dy] : g_von_neumann_deltas)
@@ -500,7 +497,7 @@ public:
         map.tags(x, y).reset().set(MtlTag::Gas);
         map.auxs(x, y).reset();
         map.physical_behaviors(x, y) = MaterialPhysicalBehavior::LightGas;
-        map.material_ids(x, y) = material_id();
+        map.material_ctls(x, y) = this;
     }
 
     inline void static_update(GameMap &map) override
@@ -521,7 +518,7 @@ public:
         {
             for(size_t x{}; x < map.width(); ++x)
             {
-                if(map.material_ids(x, y) != this->material_id())
+                if(map.material_ctls(x, y) != this)
                     continue;
                 
                 float temp = map.temps(x, y);
@@ -534,7 +531,7 @@ public:
                     
                     for(auto [dx, dy] : g_moore_deltas)
                     {
-                        if(map.material_ids(x+dx, y+dy) != this->material_id())
+                        if(map.material_ctls(x+dx, y+dy) != this)
                             continue;
                         
                         m_fire->init_point(map, x, y);
@@ -614,7 +611,7 @@ public:
         map.tags(x, y).reset().set(MtlTag::Gas);
         map.auxs(x, y).reset();
         map.physical_behaviors(x, y) = MaterialPhysicalBehavior::LightGas;
-        map.material_ids(x, y) = material_id();
+        map.material_ctls(x, y) = this;
     }
 
     inline void dynamic_update(GameMap &map) override
@@ -635,7 +632,7 @@ public:
         {
             for(size_t x{}; x < map.width(); ++x)
             {
-                if(map.material_ids(x, y) != this->material_id())
+                if(map.material_ctls(x, y) != this)
                     continue;
                 
                 map.colors(x, y) -= ColorStep;
@@ -672,7 +669,7 @@ public:
         map.tags(x, y).reset().set(MtlTag::Solid);
         map.auxs(x, y).reset();
         map.physical_behaviors(x, y) = MaterialPhysicalBehavior::Null;
-        map.material_ids(x, y) = material_id();
+        map.material_ctls(x, y) = this;
     }
 
     inline void static_update(GameMap &map) override
@@ -681,7 +678,7 @@ public:
         {
             for(size_t x{}; x < map.width(); ++x)
             {
-                if(map.material_ids(x, y) != this->material_id())
+                if(map.material_ctls(x, y) != this)
                     continue;
                 
                 auto temp = static_cast<int32_t>(map.temps(x, y));
@@ -720,7 +717,7 @@ public:
         map.tags(x, y).reset().set(MtlTag::Liquid);
         map.auxs(x, y).reset();
         map.physical_behaviors(x, y) = MaterialPhysicalBehavior::Liquid;
-        map.material_ids(x, y) = material_id();
+        map.material_ctls(x, y) = this;
     }
 
     inline void static_update(GameMap &map) override
@@ -729,7 +726,7 @@ public:
         {
             for(size_t x{}; x < map.width(); ++x)
             {
-                if(map.material_ids(x, y) != this->material_id())
+                if(map.material_ctls(x, y) != this)
                     continue;
                 
                 auto temp = static_cast<int32_t>(map.temps(x, y));
@@ -777,7 +774,7 @@ public:
         map.tags(x, y).reset().set(MtlTag::Float);
         map.auxs(x, y).emplace<int32_t>(rand() % 200);
         map.physical_behaviors(x, y) = MaterialPhysicalBehavior::Sand;
-        map.material_ids(x, y) = material_id();
+        map.material_ctls(x, y) = this;
     }
 
     inline void dynamic_update(GameMap &map) override
@@ -798,7 +795,7 @@ public:
         {
             for(size_t x{}; x < map.width(); ++x)
             {
-                if(map.material_ids(x, y) != this->material_id())
+                if(map.material_ctls(x, y) != this)
                     continue;
                 
                 auto *ttl = std::any_cast<int32_t>(&map.auxs(x, y));
@@ -852,7 +849,7 @@ public:
         map.tags(x, y).reset().set(MtlTag::Solid);
         map.auxs(x, y).reset();
         map.physical_behaviors(x, y) = MaterialPhysicalBehavior::Null;
-        map.material_ids(x, y) = material_id();
+        map.material_ctls(x, y) = this;
     }
 };
 
@@ -874,7 +871,7 @@ public:
         map.tags(x, y).reset().set(MtlTag::Bulk);
         map.auxs(x, y).reset();
         map.physical_behaviors(x, y) = MaterialPhysicalBehavior::Sand;
-        map.material_ids(x, y) = material_id();
+        map.material_ctls(x, y) = this;
     }
 
     inline void static_update(GameMap &map) override
@@ -895,7 +892,7 @@ public:
         {
             for(size_t x{}; x < map.width(); ++x)
             {
-                if(map.material_ids(x, y) != this->material_id())
+                if(map.material_ctls(x, y) != this)
                     continue;
 
                 auto temp = static_cast<int32_t>(map.temps(x, y));

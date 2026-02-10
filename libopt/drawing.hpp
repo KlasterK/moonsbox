@@ -39,7 +39,7 @@ inline void drawing::swap(GameMap &map, size_t ax, size_t ay, size_t bx, size_t 
     auto a_tag = map.tags(ax, ay);
     auto a_physical_behavior = map.physical_behaviors(ax, ay);
     auto a_aux = map.auxs(ax, ay);
-    auto a_material_id = map.material_ids(ax, ay);
+    auto a_material_ctl = map.material_ctls(ax, ay);
 
     map.temps(ax, ay) = map.temps(bx, by);
     map.heat_capacities(ax, ay) = map.heat_capacities(bx, by);
@@ -48,7 +48,7 @@ inline void drawing::swap(GameMap &map, size_t ax, size_t ay, size_t bx, size_t 
     map.tags(ax, ay) = map.tags(bx, by);
     map.physical_behaviors(ax, ay) = map.physical_behaviors(bx, by);
     map.auxs(ax, ay) = map.auxs(bx, by);
-    map.material_ids(ax, ay) = map.material_ids(bx, by);
+    map.material_ctls(ax, ay) = map.material_ctls(bx, by);
 
     map.temps(bx, by) = a_temp;
     map.heat_capacities(bx, by) = a_heat_capacity;
@@ -57,7 +57,7 @@ inline void drawing::swap(GameMap &map, size_t ax, size_t ay, size_t bx, size_t 
     map.tags(bx, by) = a_tag;
     map.physical_behaviors(bx, by) = a_physical_behavior;
     map.auxs(bx, by) = a_aux;
-    map.material_ids(bx, by) = a_material_id;
+    map.material_ctls(bx, by) = a_material_ctl;
 }
 
 template<typename T>

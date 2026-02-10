@@ -1,5 +1,6 @@
 #include "saving.hpp"
 #include "gamemap.hpp"
+#include "materialcontroller.hpp"
 #include "materialdefs.hpp"
 #include "savecontainer.hpp"
 #include "materialregistry.hpp"
@@ -182,36 +183,36 @@ std::string _write_tags_layer(WriteSaveContainer &container, const GameMap &map)
     return "";
 }
 
-std::string _write_material_ids_layer(WriteSaveContainer &container, const GameMap &map, 
-                                      const MaterialRegistry &registry)
+std::string _write_material_ctls_layer(WriteSaveContainer &container, const GameMap &map, 
+                                       const MaterialRegistry &registry)
 {
-    auto ids_span = map.material_ids.span();
-    std::vector<MaterialID> sorted_unique_ids(map.flat_size());
-    std::memcpy(sorted_unique_ids.data(), ids_span.data(), ids_span.size_bytes());
+    auto ctls_span = map.material_ctls.span();
+    std::vector<MaterialController *> sorted_unique_ctls(map.flat_size());
+    std::memcpy(sorted_unique_ctls.data(), ctls_span.data(), ctls_span.size_bytes());
 
-    // Sort and pick unique IDs for faster search
-    std::ranges::sort(sorted_unique_ids.begin(), sorted_unique_ids.end());
-    auto non_unique_range = std::ranges::unique(sorted_unique_ids);
-    sorted_unique_ids.erase(non_unique_range.begin(), sorted_unique_ids.end());
-    sorted_unique_ids.shrink_to_fit();
+    // Sort and pick unique controller ptrs for faster search
+    std::ranges::sort(sorted_unique_ctls.begin(), sorted_unique_ctls.end());
+    auto non_unique_range = std::ranges::unique(sorted_unique_ctls);
+    sorted_unique_ctls.erase(non_unique_range.begin(), sorted_unique_ctls.end());
+    sorted_unique_ctls.shrink_to_fit();
 
-    assert(sorted_unique_ids.size() <= std::numeric_limits<uint32_t>::max());
+    assert(sorted_unique_ctls.size() <= std::numeric_limits<uint32_t>::max());
 
-    // Write a file with MaterialIDs indices
+    // Write a file with controllers indices
     {
         std::vector<uint8_t> indices_vec(sizeof(uint32_t) * map.flat_size());
         auto *indices_u32 = reinterpret_cast<uint32_t *>(indices_vec.data());
 
-        MaterialID previous_id = 0;
+        MaterialController *previous_ctl = 0;
         size_t previous_idx = 0;
 
-        for(size_t i{}; i < ids_span.size(); ++i)
+        for(size_t i{}; i < ctls_span.size(); ++i)
         {
-            if(previous_id != ids_span[i])
+            if(previous_ctl != ctls_span[i])
             {
-                previous_id = ids_span[i];
-                previous_idx = std::ranges::lower_bound(sorted_unique_ids, previous_id) 
-                            - sorted_unique_ids.begin();
+                previous_ctl = ctls_span[i];
+                previous_idx = std::ranges::lower_bound(sorted_unique_ctls, previous_ctl) 
+                             - sorted_unique_ctls.begin();
             }
             indices_u32[i] = previous_idx;
         }
@@ -227,7 +228,7 @@ std::string _write_material_ids_layer(WriteSaveContainer &container, const GameM
         catch (const std::exception &e)
         {
             return std::format(
-                "Failed to write material IDs indices layer to save container"
+                "Failed to write material controllers indices layer to save container"
                 "\n\nWriteSaveContainer::store_file thrown an exception."
                 "\nwhat(): {}",
                 e.what()
@@ -235,11 +236,11 @@ std::string _write_material_ids_layer(WriteSaveContainer &container, const GameM
         }
     }
 
-    // Write a file with MaterialIDs names
+    // Write a file with material controllers names
     std::vector<uint8_t> names_vec;
-    for(auto &id : sorted_unique_ids)
+    for(auto &ctl : sorted_unique_ctls)
     {
-        auto name_opt = registry.get_name_by_id(id);
+        auto name_opt = registry.get_name_of_controller(ctl);
         for(char c : name_opt.value())
         {
             names_vec.push_back(c);
@@ -282,7 +283,7 @@ std::expected<void, std::string> saving::serialize(WriteSaveContainer &container
     if(auto str = _write_tags_layer(container, map); !str.empty())
         return std::unexpected(std::move(str));
 
-    if(auto str = _write_material_ids_layer(container, map, registry); !str.empty())
+    if(auto str = _write_material_ctls_layer(container, map, registry); !str.empty())
         return std::unexpected(std::move(str));
 
     return {};
@@ -356,17 +357,17 @@ std::string _read_tags_layer(const ReadSaveContainer &container, GameMap &map)
     return {};
 }
 
-std::string _read_material_ids_layer(const ReadSaveContainer &container, GameMap &map, 
-                                     const MaterialRegistry &registry) 
+std::string _read_material_ctls_layer(const ReadSaveContainer &container, GameMap &map, 
+                                      const MaterialRegistry &registry) 
 {
     auto names_file_opt = container.load_file(MaterialNamesSubfileName);
     if(!names_file_opt)
         return "Container subfile of material names not found";
 
-    auto &[read_names_vec, _] = *names_file_opt;
-    std::vector<MaterialID> ids_vec;
+    const auto &read_names_vec = names_file_opt->first;
+    std::vector<MaterialController *> ctls_vec;
 
-    // Get MaterialIDs indices from names subfile
+    // Get material controllers indices from names subfile
     {
         auto it = read_names_vec.begin();
         for(;;)
@@ -376,7 +377,7 @@ std::string _read_material_ids_layer(const ReadSaveContainer &container, GameMap
                 break;
             
             std::string_view name(
-                reinterpret_cast<char *>(it.base()), 
+                reinterpret_cast<const char *>(it.base()), 
                 static_cast<size_t>(nul_it - it)
             );
             it = nul_it + 1;
@@ -393,38 +394,37 @@ std::string _read_material_ids_layer(const ReadSaveContainer &container, GameMap
                     name
                 );
 
-            ids_vec.push_back(ctl_ptr->material_id());
+            ctls_vec.push_back(ctl_ptr);
         }
     }
 
     auto file_opt = container.load_file(MaterialIndicesSubfileName);
     if(!file_opt)
-        return "Container subfile of material IDs indices layer not found";
+        return "Container subfile of material controllers indices layer not found";
 
-    auto &[vec, _] = *file_opt;
+    const auto &vec = file_opt->first;
     if(vec.size() != map.flat_size() * sizeof(uint32_t))
         return "Subfile of tags layer is wrong size";
 
     const auto *u32_indices = reinterpret_cast<const uint32_t *>(vec.data());
-    auto ids_span = map.material_ids.span();
+    auto ctls_span = map.material_ctls.span();
 
     for(size_t i{}; i < map.flat_size(); ++i)
     {
         uint32_t idx = u32_indices[i];
-        if(idx >= ids_vec.size())
+        if(idx >= ctls_vec.size())
             return std::format(
                 "Material index {} went out of bounds (only {} materials in save)",
                 idx, vec.size()
             );
         
-        ids_span[i] = ids_vec[idx];
+        ctls_span[i] = ctls_vec[idx];
     }
     return {};
 }
 
-std::expected<GameMap, std::string> saving::deserialize(
-    const ReadSaveContainer &container, const MaterialRegistry &registry
-)
+std::expected<GameMap, std::string> saving::deserialize(const ReadSaveContainer &container, 
+                                                        const MaterialRegistry &registry)
 {
     auto main_hdr_opt = _read_main_header(container);
     if(!main_hdr_opt)
@@ -470,7 +470,7 @@ std::expected<GameMap, std::string> saving::deserialize(
     if(auto str = _read_tags_layer(container, map); !str.empty())
         return std::unexpected(std::move(str));
     
-    if(auto str = _read_material_ids_layer(container, map, registry); !str.empty())
+    if(auto str = _read_material_ctls_layer(container, map, registry); !str.empty())
         return std::unexpected(std::move(str));
 
     return map;
