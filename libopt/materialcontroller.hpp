@@ -9,10 +9,11 @@
 class MaterialController
 {
 public:
-    enum class DeserializationError
+    enum class DeserializationResult
     {
-        Success, VersionTooOld, VersionTooNew, InvalidDataLength, 
-        InvalidDataFormat, BrokenInvariant, NotImplemented
+        Success, NotImplemented, 
+        VersionTooOld, VersionTooNew, InvalidDataLength, InvalidDataFormat, 
+        BrokenInvariant, MissingDependency,
     };
 
 public:
@@ -26,9 +27,9 @@ public:
     virtual std::pair<std::vector<uint8_t>, saving::SaveVersion> 
         serialize(const GameMap &, size_t, size_t) { return {}; }
 
-    virtual DeserializationError deserialize(
+    virtual DeserializationResult deserialize(
         GameMap &, size_t, size_t, std::span<const uint8_t>, saving::SaveVersion
-    ) { return DeserializationError::NotImplemented; }
+    ) { return DeserializationResult::NotImplemented; }
 };
 
 #endif // MOOX_MATERIALCONTROLLER_HPP

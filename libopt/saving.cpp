@@ -542,7 +542,7 @@ std::string _read_arbitrary_data_layer(const ReadSaveContainer &container, GameM
         std::string_view err_msg;
         switch(err)
         {
-            using enum MaterialController::DeserializationError;
+            using enum MaterialController::DeserializationResult;
         case VersionTooOld:
             err_msg = "Version too old.";
             break;
