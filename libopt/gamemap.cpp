@@ -85,3 +85,10 @@ GameMap::GameMap(size_t width, size_t height)
     , m_width(width)
     , m_height(height)
 {}
+
+template class _Layer<float>;
+template class _Layer<_SDLColorLayerTag>;
+template class _Layer<MaterialTags>;
+template class _Layer<MaterialPhysicalBehavior>;
+template class _Layer<std::any>;
+template class _Layer<class MaterialController *>;

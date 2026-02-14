@@ -98,5 +98,11 @@ private:
     size_t m_width{}, m_height{};
 };
 
+extern template class _Layer<float>;
+extern template class _Layer<_SDLColorLayerTag>;
+extern template class _Layer<MaterialTags>;
+extern template class _Layer<MaterialPhysicalBehavior>;
+extern template class _Layer<std::any>;
+extern template class _Layer<class MaterialController *>;
 
 #endif // MOOX_GAMEMAP_HPP
