@@ -123,14 +123,14 @@ public:
                 auto temp = static_cast<int32_t>(map.temps(x, y));
 
                 if(aux->is_glass)
-                    map.colors(x, y) = (
+                    map.colors(x, y) = uint32_t(
                         _map_clamp(temp,   400, 1973, 0x96, 0xFF) << 24
                         | _map_clamp(temp, 400, 1973, 0x94, 0x88) << 16
                         | _map_clamp(temp, 400, 1973, 0x77, 0x00) << 8
                         | _map_clamp(temp, 400, 1973, 0x55, 0x85)
                     );
                 else
-                    map.colors(x, y) = (
+                    map.colors(x, y) = uint32_t(
                         SandColorR << 24
                         | _map_clamp(temp, 400, 1973, 
                                      static_cast<int32_t>(aux->sand_color_g), 0x66) << 16

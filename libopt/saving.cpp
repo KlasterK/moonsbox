@@ -123,7 +123,10 @@ std::string _write_basic_layers(WriteSaveContainer &container, const GameMap &ma
         current_layer = "colors";
         container.store_file(
             ColorsSubfileName, 
-            {static_cast<uint8_t *>(surf.pixels), static_cast<size_t>(surf.h) * surf.pitch},
+            {
+                static_cast<uint8_t *>(surf.Get()->pixels), 
+                size_t(surf.GetHeight() * surf.Get()->pitch)
+            },
             SaveFileSemantics::ColorLayer
         );
         current_layer = "temperatures";
@@ -384,7 +387,7 @@ std::string _read_basic_layers(const ReadSaveContainer &container, GameMap &map)
 {
     std::initializer_list layers{
         std::make_tuple(ColorsSubfileName, "colors", sizeof(uint32_t), 
-                        map.colors.surface().pixels),
+                        map.colors.surface().Get()->pixels),
         std::make_tuple(TempsSubfileName, "temperatures", sizeof(float), 
                         static_cast<void *>(map.temps.span().data())),
         std::make_tuple(HeatCapacitiesSubfileName, "heat capacities", sizeof(float),

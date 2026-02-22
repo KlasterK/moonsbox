@@ -1,28 +1,16 @@
 #include "renderer.hpp"
-#include <pybind11/pybind11.h>
 #include <SDL2/SDL.h>
-#include <iostream>
+#include <SDL2pp/Exception.hh>
+#include <algorithm>
+#include <cstring>
+#include <utility>
+#include <variant>
 
-#define RAISE(x, y) (PyErr_SetString((x), (y)), nullptr)
-extern "C"
-{
-#include "include/pygame-ce/include/_pygame.h"
-}
-
-Renderer::Renderer(GameMap &map, py::object &dst_surface, uint32_t bg_color)
+Renderer::Renderer(GameMap &map, SDL2pp::Surface &dst_surface, uint32_t bg_color)
     : m_map(map)
-    , m_dst_pgsurf(dst_surface)
-    , m_scale_buffer(nullptr)
+    , m_dst_surface(dst_surface)
     , m_bg_color(bg_color)
 {}
-
-Renderer::~Renderer()
-{
-    if(m_scale_buffer)
-        SDL_FreeSurface(m_scale_buffer);
-    if(m_thermal_buffer)
-        SDL_FreeSurface(m_thermal_buffer);
-}
 
 void Renderer::render(std::array<int, 4> visible_area)
 {
@@ -39,8 +27,8 @@ void Renderer::render(std::array<int, 4> visible_area)
         return;
 
     // Screen size
-    int screen_w = pgSurface_AsSurface(m_dst_pgsurf.ptr())->w;
-    int screen_h = pgSurface_AsSurface(m_dst_pgsurf.ptr())->h;
+    int screen_w = m_dst_surface.GetWidth();
+    int screen_h = m_dst_surface.GetHeight();
 
     // Scale
     double scale_x = (double)screen_w / (double)visible_area[2];
@@ -56,28 +44,31 @@ void Renderer::render(std::array<int, 4> visible_area)
     int blit_h = (int)(inner_bottom - inner_top);
 
     // Create or resize buffer surface for inner area
-    if (m_scale_buffer == nullptr
-        || m_scale_buffer->w != blit_w
-        || m_scale_buffer->h != blit_h)
+    if (!m_scale_buffer.has_value()
+        || m_scale_buffer->GetWidth()  != blit_w
+        || m_scale_buffer->GetHeight() != blit_h)
     {
-        if (m_scale_buffer) 
-            SDL_FreeSurface(m_scale_buffer);
-
-        m_scale_buffer = SDL_CreateRGBSurfaceWithFormat(
+        auto *surf = SDL_CreateRGBSurfaceWithFormat(
             0, blit_w, blit_h, 32,
-            pgSurface_AsSurface(m_dst_pgsurf.ptr())->format->format
+            m_dst_surface.GetFormat()
         );
+        if(surf == nullptr)
+            throw SDL2pp::Exception("SDL_CreateRGBSurfaceWithFormat");
+        m_scale_buffer.emplace(surf);
     }
 
-    SDL_Rect src_rect{x_begin, (int)m_map.height() - y_map_end, inner_w, inner_h};
-    SDL_Surface *src_surface = nullptr;
-    if(m_mode == Mode::Normal)
+    SDL2pp::Rect src_rect{x_begin, (int)m_map.height() - y_map_end, inner_w, inner_h};
+    SDL2pp::Surface &src_surface = [this] -> auto &
     {
-        src_surface = &m_map.colors.surface();
-    }
-    else if(m_mode == Mode::Thermal)
+        if(m_mode == Mode::Normal)
+            return m_map.colors.surface();
+        if(m_mode == Mode::Thermal)
+            return *m_thermal_buffer;
+        std::unreachable();
+    }();
+
+    if(m_mode == Mode::Thermal)
     {
-        src_surface = m_thermal_buffer;
         // TODO: implement faster algorithm of thermal vision
         for(size_t y = src_rect.y; y < src_rect.y + src_rect.h; ++y)
         {
@@ -91,30 +82,29 @@ void Renderer::render(std::array<int, 4> visible_area)
                     + ((rgba >> 8) & 0xFF)
                 ) / 6;
                 float temp_factor = m_map.temps(x, y) / 500.f;
-                uint32_t result_color = (
+                auto result_color = uint32_t(
                     (std::min(0xFF, darkscale + static_cast<int32_t>(temp_factor * 0xBF)) << 24)
                     | (std::clamp(darkscale + static_cast<int32_t>((temp_factor - 1) * 0x3F),
                                   0x00, 0xFF) << 16)
                     | (darkscale << 8)
                     | 0xFF
                 );
-                auto addr = (uint32_t *)src_surface->pixels;
-                addr[y * src_surface->pitch / 4 + x] = result_color;
+                auto addr = (uint32_t *)src_surface.Get()->pixels;
+                addr[y * src_surface.Get()->pitch / 4 + x] = result_color;
             }
         }
     }
 
     // Fill buffer surface with bg color and blit scaled
     uint32_t bg_color_native = SDL_MapRGBA(
-        pgSurface_AsSurface(m_dst_pgsurf.ptr())->format,
-        // RGBA8888
+        m_dst_surface.Get()->format,
         (m_bg_color >> 24) & 0xFF,
         (m_bg_color >> 16) & 0xFF,
         (m_bg_color >> 8) & 0xFF,
         0xFF
     );
-    SDL_FillRect(m_scale_buffer, nullptr, bg_color_native);
-    SDL_BlitScaled(src_surface, &src_rect, m_scale_buffer, nullptr);
+    m_scale_buffer->FillRect(std::nullopt, bg_color_native);
+    src_surface.BlitScaled(src_rect, *m_scale_buffer, SDL2pp::NullOpt);
 
     // Y-flip buffer surface
     if((int)m_row_buffer_size != blit_w * 4)
@@ -123,8 +113,8 @@ void Renderer::render(std::array<int, 4> visible_area)
         m_row_buffer_size = blit_w * 4;
     }
 
-    int scale_pitch = m_scale_buffer->pitch;
-    auto lower_addr = (uint8_t *)m_scale_buffer->pixels;
+    int scale_pitch = m_scale_buffer->Get()->pitch;
+    auto lower_addr = (uint8_t *)m_scale_buffer->Get()->pixels;
     auto upper_addr = lower_addr + scale_pitch * (blit_h - 1);
     auto max_lower_addr = lower_addr + scale_pitch * (blit_h / 2);
 
@@ -137,9 +127,8 @@ void Renderer::render(std::array<int, 4> visible_area)
         upper_addr -= scale_pitch;
     }
 
-    // Copy buffer surface onto pygame surface
-    SDL_Surface *dst_surface = pgSurface_AsSurface(m_dst_pgsurf.ptr());
-    int dst_pitch = dst_surface->pitch;
+    // Copy buffer surface onto destination
+    int dst_pitch = m_dst_surface.Get()->pitch;
 
     for (int src_y = 0; src_y < blit_h; ++src_y) 
     {
@@ -147,8 +136,8 @@ void Renderer::render(std::array<int, 4> visible_area)
         
         if (dst_y >= 0 && dst_y < screen_h) 
         {
-            uint8_t *scale_row = (uint8_t *)m_scale_buffer->pixels + src_y * scale_pitch;
-            uint8_t *dst_row = (uint8_t *)dst_surface->pixels + dst_y * dst_pitch;
+            uint8_t *scale_row = (uint8_t *)m_scale_buffer->Get()->pixels + src_y * scale_pitch;
+            uint8_t *dst_row = (uint8_t *)m_dst_surface.Get()->pixels + dst_y * dst_pitch;
             dst_row += (int)inner_left * 4;
             
             memcpy(dst_row, scale_row, blit_w * 4);
@@ -163,20 +152,21 @@ Renderer::Mode Renderer::get_mode()
 
 void Renderer::set_mode(Mode v)
 {
+    if(v == m_mode)
+        return;
+
     if(v == Mode::Normal)
     {
-        if(m_thermal_buffer)
-        {
-            SDL_FreeSurface(m_thermal_buffer);
-            m_thermal_buffer = nullptr;
-        }
+        m_thermal_buffer.reset();
     }
     else if(v == Mode::Thermal)
     {
-        if(m_thermal_buffer == nullptr)
-            m_thermal_buffer = SDL_CreateRGBSurfaceWithFormat(
-                0, m_map.width(), m_map.height(), 32, SDL_PIXELFORMAT_RGBX8888
-            );
+        auto *surf = SDL_CreateRGBSurfaceWithFormat(
+            0, m_map.width(), m_map.height(), 32, SDL_PIXELFORMAT_RGBX8888
+        );
+        if(surf == nullptr)
+            throw SDL2pp::Exception("SDL_CreateRGBSurfaceWithFormat");
+        m_thermal_buffer.emplace(surf);
     }
     else throw std::logic_error("Renderer::set_mode: invalid Mode value");
     m_mode = v;

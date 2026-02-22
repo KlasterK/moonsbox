@@ -3,10 +3,11 @@
 
 #include <memory>
 #include <any>
-#include "materialdefs.hpp"
 #include <cassert>
 #include <cstdint>
 #include <span>
+#include <SDL2pp/SDL2pp.hh>
+#include "materialdefs.hpp"
 
 
 template<typename T>
@@ -42,7 +43,6 @@ private:
 };
 
 
-struct SDL_Surface;
 struct _SDLColorLayerTag {};
 
 template<>
@@ -50,38 +50,28 @@ class _Layer<_SDLColorLayerTag>
 {
 public:
     _Layer(size_t width, size_t height);
-    _Layer(_Layer &&);
-    _Layer(const _Layer &) = delete;
-    _Layer &operator=(_Layer &&);
-    _Layer &operator=(const _Layer &) = default;
-    ~_Layer();
 
     uint32_t& operator()(size_t x, size_t y);
     const uint32_t& operator()(size_t x, size_t y) const;
 
-    SDL_Surface& surface();
-    const SDL_Surface& surface() const;
+    SDL2pp::Surface& surface();
+    const SDL2pp::Surface& surface() const;
 
 private:
-    SDL_Surface *m_surface;
-    size_t m_width{}, m_height{};
+    SDL2pp::Surface m_surface;
 };
 
 class GameMap
 {
 public:
     GameMap(size_t width, size_t height);
-    GameMap(GameMap &&) = default;
-    GameMap(const GameMap &) = delete;
-    GameMap &operator=(GameMap &&) = default;
-    GameMap &operator=(const GameMap &) = delete;
 
     inline size_t width()     const { return m_width; }
     inline size_t height()    const { return m_height; }
     inline size_t flat_size() const { return m_width * m_height; }
 
     inline size_t point_to_idx(size_t x, size_t y) const { return y * m_width + x; }
-    inline std::pair<size_t, size_t> strides()     const { return {1, m_width}; }
+    inline std::array<size_t, 2> strides()         const { return {1, m_width}; }
 
     inline bool in_bounds(size_t x, size_t y) const { return x < m_width && y < m_height; }
 
