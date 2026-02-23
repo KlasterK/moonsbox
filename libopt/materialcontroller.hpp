@@ -18,11 +18,14 @@ public:
 
 public:
     virtual ~MaterialController() = default;
+
     virtual void init_point(GameMap &, size_t, size_t) {}
     virtual void static_update(GameMap &) {}
     virtual void dynamic_update(GameMap &) {}
+    
     virtual void on_register(class MaterialRegistry &) {}
     virtual bool is_placeable_on(GameMap &, size_t, size_t) { return true; }
+    virtual void play_place_sound(GameMap &, size_t, size_t) {}
 
     virtual std::pair<std::vector<uint8_t>, saving::SaveVersion> 
         serialize(const GameMap &, size_t, size_t) { return {}; }
