@@ -26,6 +26,8 @@ add_executable(moonsbox
     materialpalette.hpp materialpalette.cpp
     windowevents.hpp windowevents.cpp
     gameapp.hpp gameapp.cpp
+    soundsystem.hpp soundsystem.cpp
+    ext/miniaudio.h ext/miniaudio.c
 )
 target_link_libraries(moonsbox PUBLIC ZLIB::ZLIB minizip SDL2pp::SDL2pp)
 if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")   
