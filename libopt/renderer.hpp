@@ -2,6 +2,7 @@
 #define MOOX_RENDERER_HPP
 
 #include "gamemap.hpp"
+#include <SDL2pp/Texture.hh>
 #include <array>
 #include <cstdint>
 #include <memory>
@@ -13,7 +14,7 @@ public:
     enum class Mode {Normal, Thermal};
 
 public:
-    Renderer(GameMap &map, SDL2pp::Surface &dst_surface, uint32_t bg_color);
+    Renderer(GameMap &map, SDL2pp::Renderer &sdl_renderer, uint32_t bg_color);
 
     void render(std::array<int, 4> map_visible_area);
     Mode get_mode();
@@ -21,12 +22,12 @@ public:
 
 private:
     GameMap &m_map;
-    SDL2pp::Surface &m_dst_surface;
-    std::optional<SDL2pp::Surface> m_scale_buffer{}, m_thermal_buffer{};
+    SDL2pp::Renderer &m_sdl_renderer;
     uint32_t m_bg_color{};
-    std::unique_ptr<uint8_t[]> m_row_buffer{};
-    size_t m_row_buffer_size{};
     Mode m_mode{Mode::Normal};
+
+    SDL2pp::Texture m_map_tex;
+    std::optional<SDL2pp::Surface> m_thermal_buffer{};
 };
 
 #endif // MOOX_RENDERER_HPP

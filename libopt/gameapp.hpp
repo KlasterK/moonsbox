@@ -34,7 +34,6 @@ private:
 
     SDL2pp::Window m_window;
     SDL2pp::Renderer m_sdl_renderer;
-    SDL2pp::Surface m_rendering_target_surf;
     SDL2pp::Font m_font;
 
     SimulationManager m_sim;

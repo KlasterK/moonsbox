@@ -73,18 +73,9 @@ GameApp::GameApp()
         -1, 
         SDL_RENDERER_ACCELERATED | (VSync ? SDL_RENDERER_PRESENTVSYNC : 0)
     )
-    , m_rendering_target_surf([=]
-    {
-        auto *surf = SDL_CreateRGBSurfaceWithFormat(
-            0, int(ScreenSize[0]), int(ScreenSize[1]), 32, SDL_PIXELFORMAT_RGBA8888
-        );
-        if(surf == nullptr)
-            throw SDL2pp::Exception("SDL_CreateRGBSurfaceWithFormat");
-        return surf;
-    }())
     , m_font("assets/NotoSans-Regular.ttf", 16)
     , m_sim(m_map, m_registry)
-    , m_renderer(m_map, m_rendering_target_surf, MapInnerColor)
+    , m_renderer(m_map, m_sdl_renderer, MapInnerColor)
     , m_camera(VisibleArea, ScreenSize)
     , m_palette(m_sdl_renderer, m_registry, m_font)
     , m_drawing_material(std::get<Sand>(m_materials_tuple))
@@ -124,24 +115,18 @@ void GameApp::run()
 
         m_sim.tick();
 
-        if(m_rendering_target_surf.GetSize() != m_window.GetSize())
-        {
-            auto *surf = SDL_CreateRGBSurfaceWithFormat(
-                0, m_window.GetWidth(), m_window.GetHeight(), 32, SDL_PIXELFORMAT_RGBA8888
-            );
-            if(surf == nullptr)
-                throw SDL2pp::Exception("SDL_CreateRGBSurfaceWithFormat");
-            m_rendering_target_surf = SDL2pp::Surface(surf);
-        }
-
-        m_rendering_target_surf.FillRect(SDL2pp::NullOpt, MapOuterColor);
-
-        m_renderer.render(m_camera.get_map_area({m_window.GetWidth(), m_window.GetHeight()}));
-        SDL2pp::Texture tex(m_sdl_renderer, m_rendering_target_surf);
-        m_sdl_renderer.Copy(tex, SDL2pp::NullOpt, SDL2pp::NullOpt);
-
+        m_sdl_renderer.SetDrawColor(
+            MapOuterColor >> 24 & 0xFF,
+            MapOuterColor >> 16 & 0xFF,
+            MapOuterColor >> 8 & 0xFF
+        );
+        m_sdl_renderer.Clear();
+        m_renderer.render(
+            m_camera.get_map_area(
+                {m_window.GetWidth(), m_window.GetHeight()}
+            )
+        );
         m_palette.render();
-
         m_sdl_renderer.Present();
     }
 }
