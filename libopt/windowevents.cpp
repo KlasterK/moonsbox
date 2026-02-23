@@ -4,6 +4,7 @@
 #include "drawing.hpp"
 #include "gameapp.hpp"
 #include "gamemap.hpp"
+#include "soundsystem.hpp"
 #include <stdexcept>
 
 namespace
@@ -122,6 +123,8 @@ bool DrawingEventHandler::process_event(const SDL_Event &e)
             drawing::ellipse(m_map, area, material_factory());
         else
             drawing::rect(m_map, area, material_factory());
+
+        m_drawing_material.get().play_place_sound(m_map, mouse_map_pos[0], mouse_map_pos[1]);
         
         m_previous_pos = mouse_map_pos;
         m_is_holded = true;
@@ -141,6 +144,8 @@ bool DrawingEventHandler::process_event(const SDL_Event &e)
             material_factory(), 
             DrawingIsCircular ? drawing::LineEnds::Round : drawing::LineEnds::Square
         );
+
+        m_drawing_material.get().play_place_sound(m_map, mouse_map_pos[0], mouse_map_pos[1]);
 
         m_previous_pos = mouse_map_pos;
         return false;
@@ -216,6 +221,8 @@ void DrawingEventHandler::update()
         drawing::ellipse(m_map, area, material_factory());
     else
         drawing::rect(m_map, area, material_factory());
+
+    m_drawing_material.get().play_place_sound(m_map, m_previous_pos[0], m_previous_pos[1]);
 }
 
 drawing::MaterialFactory DrawingEventHandler::material_factory()
@@ -252,35 +259,40 @@ bool MaterialPaletteEventHandler::process_event(const SDL_Event &e)
             {
             case SDLK_LEFT:
             case SDLK_a:
-                if (auto slot = m_palette.get_current_selection(); 
-                    slot[0] > 0)
+                // We should rely on exceptions here because what if some slots are missing?
+                try
                 {
-                    --slot[0];
-                    m_palette.set_current_selection(slot[0], slot[1]);
+                    auto slot = m_palette.get_current_selection();
+                    m_palette.set_current_selection(slot[0] - 1, slot[1]);
                 }
+                catch(const std::logic_error &)
+                {}
+                sfx::play_sound("palette.move_selection", "ui", true);
                 return true;
             case SDLK_RIGHT:
             case SDLK_d:
-                if (auto slot = m_palette.get_current_selection(); 
-                    slot[0] < m_palette.whole_grid_size().columns - 1)
+                try
                 {
-                    ++slot[0];
-                    m_palette.set_current_selection(slot[0], slot[1]);
+                    auto slot = m_palette.get_current_selection();
+                    m_palette.set_current_selection(slot[0] + 1, slot[1]);
                 }
+                catch(const std::logic_error &)
+                {}
+                sfx::play_sound("palette.move_selection", "ui", true);
                 return true;
             case SDLK_UP:
             case SDLK_w:
-                if (auto slot = m_palette.get_current_selection(); 
-                    slot[1] > 0)
+                try
                 {
-                    --slot[1];
-                    m_palette.set_current_selection(slot[0], slot[1]);
+                    auto slot = m_palette.get_current_selection();
+                    m_palette.set_current_selection(slot[0], slot[1] - 1);
                 }
+                catch(const std::logic_error &)
+                {}
+                sfx::play_sound("palette.move_selection", "ui", true);
                 return true;
             case SDLK_DOWN:
             case SDLK_s:
-                // TODO: Need to catch an exception here because there may be empty slots
-                // at the last row in the table
                 try
                 {
                     auto slot = m_palette.get_current_selection();
@@ -288,6 +300,7 @@ bool MaterialPaletteEventHandler::process_event(const SDL_Event &e)
                 }
                 catch(const std::logic_error &)
                 {}
+                sfx::play_sound("palette.move_selection", "ui", true);
                 return true;
             case SDLK_RETURN:
             case SDLK_SPACE:
@@ -296,10 +309,12 @@ bool MaterialPaletteEventHandler::process_event(const SDL_Event &e)
                 m_previous_slot = m_palette.get_current_selection();
                 m_drawing_material = m_palette.get_selected_material();
                 m_palette.hide();
+                sfx::play_sound("palette.hide_confirmation", "ui", true);
                 return true;
             case SDLK_ESCAPE:
                 m_palette.set_current_selection(m_previous_slot[0], m_previous_slot[1]);
                 m_palette.hide();
+                sfx::play_sound("palette.hide_no_confirmation", "ui", true);
                 return true;
             default:
                 return true; // consume all keys while palette visible
@@ -317,17 +332,20 @@ bool MaterialPaletteEventHandler::process_event(const SDL_Event &e)
                     m_previous_slot = *slot_opt;
                     m_drawing_material = m_palette.get_selected_material();
                     m_palette.hide();
+                    sfx::play_sound("palette.hide_confirmation", "ui", true);
                 }
                 else
                 {
                     m_palette.set_current_selection(m_previous_slot[0], m_previous_slot[1]);
                     m_palette.hide();
+                    sfx::play_sound("palette.hide_no_confirmation", "ui", true);
                 }
             }
             else if(e.button.button == SDL_BUTTON_RIGHT)
             {
                 m_palette.set_current_selection(m_previous_slot[0], m_previous_slot[1]);
                 m_palette.hide();
+                sfx::play_sound("palette.hide_no_confirmation", "ui", true);
             }
             return true;
         }
@@ -343,6 +361,7 @@ bool MaterialPaletteEventHandler::process_event(const SDL_Event &e)
             || (e.type == SDL_MOUSEBUTTONDOWN && e.button.button == SDL_BUTTON_MIDDLE))
         {
             m_palette.show();
+            sfx::play_sound("palette.show", "ui", true);
             return false;
         }
 

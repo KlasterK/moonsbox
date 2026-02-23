@@ -1,5 +1,6 @@
 #include "SDL.h"
 #include "gameapp.hpp"
+#include "soundsystem.hpp"
 #include <SDL2pp/SDL.hh>
 #include <SDL2pp/SDL2pp.hh>
 #include <SDL2pp/SDLTTF.hh>
@@ -18,9 +19,10 @@ int main()
 {
     try
     {
-        SDL2pp::SDL sdl(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_EVENTS | SDL_INIT_TIMER);
+        SDL2pp::SDL sdl(SDL_INIT_VIDEO | SDL_INIT_EVENTS | SDL_INIT_TIMER);
         SDL2pp::SDLTTF ttf;
-        
+        sfx::init();
+
         GameApp app;
         app.run();
     }
