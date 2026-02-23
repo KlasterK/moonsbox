@@ -9,6 +9,7 @@
 #include "materialcontroller.hpp"
 #include "materialdefs.hpp"
 #include "materialregistry.hpp"
+#include "soundsystem.hpp"
 
 
 template<typename T>
@@ -141,7 +142,10 @@ public:
                 if(temp > 1973)
                 {
                     if(!aux->is_glass)
+                    {
                         aux->is_glass = true;
+                        sfx::play_sound("convert.Sand_to_glass");
+                    }
                         
                     map.physical_behaviors(x, y) = MaterialPhysicalBehavior::Liquid;
                     map.tags(x, y).reset().set(MtlTag::Liquid);
@@ -164,6 +168,11 @@ public:
     {
         auto &tags = map.tags(x, y);
         return MtlTag::IsMovable(tags) || tags.test(MtlTag::Space);
+    }
+
+    inline void play_place_sound(GameMap &, size_t, size_t) override
+    {
+        sfx::play_sound("material.Sand");
     }
 };
 
@@ -231,9 +240,17 @@ public:
                 
                 float temp = map.temps(x, y);
                 if(temp < 270.f)
+                {
                     m_ice->init_point(map, x, y);
+                    map.temps(x, y) = temp;
+                    sfx::play_sound("convert.Water_freezes");
+                }
                 else if(temp > 375.f)
+                {
                     m_steam->init_point(map, x, y);
+                    map.temps(x, y) = temp;
+                    sfx::play_sound("convert.Water_evaporates");
+                }
             }
         }
     }
@@ -246,6 +263,11 @@ public:
     inline bool is_placeable_on(GameMap &map, size_t x, size_t y) override
     {
         return MtlTag::IsFlowable(map.tags(x, y));
+    }
+
+    inline void play_place_sound(GameMap &, size_t, size_t) override
+    {
+        sfx::play_sound("material.Water");
     }
 
 private:
@@ -292,6 +314,7 @@ public:
                 {
                     m_water->init_point(map, x, y);
                     map.temps(x, y) = temp;
+                    sfx::play_sound("convert.Ice_melts");
                 }
             }
         }
@@ -300,6 +323,11 @@ public:
     inline void on_register(MaterialRegistry &registry) override
     {
         m_registry = &registry;
+    }
+
+    inline void play_place_sound(GameMap &, size_t, size_t) override
+    {
+        sfx::play_sound("material.Ice");
     }
 
 private:
@@ -346,6 +374,7 @@ public:
                 {
                     m_water->init_point(map, x, y);
                     map.temps(x, y) = temp;
+                    sfx::play_sound("convert.Steam_condensates");
                 }
             }
         }
@@ -359,6 +388,11 @@ public:
     inline bool is_placeable_on(GameMap &map, size_t x, size_t y) override
     {
         return MtlTag::IsSparseness(map.tags(x, y));
+    }
+
+    inline void play_place_sound(GameMap &, size_t, size_t) override
+    {
+        sfx::play_sound("material.Steam");
     }
 
 private:
@@ -460,7 +494,10 @@ public:
                             continue;
 
                         if(map.tags(x+dx, y+dy).test(MtlTag::Space))
+                        {
                             (**aux).init_point(map, x+dx, y+dy);
+                            (**aux).play_place_sound(map, x+dx, y+dy);
+                        }
                     }
                 }
                 else if(rand() % 30 == 0)
@@ -544,7 +581,10 @@ public:
                 for(auto [dx, dy] : g_von_neumann_deltas)
                 {
                     if(map.in_bounds(x+dx, y+dy) && !map.tags(x+dx, y+dy).test(MtlTag::Solid))
+                    {
                         m_space->init_point(map, x+dx, y+dy);
+                        m_space->play_place_sound(map, x+dx, y+dy);
+                    }
                 }
             }
         }
@@ -603,6 +643,7 @@ public:
                 if(temp > 700.f)
                 {
                     m_fire->init_point(map, x, y);
+                    m_fire->play_place_sound(map, x, y);
                     map.temps(x, y) = 2800.f;
                     
                     for(auto [dx, dy] : g_moore_deltas)
@@ -728,6 +769,11 @@ public:
         return map.tags(x, y).test(MtlTag::Space);
     }
 
+    inline void play_place_sound(GameMap &, size_t, size_t) override
+    {
+        sfx::play_sound("material.Fire");
+    }
+
 private:
     MaterialRegistry *m_registry = nullptr;
     MaterialController *m_space = nullptr;
@@ -831,6 +877,11 @@ public:
     inline bool is_placeable_on(GameMap &map, size_t x, size_t y) override
     {
         return MtlTag::IsFlowable(map.tags(x, y));
+    }
+
+    inline void play_place_sound(GameMap &, size_t, size_t) override
+    {
+        sfx::play_sound("material.Lava");
     }
 };
 
