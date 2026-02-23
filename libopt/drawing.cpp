@@ -75,9 +75,13 @@ void drawing::ellipse(GameMap &map, Rect area, MaterialFactory material_factory)
     b_sq = area[3] * area[3] / 4;
     right_cmp = a_sq * b_sq;
 
-    for (long long y = 0; y < rows; ++y) 
+    for(long long y = std::max(0, area[1]); 
+        y < std::min(area[1] + area[3], int(map.height())); 
+        ++y)
     {
-        for (long long x = 0; x < cols; ++x) 
+        for(long long x = std::max(0, area[0]); 
+            x < std::min(area[0] + area[2], int(map.width())); 
+            ++x)
         {
             long long x_x0_sq = (x - x0) * (x - x0);
             long long y_y0_sq = (y - y0) * (y - y0);
