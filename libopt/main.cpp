@@ -15,7 +15,7 @@ static std::string _format_error(std::string_view prolog, std::string_view exc_t
     );
 }
 
-int main()
+int main(int, char *[])
 {
     try
     {

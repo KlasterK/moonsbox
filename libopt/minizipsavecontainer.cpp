@@ -57,13 +57,13 @@ inline std::string _make_string_from_subfile_name(SaveSubfileName subfile_name)
 
 
 MinizipReadSaveContainer::MinizipReadSaveContainer(std::filesystem::path file_path)
-    : m_file(unzOpen(file_path.c_str()))
+    : m_file(unzOpen(file_path.string().c_str()))
 {
     if(!m_file)
         throw std::runtime_error(std::format(
             "MinizipReadSaveContainer::MinizipReadSaveContainer"
             ": Cannot open zip file {}",
-            file_path.c_str()
+            file_path.string()
         ));
 }
 
@@ -165,13 +165,13 @@ std::optional<std::pair<std::vector<uint8_t>, SaveFileSemantics>>
 
 
 MinizipWriteSaveContainer::MinizipWriteSaveContainer(std::filesystem::path file_path)
-    : m_file(zipOpen(file_path.c_str(), APPEND_STATUS_CREATE))
+    : m_file(zipOpen(file_path.string().c_str(), APPEND_STATUS_CREATE))
 {
     if(!m_file)
         throw std::runtime_error(std::format(
             "MinizipWriteSaveContainer::MinizipWriteSaveContainer"
             ": Cannot open zip file {}",
-            file_path.c_str()
+            file_path.string()
         ));
 }
 
