@@ -8,6 +8,7 @@ find_package(ZLIB REQUIRED)
 find_package(SDL2pp REQUIRED)
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(MINIZIP minizip REQUIRED)
+pkg_check_modules(SDL2GFX SDL2_gfx REQUIRED)
 
 add_executable(moonsbox
     main.cpp
@@ -30,7 +31,7 @@ add_executable(moonsbox
     fpscounter.hpp fpscounter.cpp
     ext/miniaudio.h ext/miniaudio.c
 )
-target_link_libraries(moonsbox PUBLIC ZLIB::ZLIB minizip SDL2pp::SDL2pp)
+target_link_libraries(moonsbox PUBLIC ZLIB::ZLIB minizip SDL2pp::SDL2pp SDL2_gfx)
 if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")   
     target_compile_options(moonsbox PRIVATE -Wall -Wextra)
 endif()
