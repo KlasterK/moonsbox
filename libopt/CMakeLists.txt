@@ -31,6 +31,7 @@ add_executable(moonsbox
     fpscounter.hpp fpscounter.cpp
     mainwindowui.hpp mainwindowui.cpp
     ext/miniaudio.h ext/miniaudio.c
+    ext/portable-file-dialogs.h
 )
 target_link_libraries(moonsbox PUBLIC ZLIB::ZLIB minizip SDL2pp::SDL2pp SDL2_gfx)
 if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")   
