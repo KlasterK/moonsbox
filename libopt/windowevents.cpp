@@ -247,6 +247,7 @@ MaterialPaletteEventHandler::MaterialPaletteEventHandler(
     : m_palette(palette)
     , m_registry(registry)
     , m_drawing_material(drawing_material)
+    , m_previous_idx(m_palette.get_current_selection_idx())
 {}
 
 bool MaterialPaletteEventHandler::process_event(const SDL_Event &e)
@@ -259,60 +260,35 @@ bool MaterialPaletteEventHandler::process_event(const SDL_Event &e)
             {
             case SDLK_LEFT:
             case SDLK_a:
-                // We should rely on exceptions here because what if some slots are missing?
-                try
-                {
-                    auto slot = m_palette.get_current_selection();
-                    m_palette.set_current_selection(slot[0] - 1, slot[1]);
-                }
-                catch(const std::logic_error &)
-                {}
+                m_palette.move_selection(-1, 0);
                 sfx::play_sound("palette.move_selection", "ui", true);
                 return true;
             case SDLK_RIGHT:
             case SDLK_d:
-                try
-                {
-                    auto slot = m_palette.get_current_selection();
-                    m_palette.set_current_selection(slot[0] + 1, slot[1]);
-                }
-                catch(const std::logic_error &)
-                {}
+                m_palette.move_selection(1, 0);
                 sfx::play_sound("palette.move_selection", "ui", true);
                 return true;
             case SDLK_UP:
             case SDLK_w:
-                try
-                {
-                    auto slot = m_palette.get_current_selection();
-                    m_palette.set_current_selection(slot[0], slot[1] - 1);
-                }
-                catch(const std::logic_error &)
-                {}
+                m_palette.move_selection(0, -1);
                 sfx::play_sound("palette.move_selection", "ui", true);
                 return true;
             case SDLK_DOWN:
             case SDLK_s:
-                try
-                {
-                    auto slot = m_palette.get_current_selection();
-                    m_palette.set_current_selection(slot[0], slot[1] + 1);
-                }
-                catch(const std::logic_error &)
-                {}
+                m_palette.move_selection(0, 1);
                 sfx::play_sound("palette.move_selection", "ui", true);
                 return true;
             case SDLK_RETURN:
             case SDLK_SPACE:
             case SDLK_LCTRL:
             case SDLK_RCTRL:
-                m_previous_slot = m_palette.get_current_selection();
+                m_previous_idx = m_palette.get_current_selection_idx();
                 m_drawing_material = m_palette.get_selected_material();
                 m_palette.hide();
                 sfx::play_sound("palette.hide_confirmation", "ui", true);
                 return true;
             case SDLK_ESCAPE:
-                m_palette.set_current_selection(m_previous_slot[0], m_previous_slot[1]);
+                m_palette.set_current_selection_idx(m_previous_idx);
                 m_palette.hide();
                 sfx::play_sound("palette.hide_no_confirmation", "ui", true);
                 return true;
@@ -325,25 +301,25 @@ bool MaterialPaletteEventHandler::process_event(const SDL_Event &e)
         {
             if(e.button.button == SDL_BUTTON_LEFT)
             {
-                auto slot_opt = m_palette.match_click_to_slot(e.button.x, e.button.y);
-                if(slot_opt)
+                auto idx_opt = m_palette.match_click_to_idx(e.button.x, e.button.y);
+                if(idx_opt)
                 {
-                    m_palette.set_current_selection((*slot_opt)[0], (*slot_opt)[1]);
-                    m_previous_slot = *slot_opt;
+                    m_palette.set_current_selection_idx(*idx_opt);
+                    m_previous_idx = *idx_opt;
                     m_drawing_material = m_palette.get_selected_material();
                     m_palette.hide();
                     sfx::play_sound("palette.hide_confirmation", "ui", true);
                 }
                 else
                 {
-                    m_palette.set_current_selection(m_previous_slot[0], m_previous_slot[1]);
+                    m_palette.set_current_selection_idx(m_previous_idx);
                     m_palette.hide();
                     sfx::play_sound("palette.hide_no_confirmation", "ui", true);
                 }
             }
             else if(e.button.button == SDL_BUTTON_RIGHT)
             {
-                m_palette.set_current_selection(m_previous_slot[0], m_previous_slot[1]);
+                m_palette.set_current_selection_idx(m_previous_idx);
                 m_palette.hide();
                 sfx::play_sound("palette.hide_no_confirmation", "ui", true);
             }
@@ -388,9 +364,9 @@ bool MaterialPaletteEventHandler::process_event(const SDL_Event &e)
                 return ctl_refwr.get();
             }();
 
-            auto slot_opt = m_palette.find_material_slot(m_drawing_material.get());
-            if(slot_opt)
-                m_palette.set_current_selection((*slot_opt)[0], (*slot_opt)[1]);
+            auto idx_opt = m_palette.find_material_idx(m_drawing_material.get());
+            if(idx_opt)
+                m_palette.set_current_selection_idx(*idx_opt);
             return false;
         }
     }

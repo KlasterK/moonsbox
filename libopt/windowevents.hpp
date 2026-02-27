@@ -95,7 +95,7 @@ private:
     MaterialRegistry &m_registry;
     std::reference_wrapper<MaterialController> &m_drawing_material;
 
-    std::array<size_t, 2> m_previous_slot{0, 0};
+    size_t m_previous_idx{};
     std::vector<std::reference_wrapper<MaterialController>> m_material_stack;
 };
 static_assert(EventHandler<MaterialPaletteEventHandler>);
