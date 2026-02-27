@@ -60,13 +60,8 @@ void _fall_sand(GameMap &map, size_t x, size_t y)
     if(_try_swap(map, x, y, x, y-1, MtlTag::IsFlowable))
         return;
 
-    if(rand() > RAND_MAX / 2)
-    {
-        if(_try_swap(map, x, y, x-1, y-1, MtlTag::IsFlowable))
-            return;
-    }
-    else if(_try_swap(map, x, y, x+1, y-1, MtlTag::IsFlowable))
-        return;
+    int dx = rand() > RAND_MAX / 2 ? 1 : -1;
+    _try_swap(map, x, y, x+dx, y-1, MtlTag::IsFlowable);
 }
 
 
@@ -75,20 +70,12 @@ void _fall_liquid(GameMap &map, size_t x, size_t y)
     if(_try_swap(map, x, y, x, y-1, MtlTag::IsSparseness))
         return;
 
-    if(rand() > RAND_MAX / 2)
-    {
-        if(_try_swap(map, x, y, x-1, y, MtlTag::IsSparseness))
-            return;
-    }
-    else if(_try_swap(map, x, y, x+1, y, MtlTag::IsSparseness))
+    int dx = rand() > RAND_MAX / 2 ? 1 : -1;
+    if(_try_swap(map, x, y, x+dx, y, MtlTag::IsSparseness))
         return;
-
-    if(rand() > RAND_MAX / 2)
-    {
-        if(_try_swap(map, x, y, x-1, y-1, MtlTag::IsSparseness))
-            return;
-    }
-    else if(_try_swap(map, x, y, x+1, y-1, MtlTag::IsSparseness))
+    
+    dx = rand() > RAND_MAX / 2 ? 1 : -1;
+    if(_try_swap(map, x, y, x+dx, y-1, MtlTag::IsSparseness))
         return;
 
     if(rand() < RAND_MAX / 100)
@@ -103,20 +90,12 @@ void _fall_light_gas(GameMap &map, size_t x, size_t y)
     if(_try_swap(map, x, y, x, y+1, _test_space))
         return;
 
-    if(rand() > RAND_MAX / 2)
-    {
-        if(_try_swap(map, x, y, x-1, y, _test_space))
-            return;
-    }
-    else if(_try_swap(map, x, y, x+1, y, _test_space))
+    int dx = rand() > RAND_MAX / 2 ? 1 : -1;
+    if(_try_swap(map, x, y, x+dx, y, _test_space))
         return;
 
-    if(rand() > RAND_MAX / 2)
-    {
-        if(_try_swap(map, x, y, x-1, y+1, _test_space))
-            return;
-    }
-    else if(_try_swap(map, x, y, x+1, y+1, _test_space))
+    dx = rand() > RAND_MAX / 2 ? 1 : -1;
+    if(_try_swap(map, x, y, x+dx, y+1, _test_space))
         return;
 
     if(rand() < RAND_MAX / 100)
