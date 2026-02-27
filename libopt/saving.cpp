@@ -508,8 +508,10 @@ std::string _read_arbitrary_data_layer(const ReadSaveContainer &container, GameM
         return "Container subfile of arbitrary data layer not found";
 
     const auto &[vec, _] = *file_opt;
-    size_t map_idx{};
+    if(vec.empty())
+        return {};
 
+    size_t map_idx{};
     for(auto block_begin_it = vec.begin();;)
     {
         const auto *hdr = reinterpret_cast<const ArbitraryDataHeader *>(block_begin_it.base());
