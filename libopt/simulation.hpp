@@ -19,6 +19,7 @@ private:
     GameMap &m_map;
     MaterialRegistry &m_registry;
     bool m_is_paused = false;
+    int m_tick_num{};
 };
 
 #endif // MOOX_SIMULATION_HPP

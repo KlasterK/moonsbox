@@ -180,21 +180,46 @@ void SimulationManager::tick()
         _fall_heavy_gas,
     };
 
-    for(size_t y{}; y < h; ++y)
+    if(m_tick_num % 2 == 0)
     {
-        for(size_t x{}; x < w; ++x)
+        for(size_t y{}; y < h; ++y)
         {
-            auto idx = static_cast<size_t>(m_map.physical_behaviors(x, y));
-            phys_procedures[idx](m_map, x, y);
+            for(size_t x{}; x < w; ++x)
+            {
+                auto idx = static_cast<size_t>(m_map.physical_behaviors(x, y));
+                phys_procedures[idx](m_map, x, y);
+            }
+        }
+
+        for(size_t y{h - 1}; y < h; --y) // when y=0 decreases, it becomes SIZE_MAX and greater than h
+        {
+            for(size_t x{}; x < w; ++x)
+            {
+                if(m_map.physical_behaviors(x, y) == MaterialPhysicalBehavior::LightGas)
+                    _fall_light_gas(m_map, x, y);
+            }
+        }
+    }
+    else
+    {
+        for(size_t y{}; y < h; ++y)
+        {
+            for(size_t x{w - 1}; x < w; --x) // same as with --y=0
+            {
+                auto idx = static_cast<size_t>(m_map.physical_behaviors(x, y));
+                phys_procedures[idx](m_map, x, y);
+            }
+        }
+
+        for(size_t y{h - 1}; y < h; --y)
+        {
+            for(size_t x{w - 1}; x < w; --x)
+            {
+                if(m_map.physical_behaviors(x, y) == MaterialPhysicalBehavior::LightGas)
+                    _fall_light_gas(m_map, x, y);
+            }
         }
     }
 
-    for(size_t y = h - 1; y < h; --y) // when y=0 decreases, it becomes SIZE_MAX and greater than h
-    {
-        for(size_t x{}; x < w; ++x)
-        {
-            if(m_map.physical_behaviors(x, y) == MaterialPhysicalBehavior::LightGas)
-                _fall_light_gas(m_map, x, y);
-        }
-    }
+    ++m_tick_num;
 }
