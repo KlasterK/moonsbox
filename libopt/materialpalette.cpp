@@ -255,10 +255,10 @@ void MaterialPalette::render()
         if(i == m_selection_idx)
         {
             SDL2pp::Rect sel_rect{
-                dst_point.x - Margin / 2,
-                dst_point.y - Margin / 2,
-                IconWidth + Margin,
-                m_slot_texs[i].GetHeight() + Margin,
+                dst_point.x - Margin / 4,
+                dst_point.y - Margin / 4,
+                IconWidth + Margin / 2,
+                m_slot_texs[i].GetHeight() + Margin / 2,
             };
             _draw_rounded_rect_fill_outline_solid(
                 m_rnd, sel_rect, 3, 8, SelectionInnerColor, SelectionOuterColor
