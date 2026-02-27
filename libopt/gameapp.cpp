@@ -1,6 +1,6 @@
 #include "gameapp.hpp"
 #include "drawing.hpp"
-#include "fpscounter.hpp"
+#include "mainwindowui.hpp"
 #include "materialregistry.hpp"
 #include "materials.hpp"
 #include "renderer.hpp"
@@ -15,7 +15,6 @@ namespace
     uint32_t MapOuterColor{0x113311FF};
     const char *WindowTitle = "moonsbox";
     bool VSync = true;
-    bool DoEnableFPSCounter = true;
 }
 
 template<typename T>
@@ -78,18 +77,19 @@ GameApp::GameApp()
     , m_drawing_material(std::get<Sand>(m_materials_tuple))
     , m_event_handlers_tuple{
         MaterialPaletteEventHandler{m_palette, m_registry, m_drawing_material},
+        MainWindowUI{m_sdl_renderer, m_font, m_palette},
         GameAppEventHandler{*this},
         SimulationEventHandler{m_map, m_sim, m_registry},
         CameraEventHandler{m_camera},
         DrawingEventHandler{m_camera, m_map, m_drawing_material},
         RendererEventHandler{m_renderer},
     }
-{}
+{
+    m_window.SetIcon(SDL2pp::Surface{"assets/window_icon"});
+}
 
 void GameApp::run()
 {
-    FPSCounter fps_counter;
-
     while (m_is_running)
     {
         SDL_Event e;
@@ -122,21 +122,7 @@ void GameApp::run()
             )
         );
 
-        if(DoEnableFPSCounter)
-        {
-            fps_counter.tick();
-            auto surf = m_font.RenderText_Blended(
-                std::format(
-                    "FPS: Avg {:.2f} Min {:.2f} Max {:.2f}", 
-                    fps_counter.avg_fps(), fps_counter.min_fps(), fps_counter.max_fps()
-                ),
-                {0, 255, 0, 255}
-            );
-            SDL2pp::Texture tex(m_sdl_renderer, surf);
-            SDL2pp::Rect dst_rect{10, 10, surf.GetWidth(), surf.GetHeight()};
-            m_sdl_renderer.Copy(tex, SDL2pp::NullOpt, dst_rect);
-        }
-
+        std::get<MainWindowUI>(m_event_handlers_tuple).render();
         m_palette.render();
         m_sdl_renderer.Present();
     }

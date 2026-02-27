@@ -29,6 +29,7 @@ add_executable(moonsbox
     gameapp.hpp gameapp.cpp
     soundsystem.hpp soundsystem.cpp
     fpscounter.hpp fpscounter.cpp
+    mainwindowui.hpp mainwindowui.cpp
     ext/miniaudio.h ext/miniaudio.c
 )
 target_link_libraries(moonsbox PUBLIC ZLIB::ZLIB minizip SDL2pp::SDL2pp SDL2_gfx)

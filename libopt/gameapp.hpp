@@ -3,6 +3,7 @@
 
 #include "camera.hpp"
 #include "gamemap.hpp"
+#include "mainwindowui.hpp"
 #include "materialpalette.hpp"
 #include "renderer.hpp"
 #include "simulation.hpp"
@@ -43,7 +44,8 @@ private:
 
     std::reference_wrapper<MaterialController> m_drawing_material;
     std::tuple<
-        MaterialPaletteEventHandler, 
+        MaterialPaletteEventHandler,
+        MainWindowUI,
         GameAppEventHandler, 
         SimulationEventHandler, 
         CameraEventHandler,
