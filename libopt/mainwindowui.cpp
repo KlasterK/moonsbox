@@ -8,6 +8,7 @@
 #include <SDL_events.h>
 #include <SDL_mouse.h>
 #include <utility>
+#include "ext/portable-file-dialogs.h"
 
 namespace
 {
@@ -166,7 +167,10 @@ void MainWindowUI::center_saving_subwindow()
     };
 }
 
-MainWindowUI::MainWindowUI(SDL2pp::Renderer &renderer, SDL2pp::Font &font, MaterialPalette &palette)
+MainWindowUI::MainWindowUI(
+    SDL2pp::Renderer &renderer, SDL2pp::Font &font, MaterialPalette &palette,
+    FileCallback load_save_cb, FileCallback store_save_cb
+)
     : m_renderer(renderer)
     , m_font(font)
     , m_palette(palette)
@@ -197,6 +201,8 @@ MainWindowUI::MainWindowUI(SDL2pp::Renderer &renderer, SDL2pp::Font &font, Mater
             .content_tex{renderer, m_font.RenderText_Blended("Save", Subwindow::FgColor)},
         },
     }
+    , m_load_save_cb(std::move(load_save_cb))
+    , m_store_save_cb(std::move(store_save_cb))
 {}
 
 bool MainWindowUI::process_event(const SDL_Event &event)
@@ -246,11 +252,27 @@ bool MainWindowUI::process_event(const SDL_Event &event)
             }
             else if(m_saving_subwindow.load_btn.do_act_on_release(event.button.x, event.button.y))
             {
-                sfx::play_sound("material.Sand");
+                std::vector<std::string> filters{
+                    "Moonsbox Save", "*.kk-save", "All Files", "*",
+                };
+                pfd::open_file open_file("Load Save", "user", std::move(filters));
+                if(auto result_vec = open_file.result(); !result_vec.empty())
+                {
+                    m_load_save_cb(result_vec.at(0));
+                }
+                m_is_saving_subwindow_visible = false;
             }
             else if(m_saving_subwindow.save_btn.do_act_on_release(event.button.x, event.button.y))
             {
-                sfx::play_sound("material.Water");
+                std::vector<std::string> filters{
+                    "Moonsbox Save", "*.kk-save", "All Files", "*",
+                };
+                pfd::save_file save_file("Store Save", "user", std::move(filters));
+                if(auto result_str = save_file.result(); !result_str.empty())
+                {
+                    m_store_save_cb(result_str);
+                }
+                m_is_saving_subwindow_visible = false;
             }
         }
 

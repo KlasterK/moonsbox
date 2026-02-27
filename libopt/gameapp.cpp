@@ -3,8 +3,12 @@
 #include "mainwindowui.hpp"
 #include "materialregistry.hpp"
 #include "materials.hpp"
+#include "minizipsavecontainer.hpp"
 #include "renderer.hpp"
+#include "saving.hpp"
 #include <SDL2pp/SDL2pp.hh>
+#include <SDL_messagebox.h>
+#include <stdexcept>
 
 namespace
 {
@@ -74,10 +78,17 @@ GameApp::GameApp()
     , m_renderer(m_map, m_sdl_renderer, MapInnerColor)
     , m_camera(VisibleArea, ScreenSize)
     , m_palette(m_sdl_renderer, m_registry, m_font)
+    , m_ui{
+        m_sdl_renderer, 
+        m_font, 
+        m_palette,
+        [this](std::filesystem::path path) { load_save(path); },
+        [this](std::filesystem::path path) { store_save(path); },
+    }
     , m_drawing_material(std::get<Sand>(m_materials_tuple))
     , m_event_handlers_tuple{
         MaterialPaletteEventHandler{m_palette, m_registry, m_drawing_material},
-        MainWindowUI{m_sdl_renderer, m_font, m_palette},
+        m_ui,
         GameAppEventHandler{*this},
         SimulationEventHandler{m_map, m_sim, m_registry},
         CameraEventHandler{m_camera},
@@ -122,7 +133,7 @@ void GameApp::run()
             )
         );
 
-        std::get<MainWindowUI>(m_event_handlers_tuple).render();
+        m_ui.render();
         m_palette.render();
         m_sdl_renderer.Present();
     }
@@ -131,4 +142,45 @@ void GameApp::run()
 void GameApp::stop()
 {
     m_is_running = false;
+}
+
+void GameApp::load_save(std::filesystem::path path)
+{
+    MinizipReadSaveContainer container(path);
+    auto map_result = saving::deserialize(container, m_registry);
+    if(!map_result.has_value())
+    {
+        SDL_ShowSimpleMessageBox(
+            SDL_MESSAGEBOX_WARNING,
+            "Save Loading Error",
+            map_result.error().c_str(),
+            m_window.Get()
+        );
+    }
+    else
+    {
+        m_map = std::move(*map_result);
+    }
+}
+
+void GameApp::store_save(std::filesystem::path path)
+{
+    MinizipWriteSaveContainer container(path);
+    auto error_result = saving::serialize(container, m_map, m_registry);
+    if(!error_result.has_value())
+    {
+        SDL_ShowSimpleMessageBox(
+            SDL_MESSAGEBOX_WARNING,
+            "Save Storing Error",
+            error_result.error().c_str(),
+            m_window.Get()
+        );
+    }
+
+    if(!container.close())
+    {
+        throw std::runtime_error(
+            "GameApp::store_save: unable to close MinizipWriteSaveContainer"
+        );
+    }
 }

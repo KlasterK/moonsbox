@@ -8,11 +8,19 @@
 #include <SDL2pp/Point.hh>
 #include <SDL2pp/Renderer.hh>
 #include <SDL2pp/Texture.hh>
+#include <filesystem>
+#include <functional>
 
 class MainWindowUI
 {
 public:
-    MainWindowUI(SDL2pp::Renderer &renderer, SDL2pp::Font &font, MaterialPalette &palette);
+    using FileCallback = std::move_only_function<void(std::filesystem::path)>;
+
+public:
+    MainWindowUI(
+        SDL2pp::Renderer &renderer, SDL2pp::Font &font, MaterialPalette &palette,
+        FileCallback load_save_cb, FileCallback store_save_cb
+    );
     bool process_event(const SDL_Event &e);
     void render();
 
@@ -49,6 +57,8 @@ private:
     Button m_palette_btn, m_saving_btn;
     SDL2pp::Point m_fps_point;
     SavingSubwindow m_saving_subwindow;
+
+    FileCallback m_load_save_cb, m_store_save_cb;
 
     FPSCounter m_fps_counter{};
     bool m_is_saving_subwindow_visible{false};

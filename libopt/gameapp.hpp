@@ -11,6 +11,7 @@
 #include "windowevents.hpp"
 #include "materials.hpp"
 #include <SDL2pp/SDL2pp.hh>
+#include <filesystem>
 
 class GameApp
 {
@@ -41,17 +42,21 @@ private:
     Renderer m_renderer;
     Camera m_camera;
     MaterialPalette m_palette;
+    MainWindowUI m_ui;
 
     std::reference_wrapper<MaterialController> m_drawing_material;
     std::tuple<
         MaterialPaletteEventHandler,
-        MainWindowUI,
-        GameAppEventHandler, 
-        SimulationEventHandler, 
+        MainWindowUI &,
+        GameAppEventHandler,
+        SimulationEventHandler,
         CameraEventHandler,
-        DrawingEventHandler, 
+        DrawingEventHandler,
         RendererEventHandler
-    > m_event_handlers_tuple; 
+    > m_event_handlers_tuple;
+
+    void load_save(std::filesystem::path path);
+    void store_save(std::filesystem::path path);
 };
 
 #endif // MOOX_GAMEAPP_HPP
