@@ -205,7 +205,7 @@ bool DrawingEventHandler::process_event(const SDL_Event &e)
     return false;
 }
 
-void DrawingEventHandler::update()
+void DrawingEventHandler::update_drawing()
 {
     if(!m_is_holded)
         return;

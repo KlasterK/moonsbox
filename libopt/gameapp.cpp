@@ -107,11 +107,7 @@ void GameApp::run()
             }, m_event_handlers_tuple);
         }
 
-        std::apply([](auto &...handlers)
-        {
-            (handlers.update(), ...);
-        }, m_event_handlers_tuple);
-
+        std::get<DrawingEventHandler>(m_event_handlers_tuple).update_drawing();
         m_sim.tick();
 
         m_sdl_renderer.SetDrawColor(

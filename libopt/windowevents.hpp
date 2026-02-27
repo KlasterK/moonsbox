@@ -20,7 +20,6 @@ template<typename T>
 concept EventHandler = requires(T h, const SDL_Event &e)
 {
     { h.process_event(e) } -> std::same_as<bool>;
-    { h.update() } -> std::same_as<void>;
 };
 
 class GameAppEventHandler
@@ -28,7 +27,6 @@ class GameAppEventHandler
 public:
     explicit GameAppEventHandler(class GameApp &app);
     bool process_event(const SDL_Event &e);
-    inline void update() {}
 
 private:
     GameApp &m_app;
@@ -40,7 +38,6 @@ class SimulationEventHandler
 public:
     SimulationEventHandler(GameMap &map, SimulationManager &sim, MaterialRegistry &registry);
     bool process_event(const SDL_Event &e);
-    inline void update() {}
 
 private:
     GameMap &m_map;
@@ -54,7 +51,6 @@ class CameraEventHandler
 public:
     explicit CameraEventHandler(Camera &camera);
     bool process_event(const SDL_Event &e);
-    inline void update() {}
 
 private:
     Camera &m_camera;
@@ -67,7 +63,7 @@ public:
     DrawingEventHandler(Camera &camera, GameMap &map, 
                         const std::reference_wrapper<MaterialController> &drawing_material);
     bool process_event(const SDL_Event &e);
-    void update();
+    void update_drawing();
 
 private:
     Camera &m_camera;
@@ -88,7 +84,6 @@ public:
     MaterialPaletteEventHandler(MaterialPalette &palette, MaterialRegistry &registry,
                                 std::reference_wrapper<MaterialController> &drawing_material);
     bool process_event(const SDL_Event &e);
-    inline void update() {}
 
 private:
     MaterialPalette &m_palette;
@@ -105,7 +100,6 @@ class RendererEventHandler
 public:
     explicit RendererEventHandler(Renderer &renderer);
     bool process_event(const SDL_Event &e);
-    inline void update() {}
 
 private:
     Renderer &m_renderer;
