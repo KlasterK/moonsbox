@@ -74,7 +74,7 @@ cmake -S. -Bbuild -DCMAKE_BUILD_TYPE=Release
 cmake --build build
 
 # Run
-build/moonsbox
+build/src/moonsbox
 ```
 
 ## License
