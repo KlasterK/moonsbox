@@ -1,14 +1,4 @@
-cmake_minimum_required(VERSION 3.20)
-project(moonsbox-opt LANGUAGES C CXX VERSION 2.0.0)
 
-set(CMAKE_CXX_STANDARD 23)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-
-find_package(ZLIB REQUIRED)
-find_package(SDL2pp REQUIRED)
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(MINIZIP minizip REQUIRED)
-pkg_check_modules(SDL2GFX SDL2_gfx REQUIRED)
 
 add_executable(moonsbox
     main.cpp
@@ -33,7 +23,9 @@ add_executable(moonsbox
     ext/miniaudio.h ext/miniaudio.c
     ext/portable-file-dialogs.h
 )
-target_link_libraries(moonsbox PUBLIC ZLIB::ZLIB minizip SDL2pp::SDL2pp SDL2_gfx)
+target_link_libraries(moonsbox PUBLIC 
+    ZLIB::ZLIB PkgConfig::MINIZIP SDL2pp::SDL2pp PkgConfig::SDL2GFX
+)
 if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")   
     target_compile_options(moonsbox PRIVATE -Wall -Wextra)
 endif()
