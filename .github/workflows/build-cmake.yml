@@ -1,0 +1,125 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - "*"
+  pull_request:
+    branches:
+      - main
+  release:
+    types: [published]
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            compiler: gcc
+            cxx: g++
+            triplet: x64-linux
+          - os: ubuntu-latest
+            compiler: clang
+            cxx: clang++
+            triplet: x64-linux
+          - os: windows-latest
+            compiler: msvc
+            triplet: x64-windows
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Install Linux dependencies
+      if: runner.os == 'Linux'
+      run: |
+        sudo apt update
+        sudo apt install -y \
+          libsdl2-dev \
+          libsdl2-ttf-dev \
+          libsdl2-image-dev \
+          libsdl2-mixer-dev \
+          libsdl2-gfx-dev \
+          libminizip-dev \
+          zlib1g-dev \
+          cmake \
+          ninja-build
+        
+        if [ "${{ matrix.compiler }}" = "clang" ]; then
+          sudo apt install -y clang
+        fi
+
+    - name: Install Windows dependencies (vcpkg)
+      if: runner.os == 'Windows'
+      run: |
+        git clone https://github.com/microsoft/vcpkg.git
+        .\vcpkg\bootstrap-vcpkg.bat
+        .\vcpkg\vcpkg install `
+          sdl2 sdl2-ttf sdl2-image sdl2-mixer sdl2-gfx minizip zlib sdl2pp `
+          --triplet ${{ matrix.triplet }}
+      shell: pwsh
+
+    - name: Cache vcpkg (optional, speeds up builds)
+      if: runner.os == 'Windows'
+      uses: actions/cache@v4
+      with:
+        path: vcpkg/installed
+        key: ${{ runner.os }}-vcpkg-${{ hashFiles('vcpkg/**') }}
+
+    - name: Configure CMake (Linux)
+      if: runner.os == 'Linux'
+      run: |
+        cmake -S. -Bbuild \
+          -DCMAKE_BUILD_TYPE=Release \
+          -DCMAKE_C_COMPILER=${{ matrix.compiler == 'gcc' && 'gcc' || 'clang' }} \
+          -DCMAKE_CXX_COMPILER=${{ matrix.cxx }}
+
+    - name: Configure CMake (Windows with vcpkg toolchain)
+      if: runner.os == 'Windows'
+      run: |
+        cmake -S. -Bbuild `
+          -DCMAKE_BUILD_TYPE=Release `
+          -DCMAKE_TOOLCHAIN_FILE=vcpkg/scripts/buildsystems/vcpkg.cmake `
+          -DVCPKG_TARGET_TRIPLET=${{ matrix.triplet }}
+      shell: pwsh
+
+    - name: Build
+      run: cmake --build build --config Release
+
+    - name: Get Version and Architecture Info
+      shell: bash
+      run: |
+        echo "VERSION=$(git describe --tags --exact-match HEAD 2>/dev/null \
+            || git rev-parse --short HEAD)" >> $GITHUB_ENV
+
+        echo "ARCH=$(uname -m)" >> $GITHUB_ENV
+        
+        if [ "${{ matrix.os }}" == "ubuntu-latest" ]; then 
+          if [ "${{ matrix.compiler }}" == "gcc"]; then
+            echo "PLATFORM=linux_gcc" >> $GITHUB_ENV
+          elif [ "${{ matrix.compiler }}" == "clang"]; then
+            echo "PLATFORM=linux_clang" >> $GITHUB_ENV
+          fi
+        elif [ "${{ matrix.os }}" == "windows-latest" ]; then 
+          echo "PLATFORM=windows" >> $GITHUB_ENV
+        fi
+
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: moonsbox-${{ env.VERSION }}-${{ env.PLATFORM }}-${{ env.ARCH }}
+        path: |
+          build/moonsbox*
+          build/*.exe
+          build/*.pdb
+          user
+          assets
+          README.md
+          LICENSE
+        if-no-files-found: ignore
