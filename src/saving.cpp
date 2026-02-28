@@ -54,7 +54,7 @@ static_assert(std::endian::native == std::endian::little);
 constexpr uint8_t MoonsboxSignature[16] = {'m', 'o', 'o', 'n', 's', 'b', 'o', 'x',
                                            ' ', 'b', '\r', '\n', '\0', '\3', '\4', '\32'};
 
-constexpr PackedVersion CurrentGameVersion = {2, 0, 0, 'E'};
+constexpr PackedVersion CurrentGameVersion = {2, 0, 0, '\0'};
 
 constexpr SaveSubfileName MainHeaderSubfileName{'m', 'o', 'm', 'h'};
 constexpr SaveSubfileName ColorsSubfileName{'m', 'o', 'c', 'l'};

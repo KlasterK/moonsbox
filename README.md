@@ -2,9 +2,15 @@
 
 ![Gameplay Demo](doc-resources/moonsbox-map-preview.gif)
 
-A sandbox cellular automata playground written in Python with Pygame. Inspired by classic falling 
-sand games, especially SmellyMoo's sand:box, moonsbox lets you experiment with different materials
-and their interactions in a pixel world.
+A falling sand game written in C++ with SDL2. 
+Inspired by established falling sand games, 
+moonsbox lets you experiment with different materials
+and their interactions in a 2D grid world with great performance.
+
+The main inspiration for moonsbox is [sand:box](https://smellymoo.com/) by smellymoo, along with 
+[Sandboxels](https://sandboxels.r74n.com/), 
+[Powder Game](https://play.google.com/store/apps/details?id=jp.danball.powdergameviewer) and 
+[The Powder Toy](https://powdertoy.co.uk/).
 
 ## Features
 
@@ -12,82 +18,63 @@ and their interactions in a pixel world.
 - **Heat simulation**: Materials exchange temperature based on heat capacity and 
                        thermal conductivity
 - **Sound effects**: Some materials can play sounds on interaction
-- **Resizable window**: The simulation area and camera can be zoomed and panned
-- **Saving & Screenshot**: Share some funny situations with your friends using saves or screenshots
-- **Highly customizable**: Tune your sandbox changing TOML config or assets
-
-## Plans
-
-- Move const.py to a config file. (✓)
-- Get rid of tkinter.filedialog dependency and make our own opener of native file dialog. (✓)
-- Make capturing system for the game on top of FFMPEG. (✓)
-- Make the first release of the game. (✓)
-- Spread the game. (✓)
-- Create a chat for the game. (✓)
-- Rewrite high-loaded core of the game in C++ (branch wip-cxx)
-- Add more materials
-- Add visual configuring
-- Create a launcher for the game with visual configuring, managing saves and captures, game updating
-- Add touchscreen support
-- Add building chain for Android
-- Make multiplayer prototype
+- **Advanced renderer**: Zoom and heatmap display are supported
+- **Saving system**: Save your progress, share your buildings, schemes or silly states
 
 ## Controls
 
-- **LMB | Ctrl**: Draw with the selected material
-- **RMB | Shift**: Move the camera
-- **Mouse Wheel**: Zoom camera
-- **MMB | Tab**: Open the material palette
-- **Space**: Pause simulation
-- **V**: Change render mask (normal/thermal)
-- **F5**: Step simulation
-- **F6**: Clean map
-- **F10**: Take map snapshot
-- **+ | - | Alt + Mouse Wheel**: Change brush size
-- **R**: Pause rendering to speed up simulation
-- **Alt + F12**: Begin or end capturing (see Running to convert capture to a video)
-- **U | Mouse Go Forward**: Push current material into material stack
-- **I | Mouse Go Back**: Pop material from the stack (if empty, get Space)
-- **K**: Pick the material of a dot under the mouse cursor
+| Action                                            | Control                |
+|:--------------------------------------------------|:-----------------------|
+| Draw with the selected material                   | LMB, Ctrl              |
+| Move the camera                                   | RMB, Shift             |
+| Zoom camera                                       | Mouse Wheel            |
+| Open the material palette                         | MMB, Tab               |
+| Pause simulation                                  | Space                  |
+| Change render mask (normal/thermal)               | V                      |
+| Step simulation                                   | F5                     |
+| Clean map                                         | F6                     |
+| Change brush size                                 | Alt + Mouse Wheel, +/- |
+| Push current material into material stack         | U, Mouse Go Forward    |
+| Pop material from the stack (if empty, get Space) | I, Mouse Go Back       |
 
 ## Social
 
-Moonsbox have got its own [telegram channel](https://t.me/kk_moonsbox)!
+Join our community!
 
-If you know Russian and you are interested in the development of moonsbox, please join it.
+- For English speakers, come chat with us on [discord server](https://discord.gg/ZKDg6KHqyQ).
+- Если вы знаете русский, подписывайтесь на наш [телеграм канал](https://t.me/kk_moonsbox).
+  Новости там появляются быстрее, чем в дискорде.
+  (Telegram channel. News appear there faster.)
 
-## Requirements
+## Dependencies
 
-- Python 3 (I run it with Python 3.13.3)
-- pygame-ce
-- numpy
-- toml
+- C++23
+- CMake 3.20+
+- SDL2 (including SDL_ttf, SDL_image)
+- SDL2_gfx
+- zlib
+- minizip
+- SDL2pp
+- miniaudio (embedded)
+- portable-file-dialogs (embedded)
 
 ## Running
 
 ```sh
-# If your platform is not Windows, it's recommended to have tkinter:
-python -c "import tkinter" # checks if tkinter is here
-# If you don't have one and not using Windows, then if you open file dialogs, you have to enter
-# text into console.
+# Install dependencies
+# Arch Linux
+sudo pacman -S base-devel cmake gcc sdl3 sdl2-compat sdl2_image sdl2_ttf sdl2_gfx 
+sudo pacman -S zlib minizip pkg-config
+yay -S sdl2pp
 
-# Getting ready
-python -m pip install pygame-ce numpy toml
-cd <PROJECT DIR>
+# Build
+git clone https://github.com/KlasterK/moonsbox.git
+cd moonsbox
+cmake -S. -Bbuild -DCMAKE_BUILD_TYPE=Release
+cmake --build build
 
-# Settings are at ./user/config.toml
-notepad user\config.toml # if you have Windows
-nano user/config.toml # if you have GNU nano
-
-# Running
-python -m src
-
-# Converting a capture to a video
-# Requires FFMPEG!
-ffmpeg -i <CAPTURE DIR>/frame_%06d.png [<further args>]
-# Create a video with 60 FPS, x264 codec, scaled to 400x400 (but still pixelated):
-ffmpeg -i capture_2025-08-05_17-02-33/frame_%06d.png -framerate 60 -vcodec libx264 \
-       -sws_flags neighbor -s 400x400 testcapt.mp4
+# Run
+build/moonsbox
 ```
 
 ## License
