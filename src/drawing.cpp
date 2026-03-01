@@ -1,4 +1,5 @@
 #include "drawing.hpp"
+#include "gamemap.hpp"
 #include <algorithm>
 #include <cmath>
 
@@ -46,11 +47,11 @@ void drawing::fill(GameMap &map, MaterialFactory material_factory)
 void drawing::rect(GameMap &map, Rect area, MaterialFactory material_factory)
 {
     for(int y = std::max(0, area[1]); 
-        y < std::min(area[1] + area[3], (int)map.height()); 
+        y < std::min(area[1] + area[3], int(map.height())); 
         ++y)
     {
         for(int x = std::max(0, area[0]); 
-            x < std::min(area[0] + area[2], (int)map.width()); 
+            x < std::min(area[0] + area[2], int(map.width())); 
             ++x)
         {
             material_factory(x, y);
@@ -68,7 +69,7 @@ void drawing::ellipse(GameMap &map, Rect area, MaterialFactory material_factory)
     // This formula with only integral logic:
     // b ** 2 * (x - x0) ** 2 + a ** 2 * (y - y0) ** 2 <= a ** 2 * b ** 2
 
-    long long x0, y0, a_sq, b_sq, right_cmp, rows = map.height(), cols = map.width();
+    long long x0, y0, a_sq, b_sq, right_cmp;
     x0 = area[0] + area[2] / 2;
     y0 = area[1] + area[3] / 2;
     a_sq = area[2] * area[2] / 4;
@@ -176,7 +177,7 @@ void drawing::line(GameMap &map, SignedPoint begin, SignedPoint end, int width,
             SignedPoint{
                 static_cast<int>(std::round(end[0] + per_x)),
                 static_cast<int>(std::round(end[1] + per_y))
-            }
+            },
         };
 
         int minX = std::min({corners[0][0], corners[1][0], corners[2][0], corners[3][0]});

@@ -1,4 +1,6 @@
 #include "gamemap.hpp"
+#include <SDL2/SDL_surface.h>
+#include <SDL2pp/Exception.hh>
 
 _Layer<_SDLColorLayerTag>::_Layer(size_t width, size_t height)
     : m_surface([=]
@@ -54,4 +56,4 @@ template class _Layer<_SDLColorLayerTag>;
 template class _Layer<MaterialTags>;
 template class _Layer<MaterialPhysicalBehavior>;
 template class _Layer<std::any>;
-template class _Layer<class MaterialController *>;
+template class _Layer<MaterialController *>;

@@ -1,11 +1,22 @@
 #include "windowevents.hpp"
-#include "SDL_keyboard.h"
-#include "SDL_keycode.h"
 #include "drawing.hpp"
 #include "gameapp.hpp"
 #include "gamemap.hpp"
+#include "simulation.hpp"
+#include "materialregistry.hpp"
+#include "materialcontroller.hpp"
+#include "camera.hpp"
+#include "materialpalette.hpp"
+#include "renderer.hpp"
 #include "soundsystem.hpp"
-#include <stdexcept>
+#include <SDL2/SDL_keyboard.h>
+#include <SDL2/SDL_keycode.h>
+#include <algorithm>
+#include <array>
+#include <cstddef>
+#include <vector>
+#include <optional>
+#include <functional>
 
 namespace
 {
@@ -21,15 +32,9 @@ GameAppEventHandler::GameAppEventHandler(GameApp &app)
 
 bool GameAppEventHandler::process_event(const SDL_Event &e)
 {
-    if (e.type == SDL_QUIT)
+    if (e.type == SDL_QUIT || (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_ESCAPE))
     {
         m_app.stop();
-        return true;
-    }
-    if (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_ESCAPE)
-    {
-        m_app.stop();
-        return true;
     }
     return false;
 }

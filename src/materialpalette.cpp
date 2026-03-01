@@ -1,14 +1,23 @@
 #include "materialpalette.hpp"
-#include "SDL2/SDL_blendmode.h"
-#include "SDL2/SDL_pixels.h"
-#include "SDL2/SDL_ttf.h"
-#include "SDL2/SDL2_gfxPrimitives.h"
+#include "materialregistry.hpp"
+#include <SDL2pp/Exception.hh>
+#include <SDL2pp/Color.hh>
+#include <SDL2pp/Surface.hh>
 #include <SDL2pp/Optional.hh>
 #include <SDL2pp/Renderer.hh>
 #include <SDL2pp/Surface.hh>
+#include <concepts>
 #include <iterator>
 #include <optional>
 #include <stdexcept>
+#include <algorithm>
+#include <array>
+#include <cstddef>
+#include <vector>
+#include <SDL2/SDL_blendmode.h>
+#include <SDL2/SDL_pixels.h>
+#include <SDL2/SDL_ttf.h>
+#include <SDL2/SDL2_gfxPrimitives.h>
 
 namespace
 {

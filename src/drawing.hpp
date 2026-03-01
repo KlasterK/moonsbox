@@ -1,9 +1,12 @@
 #ifndef MOOX_DRAWING_HPP
 #define MOOX_DRAWING_HPP
 
-#include "gamemap.hpp"
-#include "materialcontroller.hpp"
+#include <cstddef>
+#include <array>
 #include <functional>
+#include "materialcontroller.hpp"
+
+class GameMap;
 
 namespace drawing
 {

@@ -1,21 +1,27 @@
 #ifndef MOOX_WINDOWEVENTS_HPP
 #define MOOX_WINDOWEVENTS_HPP
 
-#include "camera.hpp"
 #include "drawing.hpp"
-#include "gamemap.hpp"
-#include "materialcontroller.hpp"
-#include "materialpalette.hpp"
-#include "renderer.hpp"
-#include "simulation.hpp"
-#include <SDL2pp/SDL2pp.hh>
+#include <SDL2/SDL_events.h>
+#include <concepts>
+#include <functional>
+#include <array>
+#include <cstddef>
+
+class GameApp;
+class GameMap;
+class SimulationManager;
+class MaterialRegistry;
+class Camera;
+class MaterialController;
+class MaterialPalette;
+class Renderer;
 
 /// Event handler concept
 ///
 /// Types satisfying this concept must provide:
 /// - `bool process_event(const SDL_Event &)` -- processes event,
 ///   returns false if event should be propagated to next handler, true otherwise
-/// - `void update()` -- called every frame
 template<typename T>
 concept EventHandler = requires(T h, const SDL_Event &e)
 {
@@ -25,7 +31,7 @@ concept EventHandler = requires(T h, const SDL_Event &e)
 class GameAppEventHandler
 {
 public:
-    explicit GameAppEventHandler(class GameApp &app);
+    explicit GameAppEventHandler(GameApp &app);
     bool process_event(const SDL_Event &e);
 
 private:

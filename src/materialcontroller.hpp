@@ -1,10 +1,15 @@
 #ifndef MOOX_MATERIALCONTROLLER_HPP
 #define MOOX_MATERIALCONTROLLER_HPP
 
-#include "gamemap.hpp"
 #include "saving.hpp"
+#include <cstddef>
+#include <cstdint>
+#include <utility>
 #include <vector>
 #include <span>
+
+class GameMap;
+class MaterialRegistry;
 
 class MaterialController
 {
@@ -23,7 +28,7 @@ public:
     virtual void static_update(GameMap &) {}
     virtual void dynamic_update(GameMap &) {}
     
-    virtual void on_register(class MaterialRegistry &) {}
+    virtual void on_register(MaterialRegistry &) {}
     virtual bool is_placeable_on(GameMap &, size_t, size_t) { return true; }
     virtual void play_place_sound(GameMap &, size_t, size_t) {}
 

@@ -3,6 +3,12 @@
 
 #include "savecontainer.hpp"
 #include <filesystem>
+#include <vector>
+#include <utility>
+#include <optional>
+#include <span>
+#include <cstdint>
+#include <filesystem>
 #include <minizip/zip.h>
 #include <minizip/unzip.h>
 

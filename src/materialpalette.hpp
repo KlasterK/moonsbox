@@ -1,11 +1,15 @@
 #ifndef MOOX_MATERIALPALETTE_HPP
 #define MOOX_MATERIALPALETTE_HPP
 
-#include <SDL2pp/SDL2pp.hh>
-#include "gamemap.hpp"
-#include "materialcontroller.hpp"
-#include "materialregistry.hpp"
-#include <array>
+#include <cstddef>
+#include <optional>
+#include <vector>
+#include <SDL2pp/Renderer.hh>
+#include <SDL2pp/Font.hh>
+#include <SDL2pp/Texture.hh>
+
+class MaterialRegistry;
+class MaterialController;
 
 class MaterialPalette
 {

@@ -7,18 +7,21 @@
 #include "renderer.hpp"
 #include "saving.hpp"
 #include <SDL2pp/SDL2pp.hh>
-#include <SDL_messagebox.h>
+#include <SDL2/SDL_messagebox.h>
 #include <stdexcept>
+#include <array>
+#include <cstddef>
+#include <cstdint>
 
 namespace
 {
-    std::array<int, 2> ScreenSize{1520, 890};
-    std::array<size_t, 2> MapSize{720, 405};
-    std::array<int, 4> VisibleArea{-20, -20, 760, 445}; // x,y,w,h
-    uint32_t MapInnerColor{0x000000FF};
-    uint32_t MapOuterColor{0x113311FF};
-    const char *WindowTitle = "moonsbox";
-    bool VSync = true;
+    constexpr std::array<int, 2> ScreenSize{1520, 890};
+    constexpr std::array<size_t, 2> MapSize{720, 405};
+    constexpr std::array<int, 4> VisibleArea{-20, -20, 760, 445}; // x,y,w,h
+    constexpr uint32_t MapInnerColor{0x000000FF};
+    constexpr uint32_t MapOuterColor{0x113311FF};
+    constexpr std::string_view WindowTitle{"moonsbox"};
+    constexpr bool VSync{true};
 }
 
 template<typename T>
@@ -61,7 +64,7 @@ GameApp::GameApp()
         return map;
     }())
     , m_window(
-        WindowTitle, 
+        WindowTitle.data(), 
         SDL_WINDOWPOS_UNDEFINED, 
         SDL_WINDOWPOS_UNDEFINED,
         ScreenSize[0],

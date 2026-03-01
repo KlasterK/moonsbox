@@ -11,7 +11,6 @@
 #include <algorithm>
 #include <cstdint>
 #include <initializer_list>
-#include <limits>
 #include <stdexcept>
 #include <tuple>
 #include <cstddef>
@@ -21,6 +20,9 @@
 #include <optional>
 #include <ranges>
 #include <bit>
+#include <array>
+#include <utility>
+#include <vector>
 
 static_assert(std::endian::native == std::endian::little);
 
@@ -454,7 +456,7 @@ std::string _read_material_ctls_layer(const ReadSaveContainer &container, GameMa
                 break;
             
             std::string_view name(
-                reinterpret_cast<const char *>(it.base()), 
+                reinterpret_cast<const char *>(&*it), 
                 static_cast<size_t>(nul_it - it)
             );
             it = nul_it + 1;
@@ -514,7 +516,7 @@ std::string _read_arbitrary_data_layer(const ReadSaveContainer &container, GameM
     size_t map_idx{};
     for(auto block_begin_it = vec.begin();;)
     {
-        const auto *hdr = reinterpret_cast<const ArbitraryDataHeader *>(block_begin_it.base());
+        const auto *hdr = reinterpret_cast<const ArbitraryDataHeader *>(&*block_begin_it);
 
         map_idx += hdr->skipped_dots_count;
         if(map_idx >= map.flat_size())

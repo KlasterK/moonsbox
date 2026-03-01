@@ -1,6 +1,4 @@
 #include "camera.hpp"
-#include <SDL2/SDL.h>
-#include <array>
 
 Camera::Camera(std::array<int, 4> initial_map_visible_area, std::array<int, 2> screen_size)
     : m_map_topleft{

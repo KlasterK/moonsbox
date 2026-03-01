@@ -1,9 +1,14 @@
 #include "simulation.hpp"
+#include "materialdefs.hpp"
+#include "gamemap.hpp"
 #include "drawing.hpp"
+#include "materialregistry.hpp"
 #include <cstddef>
-#include <random>
-#include <ranges>
 #include <algorithm>
+#include <random>
+#include <cstdlib>
+#include <array>
+#include <ranges>
 
 
 SimulationManager::SimulationManager(GameMap &map, MaterialRegistry &registry)

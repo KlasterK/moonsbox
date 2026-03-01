@@ -1,13 +1,13 @@
 #ifndef MOOX_SAVING_HPP
 #define MOOX_SAVING_HPP
 
-#include "gamemap.hpp"
-#include "savecontainer.hpp"
+#include <string>
 #include <expected>
 
-// This header is included by materialcontroller.hpp which is included
-// by materialregistry.hpp, so we have to use a forward declaration here
 class MaterialRegistry;
+class WriteSaveContainer;
+class ReadSaveContainer;
+class GameMap;
 
 namespace saving
 {

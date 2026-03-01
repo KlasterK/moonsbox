@@ -1,12 +1,14 @@
 #ifndef MOOX_RENDERER_HPP
 #define MOOX_RENDERER_HPP
 
-#include "gamemap.hpp"
 #include <SDL2pp/Texture.hh>
-#include <array>
+#include <SDL2pp/Renderer.hh>
+#include <SDL2pp/Surface.hh>
 #include <cstdint>
-#include <memory>
-#include <SDL2pp/SDL2pp.hh>
+#include <optional>
+#include <array>
+
+class GameMap;
 
 class Renderer
 {

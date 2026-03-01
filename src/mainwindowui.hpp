@@ -2,14 +2,18 @@
 #define MOOX_MAINWINDOWUI_HPP
 
 #include "fpscounter.hpp"
-#include "materialpalette.hpp"
 #include "windowevents.hpp"
-#include <SDL2pp/Font.hh>
-#include <SDL2pp/Point.hh>
 #include <SDL2pp/Renderer.hh>
+#include <SDL2pp/Font.hh>
 #include <SDL2pp/Texture.hh>
+#include <SDL2pp/Point.hh>
+#include <SDL2pp/Rect.hh>
+#include <SDL2/SDL_events.h>
 #include <filesystem>
 #include <functional>
+#include <array>
+
+class MaterialPalette;
 
 class MainWindowUI
 {

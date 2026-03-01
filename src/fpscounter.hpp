@@ -1,8 +1,8 @@
 #ifndef MOOX_FPSCOUNTER_HPP
 #define MOOX_FPSCOUNTER_HPP
 
-#include <array>
 #include <cstdint>
+#include <array>
 
 class FPSCounter
 {

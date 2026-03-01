@@ -1,12 +1,7 @@
 #include "mainwindowui.hpp"
 #include "materialpalette.hpp"
 #include "soundsystem.hpp"
-#include <SDL2pp/Color.hh>
-#include <SDL2pp/Optional.hh>
-#include <SDL2pp/Point.hh>
-#include <SDL2pp/Texture.hh>
-#include <SDL_events.h>
-#include <SDL_mouse.h>
+#include <SDL2/SDL_mouse.h>
 #include <utility>
 #include "ext/portable-file-dialogs.h"
 

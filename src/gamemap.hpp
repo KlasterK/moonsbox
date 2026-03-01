@@ -1,13 +1,18 @@
 #ifndef MOOX_GAMEMAP_HPP
 #define MOOX_GAMEMAP_HPP
 
-#include <memory>
+#include "materialcontroller.hpp"
+#include "materialdefs.hpp"
+#include <cstddef>
+#include <cstdint>
+#include <array>
 #include <any>
 #include <cassert>
-#include <cstdint>
+#include <memory>
 #include <span>
-#include <SDL2pp/SDL2pp.hh>
-#include "materialdefs.hpp"
+#include <SDL2pp/Surface.hh>
+
+class MaterialController;
 
 
 template<typename T>
@@ -82,7 +87,7 @@ public:
     _Layer<MaterialTags> tags;
     _Layer<MaterialPhysicalBehavior> physical_behaviors;
     _Layer<std::any> auxs;
-    _Layer<class MaterialController *> material_ctls;
+    _Layer<MaterialController *> material_ctls;
 
 private:
     size_t m_width{}, m_height{};
@@ -93,6 +98,6 @@ extern template class _Layer<_SDLColorLayerTag>;
 extern template class _Layer<MaterialTags>;
 extern template class _Layer<MaterialPhysicalBehavior>;
 extern template class _Layer<std::any>;
-extern template class _Layer<class MaterialController *>;
+extern template class _Layer<MaterialController *>;
 
 #endif // MOOX_GAMEMAP_HPP

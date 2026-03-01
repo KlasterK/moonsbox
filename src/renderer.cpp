@@ -1,14 +1,14 @@
 #include "renderer.hpp"
-#include "SDL_blendmode.h"
-#include "SDL_render.h"
-#include <SDL2/SDL.h>
-#include <SDL2pp/Exception.hh>
-#include <SDL2pp/Optional.hh>
-#include <SDL2pp/Texture.hh>
+#include "gamemap.hpp"
 #include <algorithm>
 #include <cstring>
-#include <utility>
-#include <variant>
+#include <array>
+#include <SDL2/SDL_render.h>
+#include <SDL2/SDL_blendmode.h>
+#include <SDL2pp/Rect.hh>
+#include <SDL2pp/Optional.hh>
+#include <SDL2pp/Exception.hh>
+#include <SDL2pp/Texture.hh>
 
 Renderer::Renderer(GameMap &map, SDL2pp::Renderer &sdl_renderer, uint32_t bg_color)
     : m_map(map)

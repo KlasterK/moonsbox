@@ -1,10 +1,13 @@
-#include "SDL.h"
 #include "gameapp.hpp"
 #include "soundsystem.hpp"
 #include <SDL2pp/SDL.hh>
-#include <SDL2pp/SDL2pp.hh>
 #include <SDL2pp/SDLTTF.hh>
+#include <SDL2pp/Exception.hh>
+#include <new>
 #include <stdexcept>
+#include <exception>
+#include <format>
+#include <string>
 
 static std::string _format_error(std::string_view prolog, std::string_view exc_type, 
                                  std::string_view exc_what)

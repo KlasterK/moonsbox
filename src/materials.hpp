@@ -5,6 +5,12 @@
 #include <cstring>
 #include <format>
 #include <stdexcept>
+#include <array>
+#include <cstddef>
+#include <cstdint>
+#include <vector>
+#include <type_traits>
+#include <utility>
 #include "gamemap.hpp"
 #include "materialcontroller.hpp"
 #include "materialdefs.hpp"

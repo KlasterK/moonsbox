@@ -1,17 +1,22 @@
 #ifndef MOOX_GAMEAPP_HPP
 #define MOOX_GAMEAPP_HPP
 
-#include "camera.hpp"
-#include "gamemap.hpp"
-#include "mainwindowui.hpp"
-#include "materialpalette.hpp"
-#include "renderer.hpp"
-#include "simulation.hpp"
-#include "materialregistry.hpp"
-#include "windowevents.hpp"
 #include "materials.hpp"
-#include <SDL2pp/SDL2pp.hh>
+#include "materialregistry.hpp"
+#include "gamemap.hpp"
+#include "simulation.hpp"
+#include "renderer.hpp"
+#include "camera.hpp"
+#include "materialpalette.hpp"
+#include "mainwindowui.hpp"
+#include "materialcontroller.hpp"
+#include "windowevents.hpp"
+#include <SDL2pp/Window.hh>
+#include <SDL2pp/Renderer.hh>
+#include <SDL2pp/Font.hh>
+#include <functional>
 #include <filesystem>
+#include <tuple>
 
 class GameApp
 {

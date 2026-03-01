@@ -1,9 +1,13 @@
 #ifndef MOOX_MATERIALREGISTRY_HPP
 #define MOOX_MATERIALREGISTRY_HPP
 
-#include "materialcontroller.hpp"
 #include <string_view>
 #include <vector>
+#include <optional>
+#include <utility>
+#include <string>
+
+class MaterialController;
 
 class MaterialRegistry
 {
