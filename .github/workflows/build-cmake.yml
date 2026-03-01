@@ -54,6 +54,22 @@ jobs:
         if [ "${{ matrix.compiler }}" = "clang" ]; then
           sudo apt install -y clang
         fi
+    
+    - name: Checkout SDL2pp sources (Linux)
+      if: runner.os == 'Linux'
+      uses: actions/checkout@v4
+      with:
+        repository: libSDL2pp/libSDL2pp
+        path: SDL2pp
+
+    - name: Configure, build and install SDL2pp (Linux)
+      if: runner.os == 'Linux'
+      run: |
+        cd SDL2pp
+        cmake -S. -Bbuild -DCMAKE_BUILD_TYPE=Release -DSDL2PP_WITH_EXAMPLES=OFF \
+          -DSDL2PP_WITH_TESTS=OFF
+        cmake --build build -j$(nproc)
+        sudo cmake --install build --prefix /usr/local
 
     - name: Install Windows dependencies (vcpkg)
       if: runner.os == 'Windows'
@@ -65,12 +81,12 @@ jobs:
           --triplet ${{ matrix.triplet }}
       shell: pwsh
 
-    - name: Cache vcpkg (optional, speeds up builds)
-      if: runner.os == 'Windows'
-      uses: actions/cache@v4
-      with:
-        path: vcpkg/installed
-        key: ${{ runner.os }}-vcpkg-${{ hashFiles('vcpkg/**') }}
+    # - name: Cache vcpkg (optional, speeds up builds)
+    #   if: runner.os == 'Windows'
+    #   uses: actions/cache@v4
+    #   with:
+    #     path: vcpkg/installed
+    #     key: ${{ runner.os }}-vcpkg-${{ hashFiles('vcpkg/**') }}
 
     - name: Configure CMake (Linux)
       if: runner.os == 'Linux'
@@ -90,7 +106,8 @@ jobs:
       shell: pwsh
 
     - name: Build
-      run: cmake --build build --config Release
+      shell: bash
+      run: cmake --build build --config Release -j$(nproc)
 
     - name: Get Version and Architecture Info
       shell: bash
