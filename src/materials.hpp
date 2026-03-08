@@ -651,15 +651,15 @@ public:
                 {
                     m_fire->init_point(map, x, y);
                     m_fire->play_place_sound(map, x, y);
-                    map.temps(x, y) = 2800.f;
+                    map.temps(x, y) = std::max(temp, 2800.f);
                     
                     for(auto [dx, dy] : g_moore_deltas)
                     {
                         if(map.material_ctls(x+dx, y+dy) != this)
                             continue;
                         
-                        m_fire->init_point(map, x, y);
-                        map.temps(x, y) = 2800.f;
+                        m_fire->init_point(map, x+dx, y+dy);
+                        map.temps(x, y) = std::max(temp, 2800.f);
                     }
                 }
                 else if(tags.test(MtlTag::Solid))
