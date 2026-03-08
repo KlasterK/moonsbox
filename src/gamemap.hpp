@@ -48,24 +48,6 @@ private:
 };
 
 
-struct _SDLColorLayerTag {};
-
-template<>
-class _Layer<_SDLColorLayerTag>
-{
-public:
-    _Layer(size_t width, size_t height);
-
-    uint32_t& operator()(size_t x, size_t y);
-    const uint32_t& operator()(size_t x, size_t y) const;
-
-    SDL2pp::Surface& surface();
-    const SDL2pp::Surface& surface() const;
-
-private:
-    SDL2pp::Surface m_surface;
-};
-
 class GameMap
 {
 public:
@@ -83,7 +65,7 @@ public:
     _Layer<float> temps;
     _Layer<float> heat_capacities;
     _Layer<float> thermal_conductivities;
-    _Layer<_SDLColorLayerTag> colors;
+    _Layer<uint32_t> colors;
     _Layer<MaterialTags> tags;
     _Layer<MaterialPhysicalBehavior> physical_behaviors;
     _Layer<std::any> auxs;
@@ -94,7 +76,7 @@ private:
 };
 
 extern template class _Layer<float>;
-extern template class _Layer<_SDLColorLayerTag>;
+extern template class _Layer<uint32_t>;
 extern template class _Layer<MaterialTags>;
 extern template class _Layer<MaterialPhysicalBehavior>;
 extern template class _Layer<std::any>;

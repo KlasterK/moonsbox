@@ -1,19 +1,36 @@
 #include "renderer.hpp"
 #include "gamemap.hpp"
 #include <algorithm>
+#include <cstddef>
 #include <cstring>
 #include <array>
 #include <SDL2/SDL_render.h>
 #include <SDL2/SDL_blendmode.h>
+#include <SDL2/SDL_surface.h>
 #include <SDL2pp/Rect.hh>
 #include <SDL2pp/Optional.hh>
 #include <SDL2pp/Exception.hh>
 #include <SDL2pp/Texture.hh>
+#include <SDL2pp/Surface.hh>
 
 Renderer::Renderer(GameMap &map, SDL2pp::Renderer &sdl_renderer, uint32_t bg_color)
     : m_map(map)
     , m_sdl_renderer(sdl_renderer)
     , m_bg_color(bg_color)
+    , m_map_surf([this]
+    {
+        auto *p = SDL_CreateRGBSurfaceWithFormatFrom(
+            m_map.colors.span().data(),
+            int(m_map.width()),
+            int(m_map.height()),
+            32,
+            int(m_map.width() * sizeof(m_map.colors(0, 0))),
+            SDL_PIXELFORMAT_RGBA8888
+        );
+        if(p == nullptr)
+            throw SDL2pp::Exception("SDL_CreateRGBSurfaceWithFormatFrom");
+        return p;
+    }())
     , m_map_tex(
         sdl_renderer, 
         SDL_PIXELFORMAT_RGBA8888, 
@@ -27,6 +44,9 @@ Renderer::Renderer(GameMap &map, SDL2pp::Renderer &sdl_renderer, uint32_t bg_col
 
 void Renderer::render(std::array<int, 4> visible_area)
 {
+    // Pointer to pixels may be invalidated
+    m_map_surf.Get()->pixels = m_map.colors.span().data();
+
     // Boundaries of visible area (clipped visible area and map rects)
     int x_begin = std::max(visible_area[0], 0);
     int x_end = std::min(visible_area[0] + visible_area[2], (int)m_map.width());
@@ -71,7 +91,7 @@ void Renderer::render(std::array<int, 4> visible_area)
             m_bg_color >> 8 & 0xFF
         );
         m_sdl_renderer.FillRect(dst_rect);
-        m_map_tex.Update(SDL2pp::NullOpt, m_map.colors.surface());
+        m_map_tex.Update(SDL2pp::NullOpt, m_map_surf);
     }
     else 
     {
