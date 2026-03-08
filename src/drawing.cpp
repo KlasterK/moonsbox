@@ -33,7 +33,7 @@ void drawing::swap(GameMap &map, size_t ax, size_t ay, size_t bx, size_t by)
     map.material_ctls(bx, by) = a_material_ctl;
 }
 
-void drawing::fill(GameMap &map, MaterialFactory material_factory)
+void drawing::fill(GameMap &map, MaterialFactory &material_factory)
 {
     for(size_t y{}; y < map.height(); ++y)
     {
@@ -44,7 +44,7 @@ void drawing::fill(GameMap &map, MaterialFactory material_factory)
     }
 }
 
-void drawing::rect(GameMap &map, Rect area, MaterialFactory material_factory)
+void drawing::rect(GameMap &map, Rect area, MaterialFactory &material_factory)
 {
     for(int y = std::max(0, area[1]); 
         y < std::min(area[1] + area[3], int(map.height())); 
@@ -59,7 +59,7 @@ void drawing::rect(GameMap &map, Rect area, MaterialFactory material_factory)
     }
 }
 
-void drawing::ellipse(GameMap &map, Rect area, MaterialFactory material_factory)
+void drawing::ellipse(GameMap &map, Rect area, MaterialFactory &material_factory)
 {
     if(area[2] < 3 || area[3] < 3)
         return drawing::rect(map, area, material_factory);
@@ -94,7 +94,7 @@ void drawing::ellipse(GameMap &map, Rect area, MaterialFactory material_factory)
 }
 
 void drawing::line(GameMap &map, SignedPoint begin, SignedPoint end, int width, 
-                   MaterialFactory material_factory, LineEnds ends)
+                   MaterialFactory &material_factory, LineEnds ends)
 {
     if(width == 1)
     {
