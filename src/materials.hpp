@@ -761,7 +761,11 @@ public:
                 
                 map.colors(x, y) -= ColorStep;
                 if(map.colors(x, y) <= MinTTLColor)
+                {
+                    float old_temp = map.temps(x, y);
                     m_space->init_point(map, x, y);
+                    map.temps(x, y) = old_temp;
+                }
             }
         }
     }
