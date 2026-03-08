@@ -1,4 +1,5 @@
 #include "simulation.hpp"
+#include "fastprng.hpp"
 #include "materialdefs.hpp"
 #include "gamemap.hpp"
 #include "drawing.hpp"
@@ -51,7 +52,7 @@ void _diffuse(GameMap &map, size_t x, size_t y, bool (*test)(const MaterialTags 
         {x-1, y}, {x+1, y}, {x, y-1}, {x, y+1}
     });
 
-    auto nb_pos = positions[rand() % positions.size()];
+    auto nb_pos = positions[fastprng::get_u64() % positions.size()];
     if(!map.in_bounds(nb_pos[0], nb_pos[1]))
         return;
     
@@ -65,7 +66,7 @@ void _fall_sand(GameMap &map, size_t x, size_t y)
     if(_try_swap(map, x, y, x, y-1, MtlTag::IsFlowable))
         return;
 
-    int dx = rand() > RAND_MAX / 2 ? 1 : -1;
+    int dx = fastprng::get_bool() ? 1 : -1;
     _try_swap(map, x, y, x+dx, y-1, MtlTag::IsFlowable);
 }
 
@@ -75,15 +76,15 @@ void _fall_liquid(GameMap &map, size_t x, size_t y)
     if(_try_swap(map, x, y, x, y-1, MtlTag::IsSparseness))
         return;
 
-    int dx = rand() > RAND_MAX / 2 ? 1 : -1;
+    int dx = fastprng::get_bool() ? 1 : -1;
     if(_try_swap(map, x, y, x+dx, y, MtlTag::IsSparseness))
         return;
     
-    dx = rand() > RAND_MAX / 2 ? 1 : -1;
+    dx = fastprng::get_bool() ? 1 : -1;
     if(_try_swap(map, x, y, x+dx, y-1, MtlTag::IsSparseness))
         return;
 
-    if(rand() < RAND_MAX / 100)
+    if(fastprng::propability(1, 100))
         _diffuse(map, x, y, [](const MaterialTags &v){ return v.test(MtlTag::Liquid); });
 }
 
@@ -95,15 +96,15 @@ void _fall_light_gas(GameMap &map, size_t x, size_t y)
     if(_try_swap(map, x, y, x, y+1, _test_space))
         return;
 
-    int dx = rand() > RAND_MAX / 2 ? 1 : -1;
+    int dx = fastprng::get_bool() ? 1 : -1;
     if(_try_swap(map, x, y, x+dx, y, _test_space))
         return;
 
-    dx = rand() > RAND_MAX / 2 ? 1 : -1;
+    dx = fastprng::get_bool() ? 1 : -1;
     if(_try_swap(map, x, y, x+dx, y+1, _test_space))
         return;
 
-    if(rand() < RAND_MAX / 100)
+    if(fastprng::propability(1, 100))
         _diffuse(map, x, y, _test_gas);
 }
 
@@ -119,9 +120,8 @@ void _fall_heavy_gas(GameMap &map, size_t x, size_t y)
         std::array{1,  1},
         std::array{1,  0},
         std::array{1,  -1},
-    });    
-    static std::random_device rd;
-    static std::mt19937 gen(rd());
+    });
+    static std::mt19937 gen(std::random_device{}());
     std::shuffle(deltas.begin(), deltas.end(), gen);
 
     for(size_t i{}; i < deltas.size(); ++i)
@@ -130,7 +130,7 @@ void _fall_heavy_gas(GameMap &map, size_t x, size_t y)
             return;
     }
 
-    if(rand() < RAND_MAX / 100)
+    if(fastprng::propability(1, 100))
         _diffuse(map, x, y, _test_gas);
 }
 

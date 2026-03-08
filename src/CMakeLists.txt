@@ -20,6 +20,7 @@ add_executable(moonsbox
     soundsystem.hpp soundsystem.cpp
     fpscounter.hpp fpscounter.cpp
     mainwindowui.hpp mainwindowui.cpp
+    fastprng.hpp fastprng.cpp
     ext/miniaudio.h ext/miniaudio.c
     ext/portable-file-dialogs.h
 )

@@ -16,6 +16,7 @@
 #include "materialdefs.hpp"
 #include "materialregistry.hpp"
 #include "soundsystem.hpp"
+#include "fastprng.hpp"
 
 
 template<typename T>
@@ -109,7 +110,7 @@ public:
         map.heat_capacities(x, y) = 0.3f;
         map.thermal_conductivities(x, y) = 0.1f;
         map.tags(x, y).reset().set(MtlTag::Bulk);
-        map.auxs(x, y).emplace<Aux>(false, 0x99 + rand() % (0xFF - 0x99));
+        map.auxs(x, y).emplace<Aux>(false, 0x99 + fastprng::get_u64() % (0xFF - 0x99));
         map.physical_behaviors(x, y) = MaterialPhysicalBehavior::Sand;
         map.material_ctls(x, y) = this;
     }
@@ -211,7 +212,7 @@ public:
         map.temps(x, y) = 300.f;
         map.heat_capacities(x, y) = 0.7f;
         map.thermal_conductivities(x, y) = 0.3f;
-        map.colors(x, y) = 0x009599FF | rand() % (0xBB - 0x95) * 0x10000;
+        map.colors(x, y) = 0x009599FF | fastprng::get_u64() % (0xBB - 0x95) * 0x10000;
         map.tags(x, y).reset().set(MtlTag::Liquid);
         map.auxs(x, y).reset();
         map.physical_behaviors(x, y) = MaterialPhysicalBehavior::Liquid;
@@ -492,7 +493,7 @@ public:
                     continue;
                 }
 
-                if(rand() % 6 == 0)
+                if(fastprng::propability(1, 6))
                 {
                     for(auto [dx, dy] : g_von_neumann_deltas)
                     {
@@ -506,7 +507,7 @@ public:
                         }
                     }
                 }
-                else if(rand() % 30 == 0)
+                else if(fastprng::propability(1, 30))
                 {
                     for(auto [dx, dy] : g_moore_deltas)
                     {
@@ -730,7 +731,7 @@ public:
         map.temps(x, y) = 1000.f;
         map.heat_capacities(x, y) = 1.f;
         map.thermal_conductivities(x, y) = 1.f;
-        map.colors(x, y) = MaxTTLColor - ColorStep * (rand() % StepsCount);
+        map.colors(x, y) = MaxTTLColor - ColorStep * (fastprng::get_u64() % StepsCount);
         map.tags(x, y).reset().set(MtlTag::Gas);
         map.auxs(x, y).reset();
         map.physical_behaviors(x, y) = MaterialPhysicalBehavior::LightGas;
@@ -927,15 +928,15 @@ public:
 
     inline void init_point(GameMap &map, size_t x, size_t y) override
     {
-        uint32_t grayscale = 0xDD + rand() % (0xFF - 0xDD);
-        uint32_t yellowness = 0x11 + rand() % (0x33 - 0x11);
+        uint32_t grayscale = 0xDD + fastprng::get_u64() % (0xFF - 0xDD);
+        uint32_t yellowness = 0x11 + fastprng::get_u64() % (0x33 - 0x11);
         map.colors(x, y) = grayscale << 24 | grayscale << 16 
                          | (grayscale - yellowness) << 8 | 0xFF;
         map.temps(x, y) = 300.f;
         map.heat_capacities(x, y) = 0.3f;
         map.thermal_conductivities(x, y) = 0.1f;
         map.tags(x, y).reset().set(MtlTag::Float);
-        map.auxs(x, y).emplace<int32_t>(rand() % 200);
+        map.auxs(x, y).emplace<int32_t>(fastprng::get_u64() % 200);
         map.physical_behaviors(x, y) = MaterialPhysicalBehavior::Sand;
         map.material_ctls(x, y) = this;
     }
@@ -1007,7 +1008,7 @@ public:
         map.temps(x, y) = 300.f;
         map.heat_capacities(x, y) = 0.99f;
         map.thermal_conductivities(x, y) = 0.01f;
-        uint32_t grayscale = 0xAA + rand() % 0x12;
+        uint32_t grayscale = 0xAA + fastprng::get_u64() % 0x12;
         map.colors(x, y) = grayscale << 24 | grayscale << 16 | grayscale << 8 | 0x25;
         map.tags(x, y).reset().set(MtlTag::Solid);
         map.auxs(x, y).reset();
@@ -1022,11 +1023,11 @@ class DryIce : public MaterialController
 public:
     inline void init_point(GameMap &map, size_t x, size_t y) override
     {
-        int random_value = rand();
-        map.colors(x, y) = (
-            _map_clamp(random_value, 0, RAND_MAX, 0xDB, 0xC2) << 24
-            | _map_clamp(random_value, 0, RAND_MAX, 0xE2, 0xD9) << 16
-            | _map_clamp(random_value, 0, RAND_MAX, 0xEE, 0xDF) << 8
+        int random_value = fastprng::get_u8();
+        map.colors(x, y) = uint32_t(
+            _map_clamp(random_value, 0, 255, 0xDB, 0xC2) << 24
+            | _map_clamp(random_value, 0, 255, 0xE2, 0xD9) << 16
+            | _map_clamp(random_value, 0, 255, 0xEE, 0xDF) << 8
         );
         map.temps(x, y) = 175.f;
         map.heat_capacities(x, y) = 0.95f;
