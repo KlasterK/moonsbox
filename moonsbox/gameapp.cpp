@@ -1,17 +1,17 @@
 #include "gameapp.hpp"
-#include "drawing.hpp"
 #include "mainwindowui.hpp"
-#include "materialregistry.hpp"
-#include "materials.hpp"
-#include "minizipsavecontainer.hpp"
 #include "renderer.hpp"
-#include "saving.hpp"
 #include <SDL2pp/SDL2pp.hh>
 #include <SDL2/SDL_messagebox.h>
 #include <stdexcept>
 #include <array>
 #include <cstddef>
 #include <cstdint>
+#include <simulationengine/algorithms/drawing.hpp>
+#include <simulationengine/core/materialregistry.hpp>
+#include <simulationengine/materials/materials.hpp>
+#include <simulationengine/serialization/minizipsavecontainer.hpp>
+#include <simulationengine/serialization/saving.hpp>
 
 namespace
 {

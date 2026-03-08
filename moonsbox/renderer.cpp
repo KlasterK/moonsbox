@@ -1,5 +1,5 @@
 #include "renderer.hpp"
-#include "gamemap.hpp"
+#include <simulationengine/core/gamemap.hpp>
 #include <algorithm>
 #include <cstddef>
 #include <cstring>

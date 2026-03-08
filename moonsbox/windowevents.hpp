@@ -1,7 +1,7 @@
 #ifndef MOOX_WINDOWEVENTS_HPP
 #define MOOX_WINDOWEVENTS_HPP
 
-#include "drawing.hpp"
+#include <simulationengine/algorithms/drawing.hpp>
 #include <SDL2/SDL_events.h>
 #include <concepts>
 #include <functional>

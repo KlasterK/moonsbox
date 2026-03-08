@@ -4,7 +4,7 @@
 #include <cstddef>
 #include <array>
 #include <functional>
-#include "materialcontroller.hpp"
+#include <simulationengine/core/materialcontroller.hpp>
 
 class GameMap;
 

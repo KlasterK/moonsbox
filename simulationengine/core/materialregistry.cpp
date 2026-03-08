@@ -1,5 +1,5 @@
-#include "materialregistry.hpp"
-#include "materialcontroller.hpp"
+#include <simulationengine/core/materialregistry.hpp>
+#include <simulationengine/core/materialcontroller.hpp>
 
 bool MaterialRegistry::register_controller(MaterialController &controller, std::string_view name)
 {

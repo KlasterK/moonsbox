@@ -1,5 +1,5 @@
-#include "drawing.hpp"
-#include "gamemap.hpp"
+#include <simulationengine/algorithms/drawing.hpp>
+#include <simulationengine/core/gamemap.hpp>
 #include <algorithm>
 #include <cmath>
 

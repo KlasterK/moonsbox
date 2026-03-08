@@ -1,9 +1,9 @@
-#include "simulation.hpp"
-#include "fastprng.hpp"
-#include "materialdefs.hpp"
-#include "gamemap.hpp"
-#include "drawing.hpp"
-#include "materialregistry.hpp"
+#include <simulationengine/simulation/simulationmanager.hpp>
+#include <simulationengine/algorithms/fastprng.hpp>
+#include <simulationengine/core/materialdefs.hpp>
+#include <simulationengine/core/gamemap.hpp>
+#include <simulationengine/algorithms/drawing.hpp>
+#include <simulationengine/core/materialregistry.hpp>
 #include <cstddef>
 #include <algorithm>
 #include <random>

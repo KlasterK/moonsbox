@@ -1,7 +1,7 @@
 #ifndef MOOX_MATERIALCONTROLLER_HPP
 #define MOOX_MATERIALCONTROLLER_HPP
 
-#include "saving.hpp"
+#include <simulationengine/core/materialdefs.hpp>
 #include <cstddef>
 #include <cstdint>
 #include <utility>
@@ -32,11 +32,11 @@ public:
     virtual bool is_placeable_on(GameMap &, size_t, size_t) { return true; }
     virtual void play_place_sound(GameMap &, size_t, size_t) {}
 
-    virtual std::pair<std::vector<uint8_t>, saving::SaveVersion> 
+    virtual std::pair<std::vector<uint8_t>, SemanticVersion> 
         serialize(const GameMap &, size_t, size_t) { return {}; }
 
-    virtual DeserializationResult 
-        deserialize(GameMap &, size_t, size_t, std::span<const uint8_t>, saving::SaveVersion) 
+    virtual DeserializationResult
+        deserialize(GameMap &, size_t, size_t, std::span<const uint8_t>, SemanticVersion) 
         { return DeserializationResult::NotImplemented; }
 };
 

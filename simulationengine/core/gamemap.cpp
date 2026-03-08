@@ -1,4 +1,4 @@
-#include "gamemap.hpp"
+#include <simulationengine/core/gamemap.hpp>
 
 GameMap::GameMap(size_t width, size_t height)
     : temps(width, height)

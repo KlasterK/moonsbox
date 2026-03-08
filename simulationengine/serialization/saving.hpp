@@ -10,12 +10,7 @@ class ReadSaveContainer;
 class GameMap;
 
 namespace saving
-{
-    struct SaveVersion
-    {
-        int major, minor, patch, revision;
-    };
-    
+{   
     std::expected<void, std::string> serialize(
         WriteSaveContainer &container, const GameMap &map, const MaterialRegistry &registry
     );

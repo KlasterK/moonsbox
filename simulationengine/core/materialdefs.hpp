@@ -21,6 +21,16 @@ enum class MaterialPhysicalBehavior
 };
 constexpr auto MaterialPhysicalBehaviorRevision = 20260124ULL;
 
+struct SemanticVersion
+{
+    /// Standard SemVer components.
+    int major{}, minor{}, patch{};
+    /// Visual-only revision marker. 
+    /// Should not be used in compatibility checks.
+    /// NUL means no revision marker.
+    char revision{'\0'};
+};
+
 namespace MtlTag
 {
     constexpr bool IsSparseness(const MaterialTags &tags) 

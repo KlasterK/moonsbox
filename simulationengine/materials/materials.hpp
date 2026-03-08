@@ -11,12 +11,12 @@
 #include <vector>
 #include <type_traits>
 #include <utility>
-#include "gamemap.hpp"
-#include "materialcontroller.hpp"
-#include "materialdefs.hpp"
-#include "materialregistry.hpp"
-#include "soundsystem.hpp"
-#include "fastprng.hpp"
+#include <simulationengine/core/gamemap.hpp>
+#include <simulationengine/core/materialcontroller.hpp>
+#include <simulationengine/core/materialdefs.hpp>
+#include <simulationengine/core/materialregistry.hpp>
+// #include "soundsystem.hpp"
+#include <simulationengine/algorithms/fastprng.hpp>
 
 
 template<typename T>
@@ -74,7 +74,7 @@ private:
     };
 
 public:
-    inline std::pair<std::vector<uint8_t>, saving::SaveVersion> 
+    inline std::pair<std::vector<uint8_t>, SemanticVersion> 
         serialize(const GameMap &map, size_t x, size_t y) override
     {
         auto *aux = std::any_cast<Aux>(&map.auxs(x, y));
@@ -89,7 +89,7 @@ public:
 
     inline DeserializationResult deserialize(GameMap &map, size_t x, size_t y, 
                                             std::span<const uint8_t> data, 
-                                            saving::SaveVersion ver) override
+                                            SemanticVersion ver) override
     { 
         if(data.size() != 2)
             return DeserializationResult::InvalidDataLength;
@@ -151,7 +151,7 @@ public:
                     if(!aux->is_glass)
                     {
                         aux->is_glass = true;
-                        sfx::play_sound("convert.Sand_to_glass");
+                        // sfx::play_sound("convert.Sand_to_glass");
                     }
                         
                     map.physical_behaviors(x, y) = MaterialPhysicalBehavior::Liquid;
@@ -179,7 +179,7 @@ public:
 
     inline void play_place_sound(GameMap &, size_t, size_t) override
     {
-        sfx::play_sound("material.Sand");
+        // sfx::play_sound("material.Sand");
     }
 };
 
@@ -250,13 +250,13 @@ public:
                 {
                     m_ice->init_point(map, x, y);
                     map.temps(x, y) = temp;
-                    sfx::play_sound("convert.Water_freezes");
+                    // sfx::play_sound("convert.Water_freezes");
                 }
                 else if(temp > 375.f)
                 {
                     m_steam->init_point(map, x, y);
                     map.temps(x, y) = temp;
-                    sfx::play_sound("convert.Water_evaporates");
+                    // sfx::play_sound("convert.Water_evaporates");
                 }
             }
         }
@@ -274,7 +274,7 @@ public:
 
     inline void play_place_sound(GameMap &, size_t, size_t) override
     {
-        sfx::play_sound("material.Water");
+        // sfx::play_sound("material.Water");
     }
 
 private:
@@ -321,7 +321,7 @@ public:
                 {
                     m_water->init_point(map, x, y);
                     map.temps(x, y) = temp;
-                    sfx::play_sound("convert.Ice_melts");
+                    // sfx::play_sound("convert.Ice_melts");
                 }
             }
         }
@@ -334,7 +334,7 @@ public:
 
     inline void play_place_sound(GameMap &, size_t, size_t) override
     {
-        sfx::play_sound("material.Ice");
+        // sfx::play_sound("material.Ice");
     }
 
 private:
@@ -381,7 +381,7 @@ public:
                 {
                     m_water->init_point(map, x, y);
                     map.temps(x, y) = temp;
-                    sfx::play_sound("convert.Steam_condensates");
+                    // sfx::play_sound("convert.Steam_condensates");
                 }
             }
         }
@@ -399,7 +399,7 @@ public:
 
     inline void play_place_sound(GameMap &, size_t, size_t) override
     {
-        sfx::play_sound("material.Steam");
+        // sfx::play_sound("material.Steam");
     }
 
 private:
@@ -411,7 +411,7 @@ private:
 class Tap : public MaterialController
 {
 public:
-    inline std::pair<std::vector<uint8_t>, saving::SaveVersion> 
+    inline std::pair<std::vector<uint8_t>, SemanticVersion> 
         serialize(const GameMap &map, size_t x, size_t y) override
     {
         auto *aux = std::any_cast<MaterialController *>(&map.auxs(x, y));
@@ -437,7 +437,7 @@ public:
 
     inline DeserializationResult deserialize(GameMap &map, size_t x, size_t y, 
                                             std::span<const uint8_t> data, 
-                                            saving::SaveVersion ver) override
+                                            SemanticVersion ver) override
     { 
         if(ver.major < 2)
             return DeserializationResult::VersionTooOld;
@@ -782,7 +782,7 @@ public:
 
     inline void play_place_sound(GameMap &, size_t, size_t) override
     {
-        sfx::play_sound("material.Fire");
+        // sfx::play_sound("material.Fire");
     }
 
 private:
@@ -892,7 +892,7 @@ public:
 
     inline void play_place_sound(GameMap &, size_t, size_t) override
     {
-        sfx::play_sound("material.Lava");
+        // sfx::play_sound("material.Lava");
     }
 };
 
@@ -900,7 +900,7 @@ public:
 class Absorbent : public MaterialController
 {
 public:
-    inline std::pair<std::vector<uint8_t>, saving::SaveVersion> 
+    inline std::pair<std::vector<uint8_t>, SemanticVersion> 
         serialize(const GameMap &map, size_t x, size_t y) override
     {
         auto *aux = std::any_cast<int32_t>(&map.auxs(x, y));
@@ -915,7 +915,7 @@ public:
 
     inline DeserializationResult deserialize(GameMap &map, size_t x, size_t y, 
                                             std::span<const uint8_t> data, 
-                                            saving::SaveVersion ver) override
+                                            SemanticVersion ver) override
     { 
         if(data.size() != 1)
             return DeserializationResult::InvalidDataLength;

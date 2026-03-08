@@ -1,5 +1,5 @@
 #include "materialpalette.hpp"
-#include "materialregistry.hpp"
+#include <simulationengine/core/materialregistry.hpp>
 #include <SDL2pp/Exception.hh>
 #include <SDL2pp/Color.hh>
 #include <SDL2pp/Surface.hh>

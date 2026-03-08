@@ -1,8 +1,7 @@
 #ifndef MOOX_GAMEMAP_HPP
 #define MOOX_GAMEMAP_HPP
 
-#include "materialcontroller.hpp"
-#include "materialdefs.hpp"
+#include <simulationengine/core/materialdefs.hpp>
 #include <cstddef>
 #include <cstdint>
 #include <array>
@@ -10,7 +9,6 @@
 #include <cassert>
 #include <memory>
 #include <span>
-#include <SDL2pp/Surface.hh>
 
 class MaterialController;
 

@@ -1,9 +1,9 @@
-#include "saving.hpp"
-#include "gamemap.hpp"
-#include "materialcontroller.hpp"
-#include "materialdefs.hpp"
-#include "savecontainer.hpp"
-#include "materialregistry.hpp"
+#include <simulationengine/serialization/saving.hpp>
+#include <simulationengine/core/gamemap.hpp>
+#include <simulationengine/core/materialcontroller.hpp>
+#include <simulationengine/core/materialdefs.hpp>
+#include <simulationengine/serialization/savecontainer.hpp>
+#include <simulationengine/core/materialregistry.hpp>
 
 #include <zlib.h>
 #include <SDL2/SDL.h>
@@ -526,11 +526,11 @@ std::string _read_arbitrary_data_layer(const ReadSaveContainer &container, GameM
 
         auto *ctl = reinterpret_cast<MaterialController *>(map.material_ctls.span()[map_idx]);
 
-        saving::SaveVersion ver{
+        SemanticVersion ver{
             .major=hdr->version.major,
             .minor=hdr->version.minor,
             .patch=hdr->version.patch,
-            .revision=hdr->version.revision,
+            .revision=static_cast<char>(hdr->version.revision),
         };
 
         auto err = ctl->deserialize(

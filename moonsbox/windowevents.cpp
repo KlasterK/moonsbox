@@ -1,10 +1,10 @@
 #include "windowevents.hpp"
-#include "drawing.hpp"
+#include <simulationengine/algorithms/drawing.hpp>
 #include "gameapp.hpp"
-#include "gamemap.hpp"
-#include "simulation.hpp"
-#include "materialregistry.hpp"
-#include "materialcontroller.hpp"
+#include <simulationengine/core/gamemap.hpp>
+#include <simulationengine/simulation/simulationmanager.hpp>
+#include <simulationengine/core/materialregistry.hpp>
+#include <simulationengine/core/materialcontroller.hpp>
 #include "camera.hpp"
 #include "materialpalette.hpp"
 #include "renderer.hpp"

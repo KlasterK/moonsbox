@@ -1,4 +1,4 @@
-#include "fastprng.hpp"
+#include <simulationengine/algorithms/fastprng.hpp>
 #include <random>
 
 uint64_t fastprng::g_previous_value = []

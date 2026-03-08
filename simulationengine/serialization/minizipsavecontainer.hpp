@@ -1,7 +1,7 @@
 #ifndef MOOX_MINIZIPSAVECONTAINER_HPP
 #define MOOX_MINIZIPSAVECONTAINER_HPP
 
-#include "savecontainer.hpp"
+#include <simulationengine/serialization/savecontainer.hpp>
 #include <filesystem>
 #include <vector>
 #include <utility>
