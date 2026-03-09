@@ -10,8 +10,6 @@ add_library(simulationengine
     core/materialcontroller.hpp
     core/gamemap.hpp                        core/gamemap.cpp
     core/materialregistry.hpp               core/materialregistry.cpp
-    # Materials
-    materials/materials.hpp
     # Algorithms
     algorithms/drawing.hpp                  algorithms/drawing.cpp
     algorithms/fastprng.hpp                 algorithms/fastprng.cpp
@@ -21,6 +19,26 @@ add_library(simulationengine
     serialization/savecontainer.hpp
     serialization/minizipsavecontainer.hpp  serialization/minizipsavecontainer.cpp
     serialization/saving.hpp                serialization/saving.cpp
+    # Materials
+    materials/common.hpp
+    materials/allmaterials.hpp
+    materials/absorbent.hpp
+    materials/aerogel.hpp
+    materials/blackhole.hpp
+    materials/dryice.hpp
+    materials/fire.hpp
+    materials/ice.hpp
+    materials/lava.hpp
+    materials/minus100k.hpp
+    materials/plus100k.hpp
+    materials/propane.hpp
+    materials/pureglass.hpp
+    materials/sand.hpp
+    materials/space.hpp
+    materials/steam.hpp
+    materials/tap.hpp
+    materials/unbreakablewall.hpp
+    materials/water.hpp
 )
 
 target_link_libraries(simulationengine PUBLIC ZLIB::ZLIB PkgConfig::MINIZIP)

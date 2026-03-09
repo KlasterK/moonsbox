@@ -1,7 +1,7 @@
 #ifndef MOOX_GAMEAPP_HPP
 #define MOOX_GAMEAPP_HPP
 
-#include <simulationengine/materials/materials.hpp>
+#include <simulationengine/materials/allmaterials.hpp>
 #include <simulationengine/core/materialregistry.hpp>
 #include <simulationengine/core/gamemap.hpp>
 #include <simulationengine/simulation/simulationmanager.hpp>
@@ -30,11 +30,7 @@ public:
 private:
     bool m_is_running{true};
 
-    std::tuple<
-        Space, Sand, Plus100K, Minus100K, Water, Ice, Steam,
-        Tap, UnbreakableWall, BlackHole, Propane, Fire, PureGlass,
-        Lava, Absorbent, Aerogel, DryIce
-    > m_materials_tuple;
+    AllMaterialsT<std::tuple> m_materials_tuple;
 
     MaterialRegistry m_registry;
     GameMap m_map;

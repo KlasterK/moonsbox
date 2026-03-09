@@ -1,5 +1,5 @@
-#ifndef MOOX_SIMULATION_HPP
-#define MOOX_SIMULATION_HPP
+#ifndef MOOX_SIMULATIONMANAGER_HPP
+#define MOOX_SIMULATIONMANAGER_HPP
 
 class GameMap;
 class MaterialRegistry;
@@ -22,4 +22,4 @@ private:
     int m_tick_num{};
 };
 
-#endif // MOOX_SIMULATION_HPP
+#endif // MOOX_SIMULATIONMANAGER_HPP

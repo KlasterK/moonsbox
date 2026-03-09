@@ -1,5 +1,6 @@
 #include "gameapp.hpp"
 #include "mainwindowui.hpp"
+#include "simulationengine/materials/allmaterials.hpp"
 #include "soundsystem.hpp"
 #include "renderer.hpp"
 #include <SDL2pp/SDL2pp.hh>
@@ -10,7 +11,6 @@
 #include <cstdint>
 #include <simulationengine/algorithms/drawing.hpp>
 #include <simulationengine/core/materialregistry.hpp>
-#include <simulationengine/materials/materials.hpp>
 #include <simulationengine/serialization/minizipsavecontainer.hpp>
 #include <simulationengine/serialization/saving.hpp>
 #include <string_view>
@@ -26,34 +26,12 @@ namespace
     constexpr bool VSync{true};
 }
 
-template<typename T>
-static void _register_materials_from_tuple(T &tuple, MaterialRegistry &registry)
-{
-    registry.register_controller(std::get<Space>(tuple),            "Space");
-    registry.register_controller(std::get<Sand>(tuple),             "Sand");
-    registry.register_controller(std::get<Plus100K>(tuple),         "+100 K");
-    registry.register_controller(std::get<Minus100K>(tuple),        "-100 K");
-    registry.register_controller(std::get<Water>(tuple),            "Water");
-    registry.register_controller(std::get<Ice>(tuple),              "Ice");
-    registry.register_controller(std::get<Steam>(tuple),            "Steam");
-    registry.register_controller(std::get<Tap>(tuple),              "Tap");
-    registry.register_controller(std::get<UnbreakableWall>(tuple),  "Unbreakable Wall");
-    registry.register_controller(std::get<BlackHole>(tuple),        "Black Hole");
-    registry.register_controller(std::get<Propane>(tuple),          "Propane");
-    registry.register_controller(std::get<Fire>(tuple),             "Fire");
-    registry.register_controller(std::get<PureGlass>(tuple),        "Glass");
-    registry.register_controller(std::get<Lava>(tuple),             "Lava");
-    registry.register_controller(std::get<Absorbent>(tuple),        "Absorbent");
-    registry.register_controller(std::get<Aerogel>(tuple),          "Aerogel");
-    registry.register_controller(std::get<DryIce>(tuple),           "Dry Ice");
-}
-
 GameApp::GameApp()
     : m_materials_tuple{}
     , m_registry([this]
     {
         MaterialRegistry registry;
-        _register_materials_from_tuple(m_materials_tuple, registry);
+        register_all_materials(m_materials_tuple, registry);
         for(auto &pair : registry)
             pair.second->set_play_sound_callback(
                 [](std::string_view name, std::optional<std::string_view> category, 
