@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <cstring>
 #include <format>
+#include <optional>
 #include <stdexcept>
 #include <array>
 #include <cstddef>
@@ -15,7 +16,6 @@
 #include <simulationengine/core/materialcontroller.hpp>
 #include <simulationengine/core/materialdefs.hpp>
 #include <simulationengine/core/materialregistry.hpp>
-// #include "soundsystem.hpp"
 #include <simulationengine/algorithms/fastprng.hpp>
 
 
@@ -151,7 +151,8 @@ public:
                     if(!aux->is_glass)
                     {
                         aux->is_glass = true;
-                        // sfx::play_sound("convert.Sand_to_glass");
+                        if(m_play_sound_cb)
+                            m_play_sound_cb("convert.Sand_to_glass", std::nullopt, false);
                     }
                         
                     map.physical_behaviors(x, y) = MaterialPhysicalBehavior::Liquid;
@@ -177,10 +178,19 @@ public:
         return MtlTag::IsMovable(tags) || tags.test(MtlTag::Space);
     }
 
+    inline void set_play_sound_callback(PlaySoundCallback &&cb) override
+    {
+        m_play_sound_cb = std::move(cb);
+    }
+
     inline void play_place_sound(GameMap &, size_t, size_t) override
     {
-        // sfx::play_sound("material.Sand");
+        if(m_play_sound_cb)
+            m_play_sound_cb("material.Sand", std::nullopt, false);
     }
+
+private:
+    PlaySoundCallback m_play_sound_cb{nullptr};
 };
 
 
@@ -250,13 +260,15 @@ public:
                 {
                     m_ice->init_point(map, x, y);
                     map.temps(x, y) = temp;
-                    // sfx::play_sound("convert.Water_freezes");
+                    if(m_play_sound_cb)
+                        m_play_sound_cb("convert.Water_freezes", std::nullopt, false);
                 }
                 else if(temp > 375.f)
                 {
                     m_steam->init_point(map, x, y);
                     map.temps(x, y) = temp;
-                    // sfx::play_sound("convert.Water_evaporates");
+                    if(m_play_sound_cb)
+                        m_play_sound_cb("convert.Water_evaporates", std::nullopt, false);
                 }
             }
         }
@@ -272,12 +284,19 @@ public:
         return MtlTag::IsFlowable(map.tags(x, y));
     }
 
+    inline void set_play_sound_callback(PlaySoundCallback &&cb) override
+    {
+        m_play_sound_cb = std::move(cb);
+    }
+
     inline void play_place_sound(GameMap &, size_t, size_t) override
     {
-        // sfx::play_sound("material.Water");
+        if(m_play_sound_cb)
+            m_play_sound_cb("material.Water", std::nullopt, false);
     }
 
 private:
+    PlaySoundCallback m_play_sound_cb{nullptr};
     MaterialRegistry *m_registry = nullptr;
     MaterialController *m_steam = nullptr, *m_ice = nullptr;
 };
@@ -321,7 +340,8 @@ public:
                 {
                     m_water->init_point(map, x, y);
                     map.temps(x, y) = temp;
-                    // sfx::play_sound("convert.Ice_melts");
+                    if(m_play_sound_cb)
+                        m_play_sound_cb("convert.Ice_melts", std::nullopt, false);
                 }
             }
         }
@@ -332,12 +352,19 @@ public:
         m_registry = &registry;
     }
 
+    inline void set_play_sound_callback(PlaySoundCallback &&cb) override
+    {
+        m_play_sound_cb = std::move(cb);
+    }
+
     inline void play_place_sound(GameMap &, size_t, size_t) override
     {
-        // sfx::play_sound("material.Ice");
+        if(m_play_sound_cb)
+            m_play_sound_cb("material.Ice", std::nullopt, false);
     }
 
 private:
+    PlaySoundCallback m_play_sound_cb{nullptr};
     MaterialRegistry *m_registry = nullptr;
     MaterialController *m_water = nullptr;
 };
@@ -381,7 +408,8 @@ public:
                 {
                     m_water->init_point(map, x, y);
                     map.temps(x, y) = temp;
-                    // sfx::play_sound("convert.Steam_condensates");
+                    if(m_play_sound_cb)
+                        m_play_sound_cb("convert.Steam_condensates", std::nullopt, false);
                 }
             }
         }
@@ -397,12 +425,19 @@ public:
         return MtlTag::IsSparseness(map.tags(x, y));
     }
 
+    inline void set_play_sound_callback(PlaySoundCallback &&cb) override
+    {
+        m_play_sound_cb = std::move(cb);
+    }
+
     inline void play_place_sound(GameMap &, size_t, size_t) override
     {
-        // sfx::play_sound("material.Steam");
+        if(m_play_sound_cb)
+            m_play_sound_cb("material.Steam", std::nullopt, false);
     }
 
 private:
+    PlaySoundCallback m_play_sound_cb{nullptr};
     MaterialRegistry *m_registry = nullptr;
     MaterialController *m_water = nullptr;
 };
@@ -780,12 +815,19 @@ public:
         return map.tags(x, y).test(MtlTag::Space);
     }
 
+    inline void set_play_sound_callback(PlaySoundCallback &&cb) override
+    {
+        m_play_sound_cb = std::move(cb);
+    }
+
     inline void play_place_sound(GameMap &, size_t, size_t) override
     {
-        // sfx::play_sound("material.Fire");
+        if(m_play_sound_cb)
+            m_play_sound_cb("material.Fire", std::nullopt, false);
     }
 
 private:
+    PlaySoundCallback m_play_sound_cb{nullptr};
     MaterialRegistry *m_registry = nullptr;
     MaterialController *m_space = nullptr;
 };
@@ -890,10 +932,19 @@ public:
         return MtlTag::IsFlowable(map.tags(x, y));
     }
 
+    inline void set_play_sound_callback(PlaySoundCallback &&cb) override
+    {
+        m_play_sound_cb = std::move(cb);
+    }
+
     inline void play_place_sound(GameMap &, size_t, size_t) override
     {
-        // sfx::play_sound("material.Lava");
+        if(m_play_sound_cb)
+            m_play_sound_cb("material.Lava", std::nullopt, false);
     }
+
+private:
+    PlaySoundCallback m_play_sound_cb{nullptr};
 };
 
 

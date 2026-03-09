@@ -1,5 +1,6 @@
 #include "gameapp.hpp"
 #include "mainwindowui.hpp"
+#include "soundsystem.hpp"
 #include "renderer.hpp"
 #include <SDL2pp/SDL2pp.hh>
 #include <SDL2/SDL_messagebox.h>
@@ -12,6 +13,7 @@
 #include <simulationengine/materials/materials.hpp>
 #include <simulationengine/serialization/minizipsavecontainer.hpp>
 #include <simulationengine/serialization/saving.hpp>
+#include <string_view>
 
 namespace
 {
@@ -52,6 +54,14 @@ GameApp::GameApp()
     {
         MaterialRegistry registry;
         _register_materials_from_tuple(m_materials_tuple, registry);
+        for(auto &pair : registry)
+            pair.second->set_play_sound_callback(
+                [](std::string_view name, std::optional<std::string_view> category, 
+                   bool do_override)
+                {
+                    sfx::play_sound(name, category, do_override);
+                }
+            );
         return registry;
     }())
     , m_map([this]
