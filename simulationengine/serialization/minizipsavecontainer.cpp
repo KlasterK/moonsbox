@@ -10,7 +10,6 @@
 #include <optional>
 #include <stdexcept>
 #include <tuple>
-#include <zlib.h>
 
 namespace SubfileHeaderSemanticsValue
 {

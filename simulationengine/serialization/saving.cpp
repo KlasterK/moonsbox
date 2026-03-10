@@ -4,10 +4,7 @@
 #include <simulationengine/core/materialdefs.hpp>
 #include <simulationengine/serialization/savecontainer.hpp>
 #include <simulationengine/core/materialregistry.hpp>
-
 #include <zlib.h>
-#include <SDL2/SDL.h>
-
 #include <algorithm>
 #include <cstdint>
 #include <initializer_list>
