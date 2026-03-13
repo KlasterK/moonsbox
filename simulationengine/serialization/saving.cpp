@@ -4,7 +4,7 @@
 #include <simulationengine/core/materialdefs.hpp>
 #include <simulationengine/serialization/savecontainer.hpp>
 #include <simulationengine/core/materialregistry.hpp>
-#include <zlib.h>
+#include <simulationengine/algorithms/cksum.hpp>
 #include <algorithm>
 #include <cstdint>
 #include <initializer_list>
@@ -92,8 +92,7 @@ std::string _write_main_header(WriteSaveContainer &container, const GameMap &map
         .unused={},
     };
     std::memcpy(&main_hdr, MoonsboxSignature, sizeof(MainHeader::signature));
-    main_hdr.main_header_crc32_zlib = crc32(0, reinterpret_cast<uint8_t *>(&main_hdr), 
-                                            sizeof(MainHeader));
+    main_hdr.main_header_crc32_zlib = crc32_zlib(_to_u8_span(&main_hdr));
 
     try
     {
@@ -593,7 +592,7 @@ std::expected<GameMap, std::string> saving::deserialize(const ReadSaveContainer 
 
     auto crc_from_hdr = main_hdr.main_header_crc32_zlib;
     main_hdr.main_header_crc32_zlib = 0;
-    if(crc_from_hdr != crc32(0, reinterpret_cast<uint8_t *>(&main_hdr), sizeof(MainHeader)))
+    if(crc_from_hdr != crc32_zlib(_to_u8_span(&main_hdr)))
         return std::unexpected("Main header checksum mismatch");
 
     if (

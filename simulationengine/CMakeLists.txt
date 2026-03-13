@@ -1,8 +1,9 @@
 project(simulationengine LANGUAGES C CXX VERSION 1.0.0)
 
-find_package(ZLIB REQUIRED)
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(MINIZIP REQUIRED minizip IMPORTED_TARGET)
+option(SIMULATIONENGINE_BUILD_MINIZIPSAVECONTAINER
+    "Find minizip and build minizipsavecontainer.cpp"
+    ON
+)
 
 add_library(simulationengine
     # Core
@@ -13,11 +14,11 @@ add_library(simulationengine
     # Algorithms
     algorithms/drawing.hpp                  algorithms/drawing.cpp
     algorithms/fastprng.hpp                 algorithms/fastprng.cpp
+    algorithms/cksum.hpp                    algorithms/cksum.cpp
     # Simulation
     simulation/simulationmanager.hpp        simulation/simulationmanager.cpp
     # Serialization
     serialization/savecontainer.hpp
-    serialization/minizipsavecontainer.hpp  serialization/minizipsavecontainer.cpp
     serialization/saving.hpp                serialization/saving.cpp
     # Materials
     materials/common.hpp
@@ -40,10 +41,26 @@ add_library(simulationengine
     materials/unbreakablewall.hpp
     materials/water.hpp
 )
-
-target_link_libraries(simulationengine PUBLIC ZLIB::ZLIB PkgConfig::MINIZIP)
-
 target_include_directories(simulationengine PUBLIC ..)
+
+if(SIMULATIONENGINE_BUILD_MINIZIPSAVECONTAINER)
+    find_path(MINIZIP_INCLUDE_DIR
+        NAMES minizip/zip.h minizip/unzip.h
+        REQUIRED
+        DOC "Path to <minizip/zip.h> and <minizip/unzip.h>"
+    )
+    find_library(MINIZIP_LIBRARY
+        NAMES minizip libminizip
+        REQUIRED
+        DOC "Path to minizip library"
+    )
+
+    target_sources(simulationengine PRIVATE
+        serialization/minizipsavecontainer.hpp  serialization/minizipsavecontainer.cpp
+    )
+    target_include_directories(simulationengine PUBLIC ${MINIZIP_INCLUDE_DIR})
+    target_link_libraries(simulationengine PUBLIC ${MINIZIP_LIBRARY})
+endif()
 
 if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")   
     target_compile_options(simulationengine PRIVATE -Wall -Wextra)
