@@ -25,7 +25,7 @@ public:
     _Layer(_Layer &&) = default;
     _Layer(const _Layer &) = delete;
     _Layer &operator=(_Layer &&) = default;
-    _Layer &operator=(const _Layer &) = default;
+    _Layer &operator=(const _Layer &) = delete;
     
     T& operator()(size_t x, size_t y)
     {

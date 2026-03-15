@@ -4,6 +4,10 @@ option(SIMULATIONENGINE_BUILD_MINIZIPSAVECONTAINER
     "Find minizip and build minizipsavecontainer.cpp"
     ON
 )
+option(SIMULATIONENGINE_BUILD_PYTHON_BINDINGS
+    "Require pybind11 and build Python bindings"
+    OFF
+)
 
 add_library(simulationengine
     # Core
@@ -43,6 +47,12 @@ add_library(simulationengine
 )
 target_include_directories(simulationengine PUBLIC ..)
 
+if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")   
+    target_compile_options(simulationengine PRIVATE -Wall -Wextra)
+endif()
+
+# Optional
+
 if(SIMULATIONENGINE_BUILD_MINIZIPSAVECONTAINER)
     find_path(MINIZIP_INCLUDE_DIR
         NAMES minizip/zip.h minizip/unzip.h
@@ -60,8 +70,24 @@ if(SIMULATIONENGINE_BUILD_MINIZIPSAVECONTAINER)
     )
     target_include_directories(simulationengine PUBLIC ${MINIZIP_INCLUDE_DIR})
     target_link_libraries(simulationengine PUBLIC ${MINIZIP_LIBRARY})
+
+    target_compile_definitions(simulationengine PUBLIC
+        SIMULATIONENGINE_BUILD_MINIZIPSAVECONTAINER
+    )
 endif()
 
-if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")   
-    target_compile_options(simulationengine PRIVATE -Wall -Wextra)
+if(SIMULATIONENGINE_BUILD_PYTHON_BINDINGS)
+    set_target_properties(simulationengine PROPERTIES POSITION_INDEPENDENT_CODE ON)
+    
+    find_package(Python 3.10 COMPONENTS Interpreter Development REQUIRED)
+    set(PYBIND11_FINDPYTHON ON)
+    find_package(pybind11 REQUIRED)
+
+    pybind11_add_module(pysimulationengine python/pybind11module.cpp)
+    target_link_libraries(pysimulationengine PUBLIC simulationengine)
+
+    if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")   
+        target_compile_options(pysimulationengine PRIVATE -Wall -Wextra)
+    endif()
 endif()
+
