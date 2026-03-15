@@ -1,8 +1,10 @@
+include(CMakeDependentOption)
 project(simulationengine LANGUAGES C CXX VERSION 1.0.0)
 
-option(SIMULATIONENGINE_BUILD_MINIZIPSAVECONTAINER
+cmake_dependent_option(SIMULATIONENGINE_BUILD_MINIZIPSAVECONTAINER
     "Find minizip and build minizipsavecontainer.cpp"
-    ON
+    ON IS_TARGET_DESKTOP
+    OFF
 )
 option(SIMULATIONENGINE_BUILD_PYTHON_BINDINGS
     "Require pybind11 and build Python bindings"

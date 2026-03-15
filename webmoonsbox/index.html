@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+    
+
+<head>
+    <meta charset="UTF-8">
+    <title>WebMoonsbox</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        #game-surface {
+            width: 500px;
+            height: 500px;
+            image-rendering: pixelated;
+            background-color: black;
+        }
+    </style>
+</head>
+
+
+<body>
+    <h1>WebMoonsbox</h1>
+    <canvas id="game-surface" width="100" height="100"></canvas>
+
+    <script>
+        var buffers = {};
+        var framesCount = 0;
+        var Module = {
+            onRuntimeInitialized: function() {
+                buffers = JSON.parse(Module.UTF8ToString(Module._init_game(100, 100)));
+
+                const canvas = document.getElementById('game-surface');
+                const ctx = canvas.getContext('2d');
+                const imageData = ctx.createImageData(100, 100);
+                const pixels = new Uint8Array(wasmMemory.buffer, buffers.colors_ptr, 100*100*4);
+                
+                function render() {
+                    Module.ccall('draw_dot', 'boolean', ['number', 'number', 'string'], [50, 50, 'Sand']);
+                    Module._tick(false, false);
+
+                    imageData.data.set(pixels);
+                    ctx.putImageData(imageData, 0, 0);
+
+                    ++framesCount;
+                    requestAnimationFrame(render);
+                }
+                
+                render();
+            }
+        };
+    </script>
+    <script src="../build-wasm/webmoonsbox/webmoonsbox.js"></script>
+</body>
+
+
+</html>
