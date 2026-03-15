@@ -20,6 +20,8 @@ The main inspiration for moonsbox is [sand:box](https://smellymoo.com/) by smell
 - **Sound effects**: Some materials can play sounds on interaction
 - **Advanced renderer**: Zoom and heatmap display are supported
 - **Saving system**: Save your progress, share your buildings, schemes or silly states
+- **Standalone simulation**: Simulation can be run headless. There is Python API to simulation.
+                             You can make a frontend for any platform
 
 ## Controls
 
@@ -48,33 +50,50 @@ Join our community!
 
 ## Dependencies
 
+### moonsbox
+
 - C++23
 - CMake 3.20+
 - SDL2 (including SDL_ttf, SDL_image)
 - SDL2_gfx
-- zlib
 - minizip
 - SDL2pp
 - miniaudio (embedded)
 - portable-file-dialogs (embedded)
 
-## Running
+### simulationengine
+
+- C++23
+- CMake 3.20+
+- minizip (may be disabled)
+- pybind11 (optional, for Python API)
+
+## Building and Running
 
 ```sh
-# Install dependencies
-# Arch Linux
-sudo pacman -S base-devel cmake gcc sdl3 sdl2-compat sdl2_image sdl2_ttf sdl2_gfx 
-sudo pacman -S zlib minizip pkg-config
+# Install dependencies (Arch Linux)
+# Common
+sudo pacman -S base-devel cmake gcc
+# simulationengine optionals
+sudo pacman -S minizip pybind11
+# moonsbox
+sudo pacman -S sdl3 sdl2-compat sdl2_image sdl2_ttf sdl2_gfx minizip
 yay -S sdl2pp
 
 # Build
 git clone https://github.com/KlasterK/moonsbox.git
 cd moonsbox
 cmake -S. -Bbuild -DCMAKE_BUILD_TYPE=Release
+nano build/CMakeCache.txt # configure if needed
 cmake --build build
 
-# Run
-build/src/moonsbox
+# Run the game
+build/moonsbox/moonsbox
+
+# Run Python and load simulationengine Python API
+PYTHONPATH=$PYTHONPATH:build/simulationengine python
+# In opened REPL:
+# >>> import pysimulationengine
 ```
 
 ## License
