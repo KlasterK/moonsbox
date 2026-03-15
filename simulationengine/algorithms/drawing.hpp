@@ -3,8 +3,8 @@
 
 #include <cstddef>
 #include <array>
-#include <functional>
 #include <simulationengine/core/materialcontroller.hpp>
+#include <simulationengine/core/compat.hpp>
 
 class GameMap;
 
@@ -12,7 +12,7 @@ namespace drawing
 {
     using SignedPoint = std::array<int, 2>;
     using Rect = std::array<int, 4>;
-    using MaterialFactory = std::move_only_function<void(size_t, size_t)>;
+    using MaterialFactory = MoveOnlyOrOldFunction<void(size_t, size_t)>;
 
     enum class LineEnds {None, Square, Round};
 

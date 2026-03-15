@@ -1,4 +1,5 @@
 #include <simulationengine/algorithms/cksum.hpp>
+#include <array>
 
 // Original code: https://gist.github.com/wdang/00a437a7a3ff24c03265f26e6a59fa8e
 // Copyright 2012 William Dang (william.dang@utah.edu)

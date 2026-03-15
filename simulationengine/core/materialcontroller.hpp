@@ -1,13 +1,13 @@
 #ifndef MOOX_MATERIALCONTROLLER_HPP
 #define MOOX_MATERIALCONTROLLER_HPP
 
+#include <simulationengine/core/compat.hpp>
 #include <simulationengine/core/materialdefs.hpp>
 #include <cstddef>
 #include <cstdint>
 #include <utility>
 #include <vector>
 #include <span>
-#include <functional>
 #include <optional>
 
 class GameMap;
@@ -23,7 +23,7 @@ public:
         BrokenInvariant, MissingDependency,
     };
 
-    using PlaySoundCallback = std::move_only_function<void(
+    using PlaySoundCallback = MoveOnlyOrOldFunction<void(
         std::string_view name,
         std::optional<std::string_view> category,
         bool do_override

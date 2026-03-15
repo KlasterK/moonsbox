@@ -10,15 +10,15 @@
 #include <SDL2pp/Rect.hh>
 #include <SDL2/SDL_events.h>
 #include <filesystem>
-#include <functional>
 #include <array>
+#include <simulationengine/core/compat.hpp>
 
 class MaterialPalette;
 
 class MainWindowUI
 {
 public:
-    using FileCallback = std::move_only_function<void(std::filesystem::path)>;
+    using FileCallback = MoveOnlyOrOldFunction<void(std::filesystem::path)>;
 
 public:
     MainWindowUI(
