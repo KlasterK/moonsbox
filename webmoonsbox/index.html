@@ -21,24 +21,26 @@
     <h1>WebMoonsbox</h1>
     <canvas id="game-surface" width="100" height="100"></canvas>
 
+    <script src="renderer.js"></script>
     <script>
+        "use strict";
+
         var buffers = {};
         var framesCount = 0;
         var Module = {
             onRuntimeInitialized: function() {
                 buffers = JSON.parse(Module.UTF8ToString(Module._init_game(100, 100)));
+                const pixels = new Uint8Array(wasmMemory.buffer, buffers.colors_ptr, 100*100*4);
 
                 const canvas = document.getElementById('game-surface');
-                const ctx = canvas.getContext('2d');
-                const imageData = ctx.createImageData(100, 100);
-                const pixels = new Uint8Array(wasmMemory.buffer, buffers.colors_ptr, 100*100*4);
+                const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+                const rendererGL = new RendererGL(gl, 100, 100);
                 
                 function render() {
                     Module.ccall('draw_dot', 'boolean', ['number', 'number', 'string'], [50, 50, 'Sand']);
                     Module._tick(false, false);
 
-                    imageData.data.set(pixels);
-                    ctx.putImageData(imageData, 0, 0);
+                    rendererGL.render(gl, pixels);
 
                     ++framesCount;
                     requestAnimationFrame(render);
