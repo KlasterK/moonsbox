@@ -1,13 +1,14 @@
-
-#include "simulationengine/algorithms/drawing.hpp"
-#include "simulationengine/core/gamemap.hpp"
-#include "simulationengine/core/materialregistry.hpp"
-#include "simulationengine/materials/allmaterials.hpp"
-#include "simulationengine/simulation/simulationmanager.hpp"
-#include <optional>
+#include <simulationengine/algorithms/drawing.hpp>
+#include <simulationengine/core/gamemap.hpp>
+#include <simulationengine/core/materialregistry.hpp>
+#include <simulationengine/materials/allmaterials.hpp>
+#include <simulationengine/simulation/simulationmanager.hpp>
 #include <simulationengine/algorithms/fastprng.hpp>
-#include <iostream>
 #include <emscripten.h>
+#include <string_view>
+#include <optional>
+#include <iostream>
+#include <print>
 
 struct GameApp
 {
@@ -66,5 +67,40 @@ extern "C"
             
         p->init_point(app.map, x, y);
         return true;
+    }
+
+    EMSCRIPTEN_KEEPALIVE
+    bool play_place_sound(int x, int y, const char *material)
+    {
+        auto &app = g_app_opt.value();
+        auto *p = app.registry.find_controller_by_name(material);
+        if(!p)
+            return false;
+            
+        p->play_place_sound(app.map, x, y);
+        return true;
+    }
+
+    EMSCRIPTEN_KEEPALIVE
+    void register_play_sound_callback(int func_id)
+    {
+        if(func_id == 0)
+            return;
+
+        auto cb = [func_id](
+            std::string_view name,
+            std::optional<std::string_view> category,
+            bool do_override
+        )
+        {
+            reinterpret_cast<void(*)(const char *, const char *, int)>(func_id)(
+                std::string(name).c_str(),
+                category ? std::string(*category).c_str() : nullptr,
+                do_override
+            );
+        };
+
+        for(auto &pair : g_app_opt.value().registry)
+            pair.second->set_play_sound_callback(cb);
     }
 }
