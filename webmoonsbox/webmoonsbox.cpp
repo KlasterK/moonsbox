@@ -45,12 +45,13 @@ extern "C"
     }
 
     EMSCRIPTEN_KEEPALIVE
-    bool tick(bool do_set_paused, bool value)
+    bool tick(bool do_tick, bool do_set_paused, bool value)
     {
         auto &app = g_app_opt.value();
         if(do_set_paused)
             app.simulation_manager.set_paused(value);
-        app.simulation_manager.tick();
+        if(do_tick)
+            app.simulation_manager.tick();
         return app.simulation_manager.is_paused();
     }
 
@@ -66,6 +67,38 @@ extern "C"
             return false;
             
         p->init_point(app.map, x, y);
+        return true;
+    }
+
+    EMSCRIPTEN_KEEPALIVE
+    bool draw_rect_or_ellipse(int x, int y, int w, int h, bool isEllipse, const char *material)
+    {
+        auto &app = g_app_opt.value();
+        auto *p = app.registry.find_controller_by_name(material);
+        if(!p)
+            return false;
+        
+        if(isEllipse)
+            drawing::ellipse(app.map, {x, y, w, h}, drawing::make_controller_init_point_factory(app.map, *p));
+        else
+            drawing::rect(app.map, {x, y, w, h}, drawing::make_controller_init_point_factory(app.map, *p));
+
+        return true;
+    }
+
+    EMSCRIPTEN_KEEPALIVE
+    bool draw_line(int x0, int y0, int x1, int y1, int width, const char *material, int line_ends)
+    {
+        auto &app = g_app_opt.value();
+        auto *p = app.registry.find_controller_by_name(material);
+        if(!p)
+            return false;
+        
+        drawing::line(
+            app.map, {x0, y0}, {x1, y1}, width, 
+            drawing::make_controller_init_point_factory(app.map, *p),
+            static_cast<drawing::LineEnds>(line_ends)
+        );
         return true;
     }
 
