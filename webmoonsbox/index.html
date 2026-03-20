@@ -13,6 +13,7 @@
             image-rendering: pixelated;
             background-color: black;
             display: block;
+            touch-action: pinch-zoom;
         }
     </style>
 </head>
@@ -24,33 +25,36 @@
         Your browser doesn't support &lt;canvas&gt; tag. Please update.
     </canvas>
 
+    <button onclick="soundSystem.audioCtx.resume(); this.remove()">
+        Try to tap me if sounds don't work
+    </button>
+
     <script src="soundsystem.js"></script>
     <script src="renderer.js"></script>
     <script src="brush.js"></script>
     <script>
         "use strict";
 
-        async function initSoundSystem() {
-            var soundSystem = new SoundSystem();
-            await soundSystem.loadSounds();
-            let playSoundCBID = Module.addFunction(soundSystem.playSoundCB.bind(soundSystem), 'vppi');
-            Module._register_play_sound_callback(playSoundCBID);
-            this.brush.setOnActivationCB(null);
-        }
-
         var buffers = {};
         var framesCount = 0;
+        var brush = {};
+        var soundSystem;
 
         var Module = {
             onRuntimeInitialized: function() {
                 buffers = JSON.parse(Module.UTF8ToString(Module._init_game(100, 100)));
                 const pixels = new Uint8Array(wasmMemory.buffer, buffers.colors_ptr, 100*100*4);
 
+                soundSystem = new SoundSystem();
+                soundSystem.loadSounds();
+                let playSoundCBID = Module.addFunction(soundSystem.playSoundCB.bind(soundSystem), 'vppi');
+                Module._register_play_sound_callback(playSoundCBID);
+
                 const canvas = document.getElementById('game-surface');
                 canvas.width = 100;
                 canvas.height = 100;
-                const brush = new Brush(canvas);
-                brush.setOnActivationCB(initSoundSystem.bind({brush: brush}));
+                brush = new Brush(canvas);
+                brush.setOnActivationCB(() => soundSystem.audioCtx.resume());
 
                 const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
                 const rendererGL = new RendererGL(gl, 100, 100);
