@@ -7,9 +7,20 @@
     <title>WebMoonsbox</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
+        html {
+            background-color: whitesmoke;
+        }
+
+        body {
+            background-color: white;
+            max-width: 1000px;
+            margin: auto;
+            padding: 1em;
+        }
+
         #game-surface {
-            width: 500px;
-            height: 500px;
+            margin: auto;
+            width: 100%; /* will be reused in JS */
             image-rendering: pixelated;
             background-color: black;
             display: block;
@@ -25,8 +36,21 @@
         Your browser doesn't support &lt;canvas&gt; tag. Please update.
     </canvas>
 
+    <div>
+        <p>Brush Size</p>
+        1
+        <input type="range" min="1" max="50" step="1" value="1" 
+               oninput="brush.thickness = this.value">
+        50
+    </div>
+
+    <div>
+        <p>Material</p>
+        <input type="text" oninput="brush.material = this.value">
+    </div>
+
     <button onclick="soundSystem.audioCtx.resume(); this.remove()">
-        Try to tap me if sounds don't work
+        Try to click me if sounds don't work
     </button>
 
     <script src="soundsystem.js"></script>
@@ -35,29 +59,34 @@
     <script>
         "use strict";
 
-        var buffers = {};
+        var size = {x: 240, y: 135};
+
+        var soundSystem = new SoundSystem();
+        soundSystem.loadSounds();
+
+        var canvas = document.getElementById('game-surface');
+        canvas.width = size.x;
+        canvas.height = size.y;
+        canvas.style.aspectRatio = `${size.x} / ${size.y}`;
+        canvas.style.height = Math.min(canvas.clientHeight, window.innerHeight * 0.5) + 'px';
+        canvas.style.width = 'auto';
+
+        var brush = new Brush(canvas);
+        brush.setOnActivationCB(() => soundSystem.audioCtx.resume());
+
+        var buffers;
         var framesCount = 0;
-        var brush = {};
-        var soundSystem;
 
         var Module = {
             onRuntimeInitialized: function() {
-                buffers = JSON.parse(Module.UTF8ToString(Module._init_game(100, 100)));
-                const pixels = new Uint8Array(wasmMemory.buffer, buffers.colors_ptr, 100*100*4);
+                buffers = JSON.parse(Module.UTF8ToString(Module._init_game(size.x, size.y)));
+                const pixels = new Uint8Array(wasmMemory.buffer, buffers.colors_ptr, size.x * size.y * 4);
 
-                soundSystem = new SoundSystem();
-                soundSystem.loadSounds();
                 let playSoundCBID = Module.addFunction(soundSystem.playSoundCB.bind(soundSystem), 'vppi');
                 Module._register_play_sound_callback(playSoundCBID);
 
-                const canvas = document.getElementById('game-surface');
-                canvas.width = 100;
-                canvas.height = 100;
-                brush = new Brush(canvas);
-                brush.setOnActivationCB(() => soundSystem.audioCtx.resume());
-
                 const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
-                const rendererGL = new RendererGL(gl, 100, 100);
+                const rendererGL = new RendererGL(gl, size.x, size.y);
                 
                 function render() {
                     Module._tick(true, false, false);
