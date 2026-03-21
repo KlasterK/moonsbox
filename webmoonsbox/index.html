@@ -60,7 +60,7 @@
                 const rendererGL = new RendererGL(gl, 100, 100);
                 
                 function render() {
-                    Module._tick(false, false, false);
+                    Module._tick(true, false, false);
 
                     rendererGL.render(gl, pixels);
 

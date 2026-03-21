@@ -58,7 +58,7 @@ class Brush {
 
         let point = this.mouseToMapCoords(e.clientX, e.clientY);
         Module.ccall(
-            'draw_line', 'boolean', 
+            'draw_line_non_destructive', 'boolean', 
             ['number', 'number', 'number', 'number', 'number', 'string', 'number'], 
             [
                 this.mousePreviousPos.x,
@@ -116,7 +116,7 @@ class Brush {
 
             let point = this.mouseToMapCoords(touch.clientX, touch.clientY);
             Module.ccall(
-                'draw_line', 'boolean', 
+                'draw_line_non_destructive', 'boolean', 
                 ['number', 'number', 'number', 'number', 'number', 'string', 'number'], 
                 [
                     this.activeTouches.get(touch.identifier).previousPos.x,
@@ -161,7 +161,7 @@ class Brush {
 
         for(let point of points) {
             Module.ccall(
-                'draw_rect_or_ellipse', 'boolean', 
+                'draw_rect_or_ellipse_non_destructive', 'boolean', 
                 ['number', 'number', 'number', 'number', 'boolean', 'string'], 
                 [
                     point.x - this.thickness / 2,

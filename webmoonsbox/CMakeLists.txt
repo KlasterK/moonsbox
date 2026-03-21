@@ -6,12 +6,23 @@ endif()
 
 set(CMAKE_EXECUTABLE_SUFFIX ".js")
 
+set(EXPORTED_FUNCTIONS
+    init_game
+    tick
+    set_dot_at
+    draw_rect_or_ellipse_non_destructive
+    draw_line_non_destructive
+    play_place_sound
+    register_play_sound_callback
+)
+string(JOIN "','_" EXPORTED_FUNCTIONS_JOINED_MID ${EXPORTED_FUNCTIONS})
+
 add_executable(webmoonsbox webmoonsbox.cpp)
 target_link_libraries(webmoonsbox PUBLIC simulationengine)
 target_link_options(webmoonsbox PRIVATE
     "SHELL:-s WASM=1"
     "SHELL:-s ALLOW_MEMORY_GROWTH=1"
-    "SHELL:-s EXPORTED_FUNCTIONS=['_init_game','_tick','_draw_dot','_draw_rect_or_ellipse','_draw_line','_play_place_sound','_register_play_sound_callback']"
+    "SHELL:-s EXPORTED_FUNCTIONS=['_${EXPORTED_FUNCTIONS_JOINED_MID}']"
     "SHELL:-s EXPORTED_RUNTIME_METHODS=['ccall','cwrap','UTF8ToString','addFunction']"
     "SHELL:-s DISABLE_EXCEPTION_CATCHING=0"
     "SHELL:-s RESERVED_FUNCTION_POINTERS=10"

@@ -1,3 +1,4 @@
+#include "simulationengine/core/materialcontroller.hpp"
 #include <simulationengine/algorithms/drawing.hpp>
 #include <simulationengine/core/gamemap.hpp>
 #include <simulationengine/core/materialregistry.hpp>
@@ -30,6 +31,15 @@ struct GameApp
 
 std::optional<GameApp> g_app_opt;
 
+auto non_destructive_material_factory(MaterialController &ctl)
+{
+    return [&ctl](size_t x, size_t y)
+    {
+        if(ctl.is_placeable_on(g_app_opt->map, x, y))
+            ctl.init_point(g_app_opt->map, x, y);
+    };
+}
+
 extern "C"
 {
     EMSCRIPTEN_KEEPALIVE
@@ -37,10 +47,18 @@ extern "C"
     {
         g_app_opt.emplace(width, height);
 
-        static std::string buffers_json{std::format(
-            "{{\"colors_ptr\": {}}}",
-            reinterpret_cast<uintptr_t>(g_app_opt->map.colors.span().data())
-        )};
+        static std::string buffers_json{"{\"colors_ptr\":"};
+        buffers_json += std::to_string(reinterpret_cast<uintptr_t>(g_app_opt->map.colors.span().data()));
+
+        assert(g_app_opt->registry.begin() != g_app_opt->registry.end());
+        buffers_json += ",\"material_names\":[\"";
+        buffers_json += g_app_opt->registry.begin()->first;
+        for(auto it = g_app_opt->registry.begin(); it < g_app_opt->registry.end(); ++it)
+        {
+            buffers_json += "\",\"";
+            buffers_json += it->first;
+        }
+        buffers_json += "\"]}";
         return buffers_json.c_str();
     }
 
@@ -56,7 +74,7 @@ extern "C"
     }
 
     EMSCRIPTEN_KEEPALIVE
-    bool draw_dot(int x, int y, const char *material)
+    bool set_dot_at(int x, int y, const char *material)
     {
         auto &app = g_app_opt.value();
         if(!app.map.in_bounds(x, y))
@@ -71,7 +89,7 @@ extern "C"
     }
 
     EMSCRIPTEN_KEEPALIVE
-    bool draw_rect_or_ellipse(int x, int y, int w, int h, bool isEllipse, const char *material)
+    bool draw_rect_or_ellipse_non_destructive(int x, int y, int w, int h, bool isEllipse, const char *material)
     {
         auto &app = g_app_opt.value();
         auto *p = app.registry.find_controller_by_name(material);
@@ -79,15 +97,15 @@ extern "C"
             return false;
         
         if(isEllipse)
-            drawing::ellipse(app.map, {x, y, w, h}, drawing::make_controller_init_point_factory(app.map, *p));
+            drawing::ellipse(app.map, {x, y, w, h}, non_destructive_material_factory(*p));
         else
-            drawing::rect(app.map, {x, y, w, h}, drawing::make_controller_init_point_factory(app.map, *p));
+            drawing::rect(app.map, {x, y, w, h}, non_destructive_material_factory(*p));
 
         return true;
     }
 
     EMSCRIPTEN_KEEPALIVE
-    bool draw_line(int x0, int y0, int x1, int y1, int width, const char *material, int line_ends)
+    bool draw_line_non_destructive(int x0, int y0, int x1, int y1, int width, const char *material, int line_ends)
     {
         auto &app = g_app_opt.value();
         auto *p = app.registry.find_controller_by_name(material);
@@ -96,7 +114,7 @@ extern "C"
         
         drawing::line(
             app.map, {x0, y0}, {x1, y1}, width, 
-            drawing::make_controller_init_point_factory(app.map, *p),
+            non_destructive_material_factory(*p),
             static_cast<drawing::LineEnds>(line_ends)
         );
         return true;
