@@ -53,7 +53,7 @@ extern "C"
         assert(g_app_opt->registry.begin() != g_app_opt->registry.end());
         buffers_json += ",\"material_names\":[\"";
         buffers_json += g_app_opt->registry.begin()->first;
-        for(auto it = g_app_opt->registry.begin(); it < g_app_opt->registry.end(); ++it)
+        for(auto it = g_app_opt->registry.begin() + 1; it < g_app_opt->registry.end(); ++it)
         {
             buffers_json += "\",\"";
             buffers_json += it->first;
