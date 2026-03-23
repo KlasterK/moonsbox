@@ -104,6 +104,9 @@ class RendererGL {
 
         // Bind texture unit 0 to the sampler
         gl.uniform1i(imageLoc, 0);
+
+        gl.enable(gl.BLEND);
+        gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
     }
 
     render(gl, pixels) {
