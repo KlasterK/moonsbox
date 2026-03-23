@@ -5,6 +5,39 @@ const soundsToLoad = {
         "../assets/sounds/material.Sand.1.wav",
         "../assets/sounds/material.Sand.3.wav",
     ],
+    "material.Water": [
+        "../assets/sounds/material.Water.1.wav",
+        "../assets/sounds/material.Water.2.wav",
+        "../assets/sounds/material.Water.3.wav",
+        "../assets/sounds/material.Water.4.wav",
+    ],
+    "material.Ice": [
+        "../assets/sounds/material.Ice.wav",
+    ],
+    "material.Steam": [
+        "../assets/sounds/material.Steam.wav",
+    ],
+    "material.Lava": [
+        "../assets/sounds/material.Lava.wav",
+    ],
+    "material.Fire": [
+        "../assets/sounds/material.Fire.wav",
+    ],
+    "convert.Ice_melts": [
+        "../assets/sounds/convert.Ice_melts.wav",
+    ],
+    "convert.Water_freezes": [
+        "../assets/sounds/convert.Water_freezes.wav",
+    ],
+    "convert.Water_evaporates": [
+        "../assets/sounds/convert.Water_evaporates.wav",
+    ],
+    "convert.Steam_condensates": [
+        "../assets/sounds/convert.Steam_condensates.wav",
+    ],
+    "convert.Sand_to_glass": [
+        "../assets/sounds/convert.Sand_to_glass.wav",
+    ],
 };
 
 class SoundSystem {
