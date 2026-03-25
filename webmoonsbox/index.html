@@ -126,6 +126,9 @@
             pixels = new Uint8Array(wasmMemory.buffer, buffers.colors_ptr, size.x * size.y * 4);
 
             initMaterialPalette(brush);
+            let playSoundCBID = Module.addFunction(soundSystem.playSoundCB.bind(soundSystem), 'vppi');
+            Module._register_play_sound_callback(playSoundCBID);
+            
             isInited = true;
         }
 
