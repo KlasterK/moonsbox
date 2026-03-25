@@ -26,6 +26,17 @@
             display: block;
             touch-action: pinch-zoom;
         }
+
+        .reset-form {
+            display: grid;
+            grid-template-columns: max-content 10rem;
+            gap: 0.2rem 0.5rem;
+            margin: 0.5rem 0;
+        }
+
+        .reset-form-btn {
+            grid-column: span 2;
+        }
     </style>
     <link rel="stylesheet" href="materialpalettestyle.css">
 </head>
@@ -54,6 +65,16 @@
         Try to click me if sounds don't work
     </button>
 
+    <form class="reset-form">
+        <label for="reset-form-width">Width</label>
+        <input type="number" id="reset-form-width" min="10" max="1000" step="1">
+
+        <label for="reset-form-height">Height</label>
+        <input type="number" id="reset-form-height" min="10" max="1000" step="1">
+
+        <button type="button" class="reset-form-btn" onclick="resetMap()">Reset Map</button>
+    </form>
+
     <div>
         <h2>Material Palette</h2>
         <div id="material-palette-grid" class="material-palette-grid"></div>
@@ -66,51 +87,63 @@
     <script>
         "use strict";
 
+        var defaultSize = {x: 240, y: 135};
         document.getElementById('brush-size-slider').value = 1;
-
-        var size = {x: 240, y: 135};
+        document.getElementById('reset-form-width').value  = defaultSize.x;
+        document.getElementById('reset-form-height').value = defaultSize.y;
 
         var soundSystem = new SoundSystem();
         soundSystem.loadSounds();
 
         var canvas = document.getElementById('game-surface');
-        canvas.width = size.x;
-        canvas.height = size.y;
-        canvas.style.aspectRatio = `${size.x} / ${size.y}`;
         canvas.style.height = Math.min(canvas.clientHeight, window.innerHeight * 0.5) + 'px';
         canvas.style.width = 'auto';
 
         var brush = new Brush(canvas);
         brush.setOnActivationCB(() => soundSystem.audioCtx.resume());
 
-        var buffers;
         var framesCount = 0;
+        var buffers;
+        var pixels;
+        var brush;
+        var gl;
+        var rendererGL;
+        var isInited = false;
+
+        function initGame(size) {
+            canvas.width = size.x;
+            canvas.height = size.y;
+            canvas.style.aspectRatio = `${size.x} / ${size.y}`;
+
+            gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+            if(gl == null) {
+                console.error('Cannot get WebGL context.');
+            }
+            gl.viewport(0, 0, size.x, size.y);
+            rendererGL = new RendererGL(gl, size.x, size.y);
+
+            buffers = JSON.parse(Module.UTF8ToString(Module._init_game(size.x, size.y)));
+            pixels = new Uint8Array(wasmMemory.buffer, buffers.colors_ptr, size.x * size.y * 4);
+
+            initMaterialPalette(brush);
+            isInited = true;
+        }
+
+        function tickRender() {
+            if(isInited) {
+                Module._tick(true, false, false);
+                rendererGL.render(gl, pixels);
+                brush.updateDrawing();
+            }
+            ++framesCount;
+            requestAnimationFrame(tickRender);
+        }
+        tickRender();
 
         var Module = {
             onRuntimeInitialized: function() {
-                buffers = JSON.parse(Module.UTF8ToString(Module._init_game(size.x, size.y)));
-                const pixels = new Uint8Array(wasmMemory.buffer, buffers.colors_ptr, size.x * size.y * 4);
-
-                initMaterialPalette(brush);
-
-                let playSoundCBID = Module.addFunction(soundSystem.playSoundCB.bind(soundSystem), 'vppi');
-                Module._register_play_sound_callback(playSoundCBID);
-
-                const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
-                const rendererGL = new RendererGL(gl, size.x, size.y);
-                
-                function render() {
-                    Module._tick(true, false, false);
-
-                    rendererGL.render(gl, pixels);
-
-                    ++framesCount;
-                    brush.updateDrawing();
-                    requestAnimationFrame(render);
-                }
-                
-                render();
-            }
+                initGame(defaultSize);
+            },
         };
 
         const pauseBtn = document.getElementById('pause-btn');
@@ -120,6 +153,22 @@
             Module._tick(false, true, !v);
 
             pauseBtn.textContent = v ? 'Pause' : 'Unpause';
+        }
+
+        const resetFormWidth = document.getElementById('reset-form-width');
+        const resetFormHeight = document.getElementById('reset-form-height');
+
+        function resetMap() {
+            const size = {
+                x: parseInt(resetFormWidth.value),
+                y: parseInt(resetFormHeight.value),
+            };
+            if(size.x == null || size.y == null) {
+                window.alert('adsa');
+                return;
+
+            }
+            initGame(size);
         }
     </script>
     <script src="../build-wasm/webmoonsbox/webmoonsbox.js"></script>

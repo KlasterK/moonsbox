@@ -47,7 +47,8 @@ extern "C"
     {
         g_app_opt.emplace(width, height);
 
-        static std::string buffers_json{"{\"colors_ptr\":"};
+        static std::string buffers_json;
+        buffers_json = "{\"colors_ptr\":";
         buffers_json += std::to_string(reinterpret_cast<uintptr_t>(g_app_opt->map.colors.span().data()));
 
         assert(g_app_opt->registry.begin() != g_app_opt->registry.end());

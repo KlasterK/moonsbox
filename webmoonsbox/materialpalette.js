@@ -1,5 +1,7 @@
 'use strict';
 
+var buffers;
+
 function createMaterialCard(materialName, brush) {
     const card = document.createElement('div');
     card.className = 'material-palette-card';
@@ -32,6 +34,7 @@ function initMaterialPalette(brush) {
         console.error('Cannot find element #material-palette-grid');
         return;
     }
+    grid.innerHTML = '';
 
     if (!buffers || !buffers.material_names || !buffers.material_names.length) {
         console.warn('Cannot find any materials. Grid will be empty.');
