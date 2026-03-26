@@ -9,7 +9,7 @@ function createMaterialCard(materialName, brush) {
     const img = document.createElement('img');
     img.className = 'material-palette-icon';
     img.loading = 'lazy';
-    img.src = `../assets/materials/${materialName}`;
+    img.src = `assets/materials/${materialName}`;
     card.appendChild(img);
 
     const label = document.createElement('div');
