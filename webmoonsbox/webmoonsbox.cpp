@@ -1,10 +1,12 @@
-#include "simulationengine/core/materialcontroller.hpp"
-#include <simulationengine/algorithms/drawing.hpp>
+#include <simulationengine/core/materialcontroller.hpp>
 #include <simulationengine/core/gamemap.hpp>
 #include <simulationengine/core/materialregistry.hpp>
 #include <simulationengine/materials/allmaterials.hpp>
 #include <simulationengine/simulation/simulationmanager.hpp>
 #include <simulationengine/algorithms/fastprng.hpp>
+#include <simulationengine/algorithms/drawing.hpp>
+#include <simulationengine/serialization/minizipsavecontainer.hpp>
+#include <simulationengine/serialization/saving.hpp>
 #include <emscripten.h>
 #include <string_view>
 #include <optional>
@@ -43,9 +45,10 @@ auto non_destructive_material_factory(MaterialController &ctl)
 extern "C"
 {
     EMSCRIPTEN_KEEPALIVE
-    const char *init_game(size_t width, size_t height)
+    const char *init_game(size_t width, size_t height, bool do_reinit)
     {
-        g_app_opt.emplace(width, height);
+        if(do_reinit)
+            g_app_opt.emplace(width, height);
 
         static std::string buffers_json;
         buffers_json = "{\"colors_ptr\":";
@@ -154,5 +157,36 @@ extern "C"
 
         for(auto &pair : g_app_opt.value().registry)
             pair.second->set_play_sound_callback(cb);
+    }
+
+    EMSCRIPTEN_KEEPALIVE
+    const char *minizip_load_store(bool do_store, const char *file_path)
+    {
+        static std::string error;
+        auto &app = g_app_opt.value();
+
+        if(do_store)
+        {
+            MinizipWriteSaveContainer container(file_path);
+            auto result = saving::serialize(container, app.map, app.registry);
+            if(result.has_value())
+                return "";
+            error = std::move(result.error());
+        }
+        else 
+        {
+            MinizipReadSaveContainer container(file_path);
+            auto result = saving::deserialize(container, app.registry);
+            if(result.has_value())
+            {
+                app.map = std::move(*result);
+                error = std::format("k{};{}", app.map.width(), app.map.height());
+            }
+            else 
+            {
+                error = "e" + result.error();
+            }
+        }
+        return error.c_str();
     }
 }

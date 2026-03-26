@@ -27,14 +27,14 @@
             touch-action: pinch-zoom;
         }
 
-        .reset-form {
+        .form-2cols {
             display: grid;
             grid-template-columns: max-content 10rem;
             gap: 0.2rem 0.5rem;
-            margin: 0.5rem 0;
+            margin: 1rem 0;
         }
 
-        .reset-form-btn {
+        .form-2cols-wide-btn {
             grid-column: span 2;
         }
     </style>
@@ -65,14 +65,24 @@
         Try to click me if sounds don't work
     </button>
 
-    <form class="reset-form">
+    <form class="form-2cols">
         <label for="reset-form-width">Width</label>
         <input type="number" id="reset-form-width" min="10" max="1000" step="1">
 
         <label for="reset-form-height">Height</label>
         <input type="number" id="reset-form-height" min="10" max="1000" step="1">
 
-        <button type="button" class="reset-form-btn" onclick="resetMap()">Reset Map</button>
+        <button type="button" class="form-2cols-wide-btn" onclick="resetMap()">Reset Map</button>
+    </form>
+
+    <form id="saving-form" class="form-2cols">
+        <input type="file" accept=".kk-save, application/x-moonsbox-save"
+               id="saving-file-input"
+               onchange="onSavingFileInputChange(event, this)">
+        <button type="button" onclick="loadGame()">Load Game</button>
+
+        <a id="saving-download-link"></a>
+        <button type="button" onclick="saveGame()">Save Game</button>
     </form>
 
     <div>
@@ -91,6 +101,7 @@
         document.getElementById('brush-size-slider').value = 1;
         document.getElementById('reset-form-width').value  = defaultSize.x;
         document.getElementById('reset-form-height').value = defaultSize.y;
+        document.getElementById('saving-file-input').value = '';
 
         var soundSystem = new SoundSystem();
         soundSystem.loadSounds();
@@ -110,7 +121,7 @@
         var rendererGL;
         var isInited = false;
 
-        function initGame(size) {
+        function initGame(size, doReinit = true) {
             canvas.width = size.x;
             canvas.height = size.y;
             canvas.style.aspectRatio = `${size.x} / ${size.y}`;
@@ -122,13 +133,13 @@
             gl.viewport(0, 0, size.x, size.y);
             rendererGL = new RendererGL(gl, size.x, size.y);
 
-            buffers = JSON.parse(Module.UTF8ToString(Module._init_game(size.x, size.y)));
+            buffers = JSON.parse(Module.UTF8ToString(Module._init_game(size.x, size.y, doReinit)));
             pixels = new Uint8Array(wasmMemory.buffer, buffers.colors_ptr, size.x * size.y * 4);
 
             initMaterialPalette(brush);
             let playSoundCBID = Module.addFunction(soundSystem.playSoundCB.bind(soundSystem), 'vppi');
             Module._register_play_sound_callback(playSoundCBID);
-            
+
             isInited = true;
         }
 
@@ -166,12 +177,100 @@
                 x: parseInt(resetFormWidth.value),
                 y: parseInt(resetFormHeight.value),
             };
+
             if(size.x == null || size.y == null) {
                 window.alert('adsa');
                 return;
-
             }
+
             initGame(size);
+        }
+
+        function formatSaveFileNameWithDate(date) {
+            const zfill2 = (n, width = 2) => String(n).padStart(width, '0');
+            
+            const year    = date.getFullYear();
+            const month   = zfill2(date.getMonth() + 1);
+            const day     = zfill2(date.getDate());
+            const hours   = zfill2(date.getHours());
+            const minutes = zfill2(date.getMinutes());
+            const seconds = zfill2(date.getSeconds());
+            
+            return `moonsbox ${year}-${month}-${day} ${hours}-${minutes}-${seconds}.kk-save`;
+        }
+
+        let lastSavingBlobURL = null;
+        const savingLink = document.getElementById('saving-download-link');
+
+        function saveGame() {
+            try {
+                FS.unlink('/out.kk-save');
+            } catch {}
+
+            const error = Module.ccall('minizip_load_store', 'string', ['boolean', 'string'], [true, '/out.kk-save']);
+            if(error.trim() != '') {
+                window.alert(`Error when saving your game! ${error}`);
+                return;
+            }
+
+            const zipData = FS.readFile('/out.kk-save');
+            const blob = new Blob([zipData], {type: 'application/x-moonsbox-save'});
+
+            if(lastSavingBlobURL != null) {
+                URL.revokeObjectURL(lastSavingBlobURL);
+            }
+            lastSavingBlobURL = URL.createObjectURL(blob);
+
+            const now = new Date();
+            savingLink.textContent = `Download save file (from ${now.toLocaleString()})`;
+            savingLink.href = lastSavingBlobURL;
+            savingLink.download = formatSaveFileNameWithDate(now);
+        }
+
+        function onSavingFileInputChange(e, input) {
+            const file = e.target.files[0];
+            if(!file) {
+                return;
+            }
+
+            try {
+                FS.unlink('/out.kk-save');
+            } catch {}
+
+            const reader = new FileReader();
+            reader.onload = (loadE) => {
+                const arrayBuffer = loadE.target.result;
+                const u8array = new Uint8Array(arrayBuffer);
+                FS.writeFile('/in.kk-save', u8array);
+            };
+
+            reader.readAsArrayBuffer(file);
+        }
+
+        function loadGame() {
+            if(!FS.analyzePath('/in.kk-save').exists) {
+                window.alert("A save file wasn't loaded yet.");
+                return;
+            }
+
+            const result = Module.ccall('minizip_load_store', 'string', ['boolean', 'string'], [false, '/in.kk-save']);
+            if(result[0] === 'k') {
+                const sep = result.indexOf(';');
+
+                const width = parseInt(result.substring(1, sep));
+                const height = parseInt(result.substring(sep + 1));
+
+                if(width == null || height == null) {
+                    console.error('Cannot parse width and height from save loading result');
+                    return;
+                }
+
+                initGame({x: width, y: height}, false);
+            } else if(result[0] === 'e') {
+                window.alert(`Error when loading your game! ${result.substring(1)}`);
+            } else {
+                console.error('Invalid load error message', result);
+            }
         }
     </script>
     <script src="../build-wasm/webmoonsbox/webmoonsbox.js"></script>

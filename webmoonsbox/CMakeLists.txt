@@ -14,8 +14,19 @@ set(EXPORTED_FUNCTIONS
     draw_line_non_destructive
     play_place_sound
     register_play_sound_callback
+    minizip_load_store
 )
 string(JOIN "','_" EXPORTED_FUNCTIONS_JOINED_MID ${EXPORTED_FUNCTIONS})
+
+include(FetchContent)
+FetchContent_Declare(
+    minizip
+    GIT_REPOSITORY https://github.com/domoticz/minizip.git
+)
+FetchContent_MakeAvailable(minizip)
+
+target_link_libraries(simulationengine PUBLIC minizip)
+target_include_directories(simulationengine PUBLIC ${minizip_SOURCE_DIR})
 
 add_executable(webmoonsbox webmoonsbox.cpp)
 target_link_libraries(webmoonsbox PUBLIC simulationengine)
@@ -27,4 +38,5 @@ target_link_options(webmoonsbox PRIVATE
     "SHELL:-s DISABLE_EXCEPTION_CATCHING=0"
     "SHELL:-s RESERVED_FUNCTION_POINTERS=10"
     "SHELL:-s ALLOW_TABLE_GROWTH=1"
+    "SHELL:-s USE_ZLIB=1"
 )
