@@ -15,7 +15,7 @@
             background-color: white;
             max-width: 1000px;
             margin: auto;
-            padding: 1em;
+            padding: 1rem;
         }
 
         #game-surface {
@@ -27,15 +27,22 @@
             touch-action: pinch-zoom;
         }
 
-        .form-2cols {
+        .reset-form {
             display: grid;
             grid-template-columns: max-content 10rem;
             gap: 0.2rem 0.5rem;
             margin: 1rem 0;
         }
 
-        .form-2cols-wide-btn {
+        .reset-form-wide-btn {
             grid-column: span 2;
+        }
+
+        .saving-form {
+            display: grid;
+            grid-template-columns: minmax(0, 20rem) max-content;
+            gap: 0.2rem;
+            margin: 1rem 0;
         }
     </style>
     <link rel="stylesheet" href="materialpalettestyle.css">
@@ -66,17 +73,17 @@
         Try to click me if sounds don't work
     </button>
 
-    <form class="form-2cols">
+    <form class="reset-form">
         <label for="reset-form-width">Width</label>
         <input type="number" id="reset-form-width" min="10" max="1000" step="1">
 
         <label for="reset-form-height">Height</label>
         <input type="number" id="reset-form-height" min="10" max="1000" step="1">
 
-        <button type="button" class="form-2cols-wide-btn" onclick="resetMap()">Reset Map</button>
+        <button type="button" class="reset-form-wide-btn" onclick="resetMap()">Reset Map</button>
     </form>
 
-    <form id="saving-form" class="form-2cols">
+    <form id="saving-form" class="saving-form">
         <input type="file" accept=".kk-save, application/x-moonsbox-save"
                id="saving-file-input"
                onchange="onSavingFileInputChange(event, this)">
