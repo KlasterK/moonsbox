@@ -1,3 +1,4 @@
+include(CMakeDependentOption)
 project(simulationengine LANGUAGES C CXX VERSION 1.0.0)
 
 option(SIMULATIONENGINE_BUILD_MINIZIPSAVECONTAINER
@@ -7,6 +8,11 @@ option(SIMULATIONENGINE_BUILD_MINIZIPSAVECONTAINER
 option(SIMULATIONENGINE_BUILD_PYTHON_BINDINGS
     "Require pybind11 and build Python bindings"
     OFF
+)
+cmake_dependent_option(SIMULATIONENGINE_SKIP_MINIZIP_REQUIREMENT
+    "Don't try to find minizip include and library paths and delegate linking to further CMake code"
+    OFF IS_TARGET_DESKTOP
+    ON
 )
 
 add_library(simulationengine
@@ -54,26 +60,27 @@ endif()
 # Optional
 
 if(SIMULATIONENGINE_BUILD_MINIZIPSAVECONTAINER)
-    find_path(MINIZIP_INCLUDE_DIR
-        NAMES minizip/zip.h minizip/unzip.h
-        REQUIRED
-        DOC "Path to <minizip/zip.h> and <minizip/unzip.h>"
-    )
-    find_library(MINIZIP_LIBRARY
-        NAMES minizip libminizip
-        REQUIRED
-        DOC "Path to minizip library"
-    )
-
     target_sources(simulationengine PRIVATE
         serialization/minizipsavecontainer.hpp  serialization/minizipsavecontainer.cpp
     )
-    target_include_directories(simulationengine PUBLIC ${MINIZIP_INCLUDE_DIR})
-    target_link_libraries(simulationengine PUBLIC ${MINIZIP_LIBRARY})
-
     target_compile_definitions(simulationengine PUBLIC
         SIMULATIONENGINE_BUILD_MINIZIPSAVECONTAINER
     )
+
+    if(NOT SIMULATIONENGINE_SKIP_MINIZIP_REQUIREMENT)
+        find_path(MINIZIP_INCLUDE_DIR
+            NAMES minizip/zip.h minizip/unzip.h
+            REQUIRED
+            DOC "Path to <minizip/zip.h> and <minizip/unzip.h>"
+        )
+        find_library(MINIZIP_LIBRARY
+            NAMES minizip libminizip
+            REQUIRED
+            DOC "Path to minizip library"
+        )
+        target_include_directories(simulationengine PUBLIC ${MINIZIP_INCLUDE_DIR})
+        target_link_libraries(simulationengine PUBLIC ${MINIZIP_LIBRARY})
+    endif()
 endif()
 
 if(SIMULATIONENGINE_BUILD_PYTHON_BINDINGS)

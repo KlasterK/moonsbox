@@ -5,11 +5,12 @@
 #include <cstring>
 #include <format>
 #include <iostream>
-#include <minizip/unzip.h>
-#include <minizip/zip.h>
 #include <optional>
 #include <stdexcept>
 #include <tuple>
+#include <algorithm>
+#include <minizip/unzip.h>
+#include <minizip/zip.h>
 
 namespace SubfileHeaderSemanticsValue
 {

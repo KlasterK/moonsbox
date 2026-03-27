@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+    
+
+<head>
+    <meta charset="UTF-8">
+    <title>WebMoonsbox</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        html {
+            background-color: whitesmoke;
+        }
+
+        body {
+            background-color: white;
+            max-width: 1000px;
+            margin: auto;
+            padding: 1em;
+        }
+
+        #game-surface {
+            margin: auto;
+            width: 100%; /* will be reused in JS */
+            image-rendering: pixelated;
+            background-color: black;
+            display: block;
+            touch-action: pinch-zoom;
+        }
+
+        .form-2cols {
+            display: grid;
+            grid-template-columns: max-content 10rem;
+            gap: 0.2rem 0.5rem;
+            margin: 1rem 0;
+        }
+
+        .form-2cols-wide-btn {
+            grid-column: span 2;
+        }
+    </style>
+    <link rel="stylesheet" href="materialpalettestyle.css">
+    <link rel="icon" href="../assets/window_icon" type="image/png">
+</head>
+
+
+<body>
+    <h1>WebMoonsbox</h1>
+    <canvas id="game-surface">
+        Your browser doesn't support &lt;canvas&gt; tag. Please update.
+    </canvas>
+
+    <div>
+        <p>Brush Size</p>
+        1
+        <input type="range" min="1" max="50" step="1" value="1"
+               id="brush-size-slider"
+               oninput="brush.thickness = this.value">
+        50
+    </div>
+
+    <button onclick="pauseGame()" id="pause-btn">
+        Pause
+    </button>
+
+    <button onclick="soundSystem.audioCtx.resume(); this.remove()">
+        Try to click me if sounds don't work
+    </button>
+
+    <form class="form-2cols">
+        <label for="reset-form-width">Width</label>
+        <input type="number" id="reset-form-width" min="10" max="1000" step="1">
+
+        <label for="reset-form-height">Height</label>
+        <input type="number" id="reset-form-height" min="10" max="1000" step="1">
+
+        <button type="button" class="form-2cols-wide-btn" onclick="resetMap()">Reset Map</button>
+    </form>
+
+    <form id="saving-form" class="form-2cols">
+        <input type="file" accept=".kk-save, application/x-moonsbox-save"
+               id="saving-file-input"
+               onchange="onSavingFileInputChange(event, this)">
+        <button type="button" onclick="loadGame()">Load Game</button>
+
+        <a id="saving-download-link"></a>
+        <button type="button" onclick="saveGame()">Save Game</button>
+    </form>
+
+    <div>
+        <h2>Material Palette</h2>
+        <div id="material-palette-grid" class="material-palette-grid"></div>
+    </div>
+
+    <script src="soundsystem.js"></script>
+    <script src="renderer.js"></script>
+    <script src="brush.js"></script>
+    <script src="materialpalette.js"></script>
+    <script src="main.js"></script>
+    <script src="../build-wasm/webmoonsbox/webmoonsbox.js"></script>
+</body>
+
+
+</html>
