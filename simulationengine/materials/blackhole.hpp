@@ -18,7 +18,7 @@ public:
         map.material_ctls(x, y) = this;
     }
 
-    inline void dynamic_update(GameMap &map) override
+    inline void pre_dynamic_update(GameMap &) override
     {
         if(m_registry == nullptr)
             throw std::logic_error("BlackHole was never registered in SimulationManager");
@@ -31,22 +31,19 @@ public:
                     "BlackHole cannot not find Space material in SimulationManager"
                 );
         }
+    }
 
-        for(size_t y{}; y < map.height(); ++y)
+    inline void dynamic_update_point(GameMap &map, size_t x, size_t y) override
+    {
+        if(map.material_ctls(x, y) != this)
+            return;
+
+        for(auto [dx, dy] : g_von_neumann_deltas)
         {
-            for(size_t x{}; x < map.width(); ++x)
+            if(map.in_bounds(x+dx, y+dy) && !map.tags(x+dx, y+dy).test(MtlTag::Solid))
             {
-                if(map.material_ctls(x, y) != this)
-                    continue;
-                
-                for(auto [dx, dy] : g_von_neumann_deltas)
-                {
-                    if(map.in_bounds(x+dx, y+dy) && !map.tags(x+dx, y+dy).test(MtlTag::Solid))
-                    {
-                        m_space->init_point(map, x+dx, y+dy);
-                        m_space->play_place_sound(map, x+dx, y+dy);
-                    }
-                }
+                m_space->init_point(map, x+dx, y+dy);
+                m_space->play_place_sound(map, x+dx, y+dy);
             }
         }
     }

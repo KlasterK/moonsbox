@@ -25,7 +25,7 @@ public:
         map.material_ctls(x, y) = this;
     }
 
-    inline void dynamic_update(GameMap &map) override
+    inline void pre_dynamic_update(GameMap &) override
     {
         if(m_registry == nullptr)
             throw std::logic_error("Fire was never registered in SimulationManager");
@@ -38,22 +38,19 @@ public:
                     "Fire cannot not find Space material in SimulationManager"
                 );
         }
+    }
 
-        for(size_t y{}; y < map.height(); ++y)
+    inline void dynamic_update_point(GameMap &map, size_t x, size_t y) override
+    {
+        if(map.material_ctls(x, y) != this)
+            return;
+
+        map.colors(x, y) -= ColorStep;
+        if(map.colors(x, y) <= MinTTLColor)
         {
-            for(size_t x{}; x < map.width(); ++x)
-            {
-                if(map.material_ctls(x, y) != this)
-                    continue;
-                
-                map.colors(x, y) -= ColorStep;
-                if(map.colors(x, y) <= MinTTLColor)
-                {
-                    float old_temp = map.temps(x, y);
-                    m_space->init_point(map, x, y);
-                    map.temps(x, y) = old_temp;
-                }
-            }
+            float old_temp = map.temps(x, y);
+            m_space->init_point(map, x, y);
+            map.temps(x, y) = old_temp;
         }
     }
 

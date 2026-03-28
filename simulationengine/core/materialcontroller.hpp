@@ -33,9 +33,12 @@ public:
     virtual ~MaterialController() = default;
 
     virtual void init_point(GameMap &, size_t, size_t) {}
-    virtual void static_update(GameMap &) {}
-    virtual void dynamic_update(GameMap &) {}
     virtual bool is_placeable_on(GameMap &, size_t, size_t) { return true; }
+
+    virtual void pre_static_update(GameMap &) {}
+    virtual void pre_dynamic_update(GameMap &) {}
+    virtual void static_update_point(GameMap &, size_t, size_t) {}
+    virtual void dynamic_update_point(GameMap &, size_t, size_t) {}
 
     virtual void set_play_sound_callback(PlaySoundCallback &&) {}
     virtual void play_place_sound(GameMap &, size_t, size_t) {}

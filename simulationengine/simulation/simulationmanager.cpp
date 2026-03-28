@@ -137,17 +137,20 @@ void _fall_heavy_gas(GameMap &map, size_t x, size_t y)
 
 void SimulationManager::tick()
 {
+    size_t w = m_map.width();
+    size_t h = m_map.height();
+
     if(m_is_paused)
     {
         for(auto *ctl : std::views::values(m_registry))
-            ctl->static_update(m_map);
+            ctl->pre_static_update(m_map);
+        for(size_t y{}; y < h; ++y)
+            for(size_t x{}; x < w; ++x)
+                m_map.material_ctls(x, y)->static_update_point(m_map, x, y);
         return;
     }
     
-    size_t w = m_map.width();
-    size_t h = m_map.height();
     float temp_delta{};
-
     for(size_t y{}; y < h; ++y)
     {
         for(size_t x{}; x < w; ++x)
@@ -171,10 +174,16 @@ void SimulationManager::tick()
     }
 
     for(auto *ctl : std::views::values(m_registry))
-    {
-        ctl->static_update(m_map);
-        ctl->dynamic_update(m_map);
-    }
+        ctl->pre_static_update(m_map);
+    for(size_t y{}; y < h; ++y)
+        for(size_t x{}; x < w; ++x)
+            m_map.material_ctls(x, y)->static_update_point(m_map, x, y);
+
+    for(auto *ctl : std::views::values(m_registry))
+        ctl->pre_dynamic_update(m_map);
+    for(size_t y{}; y < h; ++y)
+        for(size_t x{}; x < w; ++x)
+            m_map.material_ctls(x, y)->dynamic_update_point(m_map, x, y);
 
     static_assert(MaterialPhysicalBehaviorRevision == 20260124ULL);
     std::array phys_procedures{

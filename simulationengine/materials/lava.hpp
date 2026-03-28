@@ -17,35 +17,29 @@ public:
         map.material_ctls(x, y) = this;
     }
 
-    inline void static_update(GameMap &map) override
+    inline void static_update_point(GameMap &map, size_t x, size_t y) override
     {
-        for(size_t y{}; y < map.height(); ++y)
+        if(map.material_ctls(x, y) != this)
+            return;
+
+        auto temp = static_cast<int32_t>(map.temps(x, y));
+        if(temp > 800)
         {
-            for(size_t x{}; x < map.width(); ++x)
-            {
-                if(map.material_ctls(x, y) != this)
-                    continue;
-                
-                auto temp = static_cast<int32_t>(map.temps(x, y));
-                if(temp > 800)
-                {
-                    map.colors(x, y) = (
-                        0xFF0000FF
-                        | _map_clamp(temp, 800, 1200, 0x00, 0xFF) << 16
-                    );
-                    map.physical_behaviors(x, y) = MaterialPhysicalBehavior::Liquid;
-                    map.tags(x, y).reset().set(MtlTag::Liquid);
-                }
-                else
-                {
-                    map.colors(x, y) = (
-                        0x000000FF
-                        | _map_clamp(temp, 400, 800, 0x44, 0xFF) << 24
-                    );
-                    map.physical_behaviors(x, y) = MaterialPhysicalBehavior::Null;
-                    map.tags(x, y).reset().set(MtlTag::Solid);
-                }
-            }
+            map.colors(x, y) = (
+                0xFF0000FF
+                | _map_clamp(temp, 800, 1200, 0x00, 0xFF) << 16
+            );
+            map.physical_behaviors(x, y) = MaterialPhysicalBehavior::Liquid;
+            map.tags(x, y).reset().set(MtlTag::Liquid);
+        }
+        else
+        {
+            map.colors(x, y) = (
+                0x000000FF
+                | _map_clamp(temp, 400, 800, 0x44, 0xFF) << 24
+            );
+            map.physical_behaviors(x, y) = MaterialPhysicalBehavior::Null;
+            map.tags(x, y).reset().set(MtlTag::Solid);
         }
     }
 

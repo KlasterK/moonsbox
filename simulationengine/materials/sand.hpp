@@ -55,60 +55,54 @@ public:
         map.material_ctls(x, y) = this;
     }
 
-    inline void static_update(GameMap &map) override
+    inline void static_update_point(GameMap &map, size_t x, size_t y) override
     {
-        for(size_t y{}; y < map.height(); ++y)
+        if(map.material_ctls(x, y) != this)
+            return;
+
+        auto *aux = std::any_cast<Aux>(&map.auxs(x, y));
+        if(aux == nullptr)
+            return;
+        
+        auto temp = static_cast<int32_t>(map.temps(x, y));
+
+        if(aux->is_glass)
+            map.colors(x, y) = uint32_t(
+                _map_clamp(temp,   400, 1973, 0x96, 0xFF) << 24
+                | _map_clamp(temp, 400, 1973, 0x94, 0x88) << 16
+                | _map_clamp(temp, 400, 1973, 0x77, 0x00) << 8
+                | _map_clamp(temp, 400, 1973, 0x55, 0x85)
+            );
+        else
+            map.colors(x, y) = uint32_t(
+                SandColorR << 24
+                | _map_clamp(temp, 400, 1973, 
+                             static_cast<int32_t>(aux->sand_color_g), 0x66) << 16
+                | SandColorB << 8
+                | _map_clamp(temp, 400, 1973, SandColorA, 0xAA)
+            );
+
+        if(temp > 1973)
         {
-            for(size_t x{}; x < map.width(); ++x)
+            if(!aux->is_glass)
             {
-                if(map.material_ctls(x, y) != this)
-                    continue;
-                
-                auto *aux = std::any_cast<Aux>(&map.auxs(x, y));
-                if(aux == nullptr)
-                    continue;
-                
-                auto temp = static_cast<int32_t>(map.temps(x, y));
-
-                if(aux->is_glass)
-                    map.colors(x, y) = uint32_t(
-                        _map_clamp(temp,   400, 1973, 0x96, 0xFF) << 24
-                        | _map_clamp(temp, 400, 1973, 0x94, 0x88) << 16
-                        | _map_clamp(temp, 400, 1973, 0x77, 0x00) << 8
-                        | _map_clamp(temp, 400, 1973, 0x55, 0x85)
-                    );
-                else
-                    map.colors(x, y) = uint32_t(
-                        SandColorR << 24
-                        | _map_clamp(temp, 400, 1973, 
-                                     static_cast<int32_t>(aux->sand_color_g), 0x66) << 16
-                        | SandColorB << 8
-                        | _map_clamp(temp, 400, 1973, SandColorA, 0xAA)
-                    );
-
-                if(temp > 1973)
-                {
-                    if(!aux->is_glass)
-                    {
-                        aux->is_glass = true;
-                        if(m_play_sound_cb)
-                            m_play_sound_cb("convert.Sand_to_glass", std::nullopt, false);
-                    }
-                        
-                    map.physical_behaviors(x, y) = MaterialPhysicalBehavior::Liquid;
-                    map.tags(x, y).reset().set(MtlTag::Liquid);
-                }
-                else if(!aux->is_glass)
-                {
-                    map.physical_behaviors(x, y) = MaterialPhysicalBehavior::Sand;
-                    map.tags(x, y).reset().set(MtlTag::Bulk);
-                }
-                else
-                {
-                    map.physical_behaviors(x, y) = MaterialPhysicalBehavior::Null;
-                    map.tags(x, y).reset().set(MtlTag::Solid);
-                }
+                aux->is_glass = true;
+                if(m_play_sound_cb)
+                    m_play_sound_cb("convert.Sand_to_glass", std::nullopt, false);
             }
+                
+            map.physical_behaviors(x, y) = MaterialPhysicalBehavior::Liquid;
+            map.tags(x, y).reset().set(MtlTag::Liquid);
+        }
+        else if(!aux->is_glass)
+        {
+            map.physical_behaviors(x, y) = MaterialPhysicalBehavior::Sand;
+            map.tags(x, y).reset().set(MtlTag::Bulk);
+        }
+        else
+        {
+            map.physical_behaviors(x, y) = MaterialPhysicalBehavior::Null;
+            map.tags(x, y).reset().set(MtlTag::Solid);
         }
     }
 

@@ -18,7 +18,7 @@ public:
         map.material_ctls(x, y) = this;
     }
 
-    inline void static_update(GameMap &map) override
+    inline void pre_static_update(GameMap &) override
     {
         if(m_registry == nullptr)
             throw std::logic_error("Propane was never registered in SimulationManager");
@@ -31,65 +31,62 @@ public:
                     "Propane cannot not find Fire material in SimulationManager"
                 );
         }
+    }
 
-        for(size_t y{}; y < map.height(); ++y)
+    inline void static_update_point(GameMap &map, size_t x, size_t y) override
+    {
+        if(map.material_ctls(x, y) != this)
+            return;
+
+        float temp = map.temps(x, y);
+        auto tags = map.tags(x, y);
+
+        if(temp > 700.f)
         {
-            for(size_t x{}; x < map.width(); ++x)
+            m_fire->init_point(map, x, y);
+            m_fire->play_place_sound(map, x, y);
+            map.temps(x, y) = std::max(temp, 2800.f);
+            
+            for(auto [dx, dy] : g_moore_deltas)
             {
-                if(map.material_ctls(x, y) != this)
+                if(!map.in_bounds(x+dx, y+dy) || map.material_ctls(x+dx, y+dy) != this)
                     continue;
                 
-                float temp = map.temps(x, y);
-                auto tags = map.tags(x, y);
-
-                if(temp > 700.f)
-                {
-                    m_fire->init_point(map, x, y);
-                    m_fire->play_place_sound(map, x, y);
-                    map.temps(x, y) = std::max(temp, 2800.f);
-                    
-                    for(auto [dx, dy] : g_moore_deltas)
-                    {
-                        if(map.material_ctls(x+dx, y+dy) != this)
-                            continue;
-                        
-                        m_fire->init_point(map, x+dx, y+dy);
-                        map.temps(x, y) = std::max(temp, 2800.f);
-                    }
-                }
-                else if(tags.test(MtlTag::Solid))
-                {
-                    if(temp > 85.f)
-                    {
-                        map.physical_behaviors(x, y) = MaterialPhysicalBehavior::Liquid;
-                        map.tags(x, y).reset().set(MtlTag::Liquid);
-                        map.colors(x, y) = 0x5376B885;
-                    }
-                }
-                else if(tags.test(MtlTag::Liquid))
-                {
-                    if(temp < 80.f)
-                    {
-                        map.physical_behaviors(x, y) = MaterialPhysicalBehavior::Null;
-                        map.tags(x, y).reset().set(MtlTag::Solid);
-                        map.colors(x, y) = 0x6D8EC9B8;
-                    }
-                    else if(temp > 235.f)
-                    {
-                        map.physical_behaviors(x, y) = MaterialPhysicalBehavior::LightGas;
-                        map.tags(x, y).reset().set(MtlTag::Gas);
-                        map.colors(x, y) = 0x385DA345;
-                    }
-                }
-                else if(tags.test(MtlTag::Gas))
-                {
-                    if(temp < 230.f)
-                    {
-                        map.physical_behaviors(x, y) = MaterialPhysicalBehavior::Liquid;
-                        map.tags(x, y).reset().set(MtlTag::Liquid);
-                        map.colors(x, y) = 0x5376B885;
-                    }
-                }
+                m_fire->init_point(map, x+dx, y+dy);
+                map.temps(x, y) = std::max(temp, 2800.f);
+            }
+        }
+        else if(tags.test(MtlTag::Solid))
+        {
+            if(temp > 85.f)
+            {
+                map.physical_behaviors(x, y) = MaterialPhysicalBehavior::Liquid;
+                map.tags(x, y).reset().set(MtlTag::Liquid);
+                map.colors(x, y) = 0x5376B885;
+            }
+        }
+        else if(tags.test(MtlTag::Liquid))
+        {
+            if(temp < 80.f)
+            {
+                map.physical_behaviors(x, y) = MaterialPhysicalBehavior::Null;
+                map.tags(x, y).reset().set(MtlTag::Solid);
+                map.colors(x, y) = 0x6D8EC9B8;
+            }
+            else if(temp > 235.f)
+            {
+                map.physical_behaviors(x, y) = MaterialPhysicalBehavior::LightGas;
+                map.tags(x, y).reset().set(MtlTag::Gas);
+                map.colors(x, y) = 0x385DA345;
+            }
+        }
+        else if(tags.test(MtlTag::Gas))
+        {
+            if(temp < 230.f)
+            {
+                map.physical_behaviors(x, y) = MaterialPhysicalBehavior::Liquid;
+                map.tags(x, y).reset().set(MtlTag::Liquid);
+                map.colors(x, y) = 0x5376B885;
             }
         }
     }

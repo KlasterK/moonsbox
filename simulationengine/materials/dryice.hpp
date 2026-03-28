@@ -23,7 +23,7 @@ public:
         map.material_ctls(x, y) = this;
     }
 
-    inline void static_update(GameMap &map) override
+    inline void pre_static_update(GameMap &) override
     {
         if(m_registry == nullptr)
             throw std::logic_error("DryIce was never registered in SimulationManager");
@@ -36,35 +36,32 @@ public:
                     "DryIce cannot not find Space material in SimulationManager"
                 );
         }
+    }
 
-        for(size_t y{}; y < map.height(); ++y)
+    inline void static_update_point(GameMap &map, size_t x, size_t y) override
+    {
+        if(map.material_ctls(x, y) != this)
+            return;
+
+        auto temp = static_cast<int32_t>(map.temps(x, y));
+        if(temp > 250)
         {
-            for(size_t x{}; x < map.width(); ++x)
-            {
-                if(map.material_ctls(x, y) != this)
-                    continue;
-
-                auto temp = static_cast<int32_t>(map.temps(x, y));
-                if(temp > 250)
-                {
-                    m_space->init_point(map, x, y);
-                }
-                else if(temp > 195)
-                {
-                    map.tags(x, y).reset().set(MtlTag::Gas);
-                    map.physical_behaviors(x, y) = MaterialPhysicalBehavior::HeavyGas;
-                }
-                else
-                {
-                    map.tags(x, y).reset().set(MtlTag::Bulk);
-                    map.physical_behaviors(x, y) = MaterialPhysicalBehavior::Sand;
-                }
-
-                uint32_t &color = map.colors(x, y);
-                color &= 0xFFFFFF00;
-                color |= _map_clamp(temp, 175, 250, 0xFF, 0x00);
-            }
+            m_space->init_point(map, x, y);
         }
+        else if(temp > 195)
+        {
+            map.tags(x, y).reset().set(MtlTag::Gas);
+            map.physical_behaviors(x, y) = MaterialPhysicalBehavior::HeavyGas;
+        }
+        else
+        {
+            map.tags(x, y).reset().set(MtlTag::Bulk);
+            map.physical_behaviors(x, y) = MaterialPhysicalBehavior::Sand;
+        }
+
+        uint32_t &color = map.colors(x, y);
+        color &= 0xFFFFFF00;
+        color |= _map_clamp(temp, 175, 250, 0xFF, 0x00);
     }
 
     inline bool is_placeable_on(GameMap &map, size_t x, size_t y) override

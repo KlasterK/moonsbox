@@ -18,7 +18,7 @@ public:
         map.material_ctls(x, y) = this;
     }
 
-    inline void static_update(GameMap &map) override
+    inline void pre_static_update(GameMap &) override
     {
         if(m_registry == nullptr)
             throw std::logic_error("Water was never registered in SimulationManager");
@@ -36,30 +36,27 @@ public:
             if(m_ice == nullptr)
                 throw std::logic_error("Water cannot not find Ice material in SimulationManager");
         }
+    }
 
-        for(size_t y{}; y < map.height(); ++y)
+    inline void static_update_point(GameMap &map, size_t x, size_t y) override
+    {
+        if(map.material_ctls(x, y) != this)
+            return;
+
+        float temp = map.temps(x, y);
+        if(temp < 270.f)
         {
-            for(size_t x{}; x < map.width(); ++x)
-            {
-                if(map.material_ctls(x, y) != this)
-                    continue;
-                
-                float temp = map.temps(x, y);
-                if(temp < 270.f)
-                {
-                    m_ice->init_point(map, x, y);
-                    map.temps(x, y) = temp;
-                    if(m_play_sound_cb)
-                        m_play_sound_cb("convert.Water_freezes", std::nullopt, false);
-                }
-                else if(temp > 375.f)
-                {
-                    m_steam->init_point(map, x, y);
-                    map.temps(x, y) = temp;
-                    if(m_play_sound_cb)
-                        m_play_sound_cb("convert.Water_evaporates", std::nullopt, false);
-                }
-            }
+            m_ice->init_point(map, x, y);
+            map.temps(x, y) = temp;
+            if(m_play_sound_cb)
+                m_play_sound_cb("convert.Water_freezes", std::nullopt, false);
+        }
+        else if(temp > 375.f)
+        {
+            m_steam->init_point(map, x, y);
+            map.temps(x, y) = temp;
+            if(m_play_sound_cb)
+                m_play_sound_cb("convert.Water_evaporates", std::nullopt, false);
         }
     }
 

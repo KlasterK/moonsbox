@@ -18,7 +18,7 @@ public:
         map.material_ctls(x, y) = this;
     }
 
-    inline void static_update(GameMap &map) override
+    inline void pre_static_update(GameMap &) override
     {
         if(m_registry == nullptr)
             throw std::logic_error("Ice was never registered in SimulationManager");
@@ -29,22 +29,19 @@ public:
             if(m_water == nullptr)
                 throw std::logic_error("Ice cannot not find Water material in SimulationManager");
         }
+    }
 
-        for(size_t y{}; y < map.height(); ++y)
+    inline void static_update_point(GameMap &map, size_t x, size_t y) override
+    {
+        if(map.material_ctls(x, y) != this)
+            return;
+
+        if(float temp = map.temps(x, y); temp > 275.f)
         {
-            for(size_t x{}; x < map.width(); ++x)
-            {
-                if(map.material_ctls(x, y) != this)
-                    continue;
-                
-                if(float temp = map.temps(x, y); temp > 275.f)
-                {
-                    m_water->init_point(map, x, y);
-                    map.temps(x, y) = temp;
-                    if(m_play_sound_cb)
-                        m_play_sound_cb("convert.Ice_melts", std::nullopt, false);
-                }
-            }
+            m_water->init_point(map, x, y);
+            map.temps(x, y) = temp;
+            if(m_play_sound_cb)
+                m_play_sound_cb("convert.Ice_melts", std::nullopt, false);
         }
     }
 

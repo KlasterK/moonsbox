@@ -51,7 +51,7 @@ public:
         map.material_ctls(x, y) = this;
     }
 
-    inline void dynamic_update(GameMap &map) override
+    inline void pre_dynamic_update(GameMap &) override
     {
         if(m_registry == nullptr)
             throw std::logic_error("Absorbent was never registered in SimulationManager");
@@ -64,33 +64,27 @@ public:
                     "Absorbent cannot not find Space material in SimulationManager"
                 );
         }
+    }
 
-        for(size_t y{}; y < map.height(); ++y)
+    inline void dynamic_update_point(GameMap &map, size_t x, size_t y) override
+    {
+        auto *ttl = std::any_cast<int32_t>(&map.auxs(x, y));
+        if(ttl == nullptr)
+            return;
+
+        for(auto [dx, dy] : g_moore_deltas)
         {
-            for(size_t x{}; x < map.width(); ++x)
-            {
-                if(map.material_ctls(x, y) != this)
-                    continue;
-                
-                auto *ttl = std::any_cast<int32_t>(&map.auxs(x, y));
-                if(ttl == nullptr)
-                    continue;
+            if(!map.in_bounds(x+dx, y+dy) || !map.tags(x+dx, y+dy).test(MtlTag::Liquid))
+                continue;
 
-                for(auto [dx, dy] : g_moore_deltas)
-                {
-                    if(!map.in_bounds(x+dx, y+dy) || !map.tags(x+dx, y+dy).test(MtlTag::Liquid))
-                        continue;
-
-                    m_space->init_point(map, x+dx, y+dy);
-                    *ttl -= 50;
-                }
-
-                if(*ttl < 0)
-                    m_space->init_point(map, x, y);
-                else
-                    *ttl -= 1;
-            }
+            m_space->init_point(map, x+dx, y+dy);
+            *ttl -= 50;
         }
+
+        if(*ttl < 0)
+            m_space->init_point(map, x, y);
+        else
+            *ttl -= 1;
     }
 
     inline bool is_placeable_on(GameMap &map, size_t x, size_t y) override
