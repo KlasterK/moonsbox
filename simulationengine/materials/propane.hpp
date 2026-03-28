@@ -53,7 +53,7 @@ public:
                     continue;
                 
                 m_fire->init_point(map, x+dx, y+dy);
-                map.temps(x, y) = std::max(temp, 2800.f);
+                map.temps(x+dx, y+dy) = std::max(temp, 2800.f);
             }
         }
         else if(tags.test(MtlTag::Solid))
