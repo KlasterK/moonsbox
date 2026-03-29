@@ -28,7 +28,7 @@ public:
             _map_clamp(temp,   400, 1773, 0x53, 0xFF) << 24
             | _map_clamp(temp, 400, 1773, 0xD4, 0xAA) << 16
             | _map_clamp(temp, 400, 1773, 0x98, 0x00) << 8
-            | _map_clamp(temp, 400, 1773, 0x20, 0x85)
+            | _map_clamp(temp, 400, 1773, 0x37, 0x85)
         );
 
         if(temp > 1773)

@@ -11,7 +11,7 @@ public:
         map.temps(x, y) = 420.f;
         map.heat_capacities(x, y) = 0.7f;
         map.thermal_conductivities(x, y) = 0.3f;
-        map.colors(x, y) = 0x28BBC53D;
+        map.colors(x, y) = 0x28BBC56D;
         map.tags(x, y).reset().set(MtlTag::Gas);
         map.auxs(x, y).reset();
         map.physical_behaviors(x, y) = MaterialPhysicalBehavior::LightGas;

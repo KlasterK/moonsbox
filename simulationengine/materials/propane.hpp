@@ -3,6 +3,10 @@
 
 #include <simulationengine/materials/common.hpp>
 
+constexpr uint32_t SolidColor  = 0x6D8EC9BB;
+constexpr uint32_t LiquidColor = 0x5376B899;
+constexpr uint32_t GasColor    = 0x376CFF66;
+
 class Propane : public MaterialController
 {
 public:
@@ -11,7 +15,7 @@ public:
         map.temps(x, y) = 300.f;
         map.heat_capacities(x, y) = 0.3f;
         map.thermal_conductivities(x, y) = 0.5f;
-        map.colors(x, y) = 0x385DA345;
+        map.colors(x, y) = GasColor;
         map.tags(x, y).reset().set(MtlTag::Gas);
         map.auxs(x, y).reset();
         map.physical_behaviors(x, y) = MaterialPhysicalBehavior::LightGas;
@@ -62,7 +66,7 @@ public:
             {
                 map.physical_behaviors(x, y) = MaterialPhysicalBehavior::Liquid;
                 map.tags(x, y).reset().set(MtlTag::Liquid);
-                map.colors(x, y) = 0x5376B885;
+                map.colors(x, y) = LiquidColor;
             }
         }
         else if(tags.test(MtlTag::Liquid))
@@ -71,13 +75,13 @@ public:
             {
                 map.physical_behaviors(x, y) = MaterialPhysicalBehavior::Null;
                 map.tags(x, y).reset().set(MtlTag::Solid);
-                map.colors(x, y) = 0x6D8EC9B8;
+                map.colors(x, y) = SolidColor;
             }
             else if(temp > 235.f)
             {
                 map.physical_behaviors(x, y) = MaterialPhysicalBehavior::LightGas;
                 map.tags(x, y).reset().set(MtlTag::Gas);
-                map.colors(x, y) = 0x385DA345;
+                map.colors(x, y) = GasColor;
             }
         }
         else if(tags.test(MtlTag::Gas))
@@ -86,7 +90,7 @@ public:
             {
                 map.physical_behaviors(x, y) = MaterialPhysicalBehavior::Liquid;
                 map.tags(x, y).reset().set(MtlTag::Liquid);
-                map.colors(x, y) = 0x5376B885;
+                map.colors(x, y) = LiquidColor;
             }
         }
     }

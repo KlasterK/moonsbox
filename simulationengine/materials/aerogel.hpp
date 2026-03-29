@@ -12,7 +12,7 @@ public:
         map.heat_capacities(x, y) = 0.99f;
         map.thermal_conductivities(x, y) = 0.01f;
         uint32_t grayscale = 0xAA + fastprng::get_u64() % 0x12;
-        map.colors(x, y) = grayscale << 24 | grayscale << 16 | grayscale << 8 | 0x25;
+        map.colors(x, y) = grayscale << 24 | grayscale << 16 | grayscale << 8 | 0x40;
         map.tags(x, y).reset().set(MtlTag::Solid);
         map.auxs(x, y).reset();
         map.physical_behaviors(x, y) = MaterialPhysicalBehavior::Null;
