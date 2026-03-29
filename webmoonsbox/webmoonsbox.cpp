@@ -8,6 +8,7 @@
 #include <simulationengine/serialization/minizipsavecontainer.hpp>
 #include <simulationengine/serialization/saving.hpp>
 #include <emscripten.h>
+#include <string>
 #include <string_view>
 #include <optional>
 #include <iostream>
@@ -53,6 +54,9 @@ extern "C"
         static std::string buffers_json;
         buffers_json = "{\"colors_ptr\":";
         buffers_json += std::to_string(reinterpret_cast<uintptr_t>(g_app_opt->map.colors.span().data()));
+
+        buffers_json += ",\"temps_ptr\":";
+        buffers_json += std::to_string(reinterpret_cast<uintptr_t>(g_app_opt->map.temps.span().data()));
 
         assert(g_app_opt->registry.begin() != g_app_opt->registry.end());
         buffers_json += ",\"material_names\":[\"";

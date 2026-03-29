@@ -13,43 +13,47 @@ var canvas = document.getElementById('game-surface');
 canvas.style.height = Math.min(canvas.clientHeight, window.innerHeight * 0.5) + 'px';
 canvas.style.width = 'auto';
 
+const gl = canvas.getContext('webgl2');
+if(gl == null) {
+    console.error('Cannot get WebGL 2 context.');
+}
+const rendererGL = new RendererGL(gl);
+
 var brush = new Brush(canvas);
 brush.setOnActivationCB(() => soundSystem.audioCtx.resume());
 
 var framesCount = 0;
 var buffers;
-var pixels;
-var brush;
-var gl;
-var rendererGL;
-var isInited = false;
+
+let isInited = false;
+let u8colors;
+let f32temps;
+let currentSize = defaultSize;
+let currentVisionMode = VisionMode.Normal;
 
 function initGame(size, doReinit = true) {
     canvas.width = size.x;
     canvas.height = size.y;
     canvas.style.aspectRatio = `${size.x} / ${size.y}`;
 
-    gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
-    if(gl == null) {
-        console.error('Cannot get WebGL context.');
-    }
     gl.viewport(0, 0, size.x, size.y);
-    rendererGL = new RendererGL(gl, size.x, size.y);
 
     buffers = JSON.parse(Module.UTF8ToString(Module._init_game(size.x, size.y, doReinit)));
-    pixels = new Uint8Array(wasmMemory.buffer, buffers.colors_ptr, size.x * size.y * 4);
+    u8colors = new Uint8Array(wasmMemory.buffer, buffers.colors_ptr, size.x * size.y * 4);
+    f32temps = new Float32Array(wasmMemory.buffer, buffers.temps_ptr, size.x * size.y);
 
     initMaterialPalette(brush);
     let playSoundCBID = Module.addFunction(soundSystem.playSoundCB.bind(soundSystem), 'vppi');
     Module._register_play_sound_callback(playSoundCBID);
 
     isInited = true;
+    currentSize = size;
 }
 
 function tickRender() {
     if(isInited) {
         Module._tick(true, false, false);
-        rendererGL.render(gl, pixels);
+        rendererGL.render(gl, u8colors, f32temps, currentVisionMode, currentSize);
         brush.updateDrawing();
     }
     ++framesCount;
@@ -173,5 +177,15 @@ function loadGame() {
         window.alert(`Error when loading your game! ${result.substring(1)}`);
     } else {
         console.error('Invalid load error message', result);
+    }
+}
+
+function switchVisionMode(btn) {
+    if(currentVisionMode == VisionMode.Normal) {
+        currentVisionMode = VisionMode.Thermal;
+        btn.textContent = 'Thermal';
+    } else if(currentVisionMode == VisionMode.Thermal) {
+        currentVisionMode = VisionMode.Normal;
+        btn.textContent = 'Normal';
     }
 }
