@@ -3,6 +3,19 @@
 
 #include <simulationengine/materials/common.hpp>
 
+constexpr size_t BrickworkWidth  = 8;
+constexpr size_t BrickworkHeight = 8;
+constexpr std::array<std::bitset<BrickworkWidth>, BrickworkHeight> BrickworkPattern{
+    0b11111111,
+    0b10000000,
+    0b10000000,
+    0b10000000,
+    0b11111111,
+    0b00001000,
+    0b00001000,
+    0b00001000,
+};
+
 class UnbreakableWall : public MaterialController
 {
 public:
@@ -11,7 +24,9 @@ public:
         map.temps(x, y) = 300.f;
         map.heat_capacities(x, y) = 0.6f;
         map.thermal_conductivities(x, y) = 0.4f;
-        map.colors(x, y) = 0xFFFFFFFF;
+        map.colors(x, y) = BrickworkPattern[y % BrickworkHeight]
+                           .test(BrickworkWidth - 1 - (x % BrickworkWidth))
+                           ? 0xCCCCCCFF : 0xFFFFFFFF;
         map.tags(x, y).reset().set(MtlTag::Solid);
         map.auxs(x, y).reset();
         map.physical_behaviors(x, y) = MaterialPhysicalBehavior::Null;
