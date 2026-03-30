@@ -9,6 +9,7 @@
 #include <simulationengine/core/materialdefs.hpp>
 #include <simulationengine/core/materialregistry.hpp>
 #include <simulationengine/algorithms/fastprng.hpp>
+#include <simulationengine/algorithms/drawing.hpp>
 
 
 template<typename T>
@@ -20,21 +21,21 @@ T _map_clamp(T value, T in_min, T in_max, T out_min, T out_max)
 }
 
 constexpr std::array g_von_neumann_deltas{
-    std::array{-1, 0}, 
-    std::array{1, 0}, 
-    std::array{0, -1}, 
-    std::array{0, 1},
+    std::array{ 0,  1}, 
+    std::array{ 0, -1}, 
+    std::array{ 1,  0}, 
+    std::array{-1,  0},
 };
 
 constexpr std::array g_moore_deltas{
-    std::array{-1, 0}, 
-    std::array{1, 0}, 
-    std::array{0, -1}, 
-    std::array{0, 1},
-    std::array{-1, 1}, 
-    std::array{1, 1}, 
-    std::array{-1, -1}, 
-    std::array{-1, 1},
+    std::array{ 0,  1},
+    std::array{ 0, -1},
+    std::array{ 1,  0},
+    std::array{ 1,  1},
+    std::array{ 1, -1},
+    std::array{-1,  0},
+    std::array{-1,  1},
+    std::array{-1, -1},
 };
 
 #endif // MOOX_COMMON_HPP
