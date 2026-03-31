@@ -2,7 +2,9 @@
 #define MOOX_FASTPRNG_HPP
 
 #include <cstdint>
+#include <iterator>
 #include <limits>
+#include <utility>
 
 namespace fastprng
 {
@@ -39,6 +41,20 @@ namespace fastprng
     inline bool propability(uint64_t numerator, uint64_t denominator)
     {
         return get_u64() < numerator * (std::numeric_limits<uint64_t>::max() / denominator);
+    }
+
+    template<std::random_access_iterator Iter>
+    inline void shuffle(const Iter begin, const Iter end)
+    {
+        if(begin == end)
+            return;
+
+        for(auto i = end - 1; i > begin; --i)
+        {
+            auto j = begin + get_u64() % (i - begin + 1);
+            using std::swap;
+            swap(*i, *j);
+        }
     }
 }
 

@@ -6,7 +6,6 @@
 #include <simulationengine/core/materialregistry.hpp>
 #include <cstddef>
 #include <algorithm>
-#include <random>
 #include <cstdlib>
 #include <array>
 #include <ranges>
@@ -121,8 +120,7 @@ void _fall_heavy_gas(GameMap &map, size_t x, size_t y)
         std::array{1,  0},
         std::array{1,  -1},
     });
-    static std::mt19937 gen(std::random_device{}());
-    std::shuffle(deltas.begin(), deltas.end(), gen);
+    fastprng::shuffle(deltas.begin(), deltas.end());
 
     for(size_t i{}; i < deltas.size(); ++i)
     {

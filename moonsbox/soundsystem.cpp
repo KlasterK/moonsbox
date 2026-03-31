@@ -7,6 +7,7 @@
 #include <string>
 #include <unordered_map>
 #include <list>
+#include <simulationengine/algorithms/fastprng.hpp>
 #include "ext/miniaudio.h"
 
 
@@ -38,9 +39,7 @@ static std::optional<MaEngineWrapper> g_engine{};
 static std::unordered_map<std::string, std::list<MaSoundWrapper>> g_tracks_cache;
 static std::unordered_map<std::string, ma_sound *> g_current_sounds;
 static std::unordered_map<std::string, ma_sound *> g_current_categories;
-
-static std::mt19937_64 g_rng((std::random_device())());
-static const auto ASSETS_SOUNDS_ROOT = std::filesystem::path("assets") / "sounds";
+static const auto TracksRoot = std::filesystem::path("assets") / "sounds";
 
 
 void sfx::init()
@@ -67,11 +66,11 @@ static void _load_tracks(const std::string &sound_name)
     auto &wrappers_list = cache_it->second;
 
     if (
-        std::filesystem::exists(ASSETS_SOUNDS_ROOT) 
-        && std::filesystem::is_directory(ASSETS_SOUNDS_ROOT)
+        std::filesystem::exists(TracksRoot) 
+        && std::filesystem::is_directory(TracksRoot)
     )
     {
-        for (auto &entry : std::filesystem::directory_iterator(ASSETS_SOUNDS_ROOT))
+        for (auto &entry : std::filesystem::directory_iterator(TracksRoot))
         {
             if (!entry.is_regular_file())
                 continue;
@@ -137,9 +136,8 @@ void sfx::play_sound(
         ));
 
     // pick a random track
-    std::uniform_int_distribution<size_t> dist(0, tracks.size() - 1);
     auto chosen_track_it = tracks.begin();
-    std::advance(chosen_track_it, dist(g_rng));
+    std::advance(chosen_track_it, fastprng::get_u64() % tracks.size());
 
     // start ma_sound of this track
     if (ma_sound_start(&chosen_track_it->sound) != MA_SUCCESS)
