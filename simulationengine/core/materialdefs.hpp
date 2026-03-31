@@ -5,13 +5,14 @@
 
 namespace MtlTag
 {
-    constexpr size_t Solid  = 0;
-    constexpr size_t Bulk   = 1;
-    constexpr size_t Liquid = 2;
-    constexpr size_t Gas    = 3;
-    constexpr size_t Space  = 4;
-    constexpr size_t Float  = 5;
-    constexpr size_t N      = 6;
+    constexpr size_t Solid          = 0;
+    constexpr size_t Bulk           = 1;
+    constexpr size_t Liquid         = 2;
+    constexpr size_t Gas            = 3;
+    constexpr size_t Space          = 4;
+    constexpr size_t Float          = 5;
+    constexpr size_t Unbreakable    = 6;
+    constexpr size_t N              = 7;
 }
 using MaterialTags = std::bitset<MtlTag::N>;
 

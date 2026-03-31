@@ -61,6 +61,11 @@ public:
             m_play_sound_cb("material.Ice", std::nullopt, false);
     }
 
+    inline bool is_placeable_on(GameMap &map, size_t x, size_t y) override
+    {
+        return !map.tags(x, y).test(MtlTag::Unbreakable);
+    }
+
 private:
     PlaySoundCallback m_play_sound_cb{nullptr};
     MaterialRegistry *m_registry = nullptr;

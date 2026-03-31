@@ -90,7 +90,7 @@ public:
     inline bool is_placeable_on(GameMap &map, size_t x, size_t y) override
     {
         auto &tags = map.tags(x, y);
-        return MtlTag::IsMovable(tags) || tags.test(MtlTag::Space);
+        return MtlTag::IsFlowable(tags) || tags.test(MtlTag::Float);
     }
 
     inline void on_register(MaterialRegistry &registry) override

@@ -18,6 +18,11 @@ public:
         map.physical_behaviors(x, y) = MaterialPhysicalBehavior::Null;
         map.material_ctls(x, y) = this;
     }
+
+    inline bool is_placeable_on(GameMap &map, size_t x, size_t y) override
+    {
+        return !map.tags(x, y).test(MtlTag::Unbreakable);
+    }
 };
 
 

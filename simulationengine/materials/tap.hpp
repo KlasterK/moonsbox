@@ -121,6 +121,11 @@ public:
         m_registry = &registry;
     }
 
+    inline bool is_placeable_on(GameMap &map, size_t x, size_t y) override
+    {
+        return !map.tags(x, y).test(MtlTag::Unbreakable);
+    }
+
 private:
     MaterialRegistry *m_registry = nullptr;
 };

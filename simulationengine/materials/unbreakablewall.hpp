@@ -1,6 +1,7 @@
 #ifndef MOOX_UNBREAKABLEWALL_HPP
 #define MOOX_UNBREAKABLEWALL_HPP
 
+#include "simulationengine/core/materialdefs.hpp"
 #include <simulationengine/materials/common.hpp>
 
 constexpr size_t BrickworkWidth  = 8;
@@ -27,7 +28,7 @@ public:
         map.colors(x, y) = BrickworkPattern[y % BrickworkHeight]
                            .test(BrickworkWidth - 1 - (x % BrickworkWidth))
                            ? 0xCCCCCCFF : 0xFFFFFFFF;
-        map.tags(x, y).reset().set(MtlTag::Solid);
+        map.tags(x, y).reset().set(MtlTag::Solid).set(MtlTag::Unbreakable);
         map.auxs(x, y).reset();
         map.physical_behaviors(x, y) = MaterialPhysicalBehavior::Null;
         map.material_ctls(x, y) = this;

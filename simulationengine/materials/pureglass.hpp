@@ -42,6 +42,11 @@ public:
             map.tags(x, y).reset().set(MtlTag::Solid);
         }
     }
+
+    inline bool is_placeable_on(GameMap &map, size_t x, size_t y) override
+    {
+        return !map.tags(x, y).test(MtlTag::Unbreakable);
+    }
 };
 
 
