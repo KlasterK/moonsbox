@@ -38,7 +38,7 @@ namespace fastprng
         return get_u64() & 1;
     }
 
-    inline bool propability(uint64_t numerator, uint64_t denominator)
+    inline bool probability(uint64_t numerator, uint64_t denominator)
     {
         return get_u64() < numerator * (std::numeric_limits<uint64_t>::max() / denominator);
     }

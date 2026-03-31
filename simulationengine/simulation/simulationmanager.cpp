@@ -83,7 +83,7 @@ void _fall_liquid(GameMap &map, size_t x, size_t y)
     if(_try_swap(map, x, y, x+dx, y-1, MtlTag::IsSparseness))
         return;
 
-    if(fastprng::propability(1, 100))
+    if(fastprng::probability(1, 100))
         _diffuse(map, x, y, [](const MaterialTags &v){ return v.test(MtlTag::Liquid); });
 }
 
@@ -103,7 +103,7 @@ void _fall_light_gas(GameMap &map, size_t x, size_t y)
     if(_try_swap(map, x, y, x+dx, y+1, _test_space))
         return;
 
-    if(fastprng::propability(1, 100))
+    if(fastprng::probability(1, 100))
         _diffuse(map, x, y, _test_gas);
 }
 
@@ -128,7 +128,7 @@ void _fall_heavy_gas(GameMap &map, size_t x, size_t y)
             return;
     }
 
-    if(fastprng::propability(1, 100))
+    if(fastprng::probability(1, 100))
         _diffuse(map, x, y, _test_gas);
 }
 

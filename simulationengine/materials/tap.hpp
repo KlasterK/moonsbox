@@ -89,7 +89,7 @@ public:
             return;
         }
 
-        if(fastprng::propability(1, 6))
+        if(fastprng::probability(1, 6))
         {
             for(auto [dx, dy] : g_von_neumann_deltas)
             {
@@ -103,7 +103,7 @@ public:
                 }
             }
         }
-        else if(fastprng::propability(1, 30))
+        else if(fastprng::probability(1, 30))
         {
             for(auto [dx, dy] : g_moore_deltas)
             {
