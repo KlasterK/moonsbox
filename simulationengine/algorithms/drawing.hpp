@@ -18,6 +18,8 @@ namespace drawing
 
     void swap(GameMap &map, size_t ax, size_t ay, size_t bx, size_t by);
 
+    void copy(GameMap &map, size_t src_x, size_t src_y, size_t dst_x, size_t dst_y);
+
     void fill(GameMap &map, MaterialFactory &material_factory);
 
     void rect(GameMap &map, Rect area, MaterialFactory &material_factory);

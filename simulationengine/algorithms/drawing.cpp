@@ -20,7 +20,7 @@ void drawing::swap(GameMap &map, size_t ax, size_t ay, size_t bx, size_t by)
     map.colors(ax, ay) = map.colors(bx, by);
     map.tags(ax, ay) = map.tags(bx, by);
     map.physical_behaviors(ax, ay) = map.physical_behaviors(bx, by);
-    map.auxs(ax, ay) = map.auxs(bx, by);
+    map.auxs(ax, ay) = std::move(map.auxs(bx, by));
     map.material_ctls(ax, ay) = map.material_ctls(bx, by);
 
     map.temps(bx, by) = a_temp;
@@ -29,8 +29,20 @@ void drawing::swap(GameMap &map, size_t ax, size_t ay, size_t bx, size_t by)
     map.colors(bx, by) = a_color;
     map.tags(bx, by) = a_tag;
     map.physical_behaviors(bx, by) = a_physical_behavior;
-    map.auxs(bx, by) = a_aux;
+    map.auxs(bx, by) = std::move(a_aux);
     map.material_ctls(bx, by) = a_material_ctl;
+}
+
+void drawing::copy(GameMap &map, size_t src_x, size_t src_y, size_t dst_x, size_t dst_y)
+{
+    map.temps(dst_x, dst_y)                     = map.temps(src_x, src_y);
+    map.heat_capacities(dst_x, dst_y)           = map.heat_capacities(src_x, src_y);
+    map.thermal_conductivities(dst_x, dst_y)    = map.thermal_conductivities(src_x, src_y);
+    map.colors(dst_x, dst_y)                    = map.colors(src_x, src_y);
+    map.tags(dst_x, dst_y)                      = map.tags(src_x, src_y);
+    map.physical_behaviors(dst_x, dst_y)        = map.physical_behaviors(src_x, src_y);
+    map.auxs(dst_x, dst_y)                      = map.auxs(src_x, src_y);
+    map.material_ctls(dst_x, dst_y)             = map.material_ctls(src_x, src_y);
 }
 
 void drawing::fill(GameMap &map, MaterialFactory &material_factory)
