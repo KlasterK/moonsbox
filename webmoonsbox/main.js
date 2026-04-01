@@ -1,6 +1,6 @@
 'use strict';
 
-var defaultSize = {x: 240, y: 135};
+var defaultSize = window.innerWidth > window.innerHeight ? {x: 240, y: 135} : {x: 200, y: 200};
 document.getElementById('brush-size-slider').value = 1;
 document.getElementById('reset-form-width').value  = defaultSize.x;
 document.getElementById('reset-form-height').value = defaultSize.y;
@@ -10,8 +10,16 @@ var soundSystem = new SoundSystem();
 soundSystem.loadSounds();
 
 var canvas = document.getElementById('game-surface');
-canvas.style.height = Math.min(canvas.clientHeight, window.innerHeight * 0.5) + 'px';
-canvas.style.width = 'auto';
+
+const defaultSizeAspectRatio = defaultSize.x / defaultSize.y;
+let adaptiveCanvasWidth = Math.min(
+    canvas.clientWidth,
+    window.innerHeight * 0.5,
+    window.innerHeight - document.getElementById('all-controls-div').clientHeight * 2,
+);
+
+canvas.style.width = `${defaultSizeAspectRatio * adaptiveCanvasWidth}px`;
+canvas.style.height = 'auto';
 
 const gl = canvas.getContext('webgl2');
 if(gl == null) {
