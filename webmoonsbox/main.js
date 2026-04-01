@@ -180,12 +180,15 @@ function loadGame() {
     }
 }
 
-function switchVisionMode(btn) {
+const currentVisionModeSpan = document.getElementById('current-vision-mode-span');
+currentVisionModeSpan.textContent = 'Normal';
+
+function switchVisionMode() {
     if(currentVisionMode == VisionMode.Normal) {
-        currentVisionMode = VisionMode.Thermal;
-        btn.textContent = 'Thermal';
+        currentVisionMode                 = VisionMode.Thermal;
+        currentVisionModeSpan.textContent = 'Thermal';
     } else if(currentVisionMode == VisionMode.Thermal) {
-        currentVisionMode = VisionMode.Normal;
-        btn.textContent = 'Normal';
+        currentVisionMode                 = VisionMode.Normal;
+        currentVisionModeSpan.textContent = 'Normal';
     }
 }

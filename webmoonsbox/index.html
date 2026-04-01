@@ -19,7 +19,7 @@
         }
 
         #game-surface {
-            margin: auto;
+            margin: 1rem auto;
             width: 100%; /* will be reused in JS */
             image-rendering: pixelated;
             background-color: black;
@@ -56,47 +56,49 @@
         Your browser doesn't support &lt;canvas&gt; tag. Please update.
     </canvas>
 
-    <div>
-        <p>Brush Size</p>
-        1
-        <input type="range" min="1" max="50" step="1" value="1"
-               id="brush-size-slider"
-               oninput="brush.thickness = this.value">
-        50
+    <div id="all-controls-div">
+        <div>
+            <label for="brush-size-slider">Brush Size:</label>
+            1
+            <input type="range" min="1" max="50" step="1" value="1"
+                id="brush-size-slider"
+                oninput="brush.thickness = this.value">
+            50
+        </div>
+
+        <div>
+            <button onclick="pauseGame()" id="pause-btn">
+                Pause
+            </button>
+        </div>
+
+        <div>
+            <label for="switch-vision-mode-btn">
+                Vision Mode: <span id="current-vision-mode-span">Loading...</span>
+            </label>
+            <button onclick="switchVisionMode()" id="switch-vision-mode-btn">Switch</button>
+        </div>
+
+        <form class="reset-form">
+            <label for="reset-form-width">Width</label>
+            <input type="number" id="reset-form-width" min="10" max="1000" step="1">
+
+            <label for="reset-form-height">Height</label>
+            <input type="number" id="reset-form-height" min="10" max="1000" step="1">
+
+            <button type="button" class="reset-form-wide-btn" onclick="resetMap()">Reset Map</button>
+        </form>
+
+        <form id="saving-form" class="saving-form">
+            <input type="file" accept=".kk-save, application/x-moonsbox-save"
+                id="saving-file-input"
+                onchange="onSavingFileInputChange(event, this)">
+            <button type="button" onclick="loadGame()">Load Game</button>
+
+            <a id="saving-download-link"></a>
+            <button type="button" onclick="saveGame()">Save Game</button>
+        </form>
     </div>
-
-    <button onclick="pauseGame()" id="pause-btn">
-        Pause
-    </button>
-
-    <label for="switch-vision-mode-btn">Vision Mode</label>
-    <button onclick="switchVisionMode(this)" id="switch-vision-mode-btn">
-        Normal
-    </button>
-
-    <button onclick="soundSystem.audioCtx.resume(); this.remove()">
-        Try to click me if sounds don't work
-    </button>
-
-    <form class="reset-form">
-        <label for="reset-form-width">Width</label>
-        <input type="number" id="reset-form-width" min="10" max="1000" step="1">
-
-        <label for="reset-form-height">Height</label>
-        <input type="number" id="reset-form-height" min="10" max="1000" step="1">
-
-        <button type="button" class="reset-form-wide-btn" onclick="resetMap()">Reset Map</button>
-    </form>
-
-    <form id="saving-form" class="saving-form">
-        <input type="file" accept=".kk-save, application/x-moonsbox-save"
-               id="saving-file-input"
-               onchange="onSavingFileInputChange(event, this)">
-        <button type="button" onclick="loadGame()">Load Game</button>
-
-        <a id="saving-download-link"></a>
-        <button type="button" onclick="saveGame()">Save Game</button>
-    </form>
 
     <div>
         <h2>Material Palette</h2>
