@@ -50,6 +50,7 @@ add_library(simulationengine
     materials/tap.hpp
     materials/unbreakablewall.hpp
     materials/water.hpp
+    materials/dynamite.hpp
 )
 target_include_directories(simulationengine PUBLIC ..)
 
