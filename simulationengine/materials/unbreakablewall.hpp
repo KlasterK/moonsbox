@@ -26,7 +26,7 @@ public:
         map.heat_capacities(x, y) = 0.6f;
         map.thermal_conductivities(x, y) = 0.4f;
         map.colors(x, y) = BrickworkPattern[y % BrickworkHeight]
-                           .test(BrickworkWidth - 1 - (x % BrickworkWidth))
+                           .test(x % BrickworkWidth)
                            ? 0xCCCCCCFF : 0xFFFFFFFF;
         map.tags(x, y).reset().set(MtlTag::Solid).set(MtlTag::Unbreakable);
         map.auxs(x, y).reset();
