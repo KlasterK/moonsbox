@@ -14,36 +14,6 @@ private:
     };
 
 public:
-    inline std::pair<std::vector<uint8_t>, SemanticVersion> 
-        serialize(const GameMap &map, size_t x, size_t y) override
-    {
-        auto *aux = std::any_cast<Aux>(&map.auxs(x, y));
-        if(aux == nullptr)
-            return {};
-
-        return {
-            {aux->is_glass, static_cast<uint8_t>(aux->sand_color_g)}, 
-            {2, 0, 0, 0}
-        };
-    }
-
-    inline DeserializationResult deserialize(GameMap &map, size_t x, size_t y, 
-                                            std::span<const uint8_t> data, 
-                                            SemanticVersion ver) override
-    { 
-        if(data.size() != 2)
-            return DeserializationResult::InvalidDataLength;
-
-        if(ver.major < 2)
-            return DeserializationResult::VersionTooOld;
-
-        if(ver.major > 2 || ver.minor > 0)
-            return DeserializationResult::VersionTooNew;
-
-        map.auxs(x, y).emplace<Aux>(data[0], data[1]);
-        return DeserializationResult::Success;
-    }
-
     inline void init_point(GameMap &map, size_t x, size_t y) override
     {
         map.temps(x, y) = 300.f;
@@ -118,6 +88,34 @@ public:
     {
         if(m_play_sound_cb)
             m_play_sound_cb("material.Sand", std::nullopt, false);
+    }
+
+    inline std::pair<std::vector<uint8_t>, SemanticVersion> 
+        serialize(const GameMap &map, size_t x, size_t y) override
+    {
+        auto *aux = std::any_cast<Aux>(&map.auxs(x, y));
+        if(aux == nullptr)
+            return {};
+
+        return {
+            {aux->is_glass, static_cast<uint8_t>(aux->sand_color_g)}, 
+            {2, 0, 0, 0}
+        };
+    }
+
+    inline DeserializationResult deserialize(GameMap &map, size_t x, size_t y, 
+                                            std::span<const uint8_t> data, 
+                                            SemanticVersion ver) override
+    { 
+        if(data.size() != 2)
+            return DeserializationResult::InvalidDataLength;
+        if(ver.major < 2)
+            return DeserializationResult::VersionTooOld;
+        if(ver.major > 2 || ver.minor > 0)
+            return DeserializationResult::VersionTooNew;
+
+        map.auxs(x, y).emplace<Aux>(data[0], data[1]);
+        return DeserializationResult::Success;
     }
 
 private:

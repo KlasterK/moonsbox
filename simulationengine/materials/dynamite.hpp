@@ -3,6 +3,7 @@
 
 #include "simulationengine/algorithms/fastprng.hpp"
 #include <cstddef>
+#include <cstring>
 #include <simulationengine/materials/common.hpp>
 #include <stdexcept>
 
@@ -11,10 +12,11 @@ class Dynamite : public MaterialController
 private:
     struct ShotData 
     {
-        int dir_x{}, dir_y{}, time_to_live{}, already_updated_in_tick_id{};
+        alignas(1) int8_t dir_x{}, dir_y{}, time_to_live{}, already_updated_in_tick_num{};
     };
+    static_assert(sizeof(ShotData) == 4);
 
-    inline void init_point_as_shot(GameMap &map, size_t x, size_t y, int direction_x, int direction_y)
+    inline void init_point_as_shot(GameMap &map, size_t x, size_t y, int8_t direction_x, int8_t direction_y)
     {
         map.temps(x, y) = 2000.f;
         map.heat_capacities(x, y) = 0.8f;
@@ -22,8 +24,8 @@ private:
         map.colors(x, y) = 0xFF0000FF | ((fastprng::get_u32() & 0xFF) << 16);
         map.tags(x, y).reset().set(MtlTag::Solid);
         map.auxs(x, y) = ShotData{.dir_x=direction_x, .dir_y=direction_y,
-                                  .time_to_live=(25 + fastprng::get_u8() % 40),
-                                  .already_updated_in_tick_id=m_current_tick_id};
+                                  .time_to_live=int8_t(25u + fastprng::get_u8() % 40u),
+                                  .already_updated_in_tick_num=m_current_tick_num};
         map.physical_behaviors(x, y) = MaterialPhysicalBehavior::Null;
         map.material_ctls(x, y) = this;
     }
@@ -53,7 +55,7 @@ public:
                 throw std::logic_error("Dynamite::pre_dynamic_update: required material Space not registered");
         }
 
-        ++m_current_tick_id;
+        ++m_current_tick_num;
     }
 
     inline void dynamic_update_point(GameMap &map, size_t x, size_t y) override
@@ -64,9 +66,9 @@ public:
             // Because the updating is going increasing X and Y,
             // a shot with direction (1; 1) would get updated multiple times in a tick
             // and immediately die.
-            if(m_current_tick_id == aux->already_updated_in_tick_id)
+            if(m_current_tick_num == aux->already_updated_in_tick_num)
                 return;
-            aux->already_updated_in_tick_id = m_current_tick_id;
+            aux->already_updated_in_tick_num = m_current_tick_num;
 
             if(--aux->time_to_live > 0)
             {
@@ -122,11 +124,39 @@ public:
         return !map.tags(x, y).test(MtlTag::Unbreakable);
     }
 
+    inline std::pair<std::vector<uint8_t>, SemanticVersion> 
+        serialize(const GameMap &map, size_t x, size_t y) override
+    {
+        auto *shot_data = std::any_cast<ShotData>(&map.auxs(x, y));
+        if(shot_data == nullptr)
+            return {};
+
+        std::vector<uint8_t> raw_data;
+        raw_data.resize(sizeof(ShotData));
+        std::memcpy(raw_data.data(), shot_data, sizeof(ShotData));
+
+        return {
+            std::move(raw_data),
+            {2, 0, 0, 0}
+        };
+    }
+
+    inline DeserializationResult deserialize(GameMap &map, size_t x, size_t y, 
+                                            std::span<const uint8_t> data, 
+                                            SemanticVersion) override
+    { 
+        if(data.size() != sizeof(ShotData))
+            return DeserializationResult::InvalidDataLength;
+
+        map.auxs(x, y) = *reinterpret_cast<const ShotData *>(data.data());
+        return DeserializationResult::Success;
+    }
+
 private:
     PlaySoundCallback m_play_sound_cb{nullptr};
     MaterialRegistry *m_registry = nullptr;
     MaterialController *m_space = nullptr;
-    int m_current_tick_id = 0;
+    int8_t m_current_tick_num = 0;
 };
 
 
