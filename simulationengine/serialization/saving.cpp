@@ -537,7 +537,7 @@ std::string _read_arbitrary_data_layer(const ReadSaveContainer &container, GameM
             ver
         );
 
-        std::string_view err_msg;
+        std::string err_msg;
         switch(err)
         {
             using enum MaterialController::DeserializationResult;
@@ -548,7 +548,7 @@ std::string _read_arbitrary_data_layer(const ReadSaveContainer &container, GameM
             err_msg = "Version too new.";
             break;
         case InvalidDataLength:
-            err_msg = "Invalid data length.";
+            err_msg = std::format("Invalid data length ({}).", hdr->data_size);
             break;
         case InvalidDataFormat:
             err_msg = "Invalid data format.";
