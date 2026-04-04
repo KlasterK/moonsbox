@@ -35,9 +35,6 @@ public:
 
     inline void dynamic_update_point(GameMap &map, size_t x, size_t y) override
     {
-        if(map.material_ctls(x, y) != this)
-            return;
-
         for(auto [dx, dy] : g_von_neumann_deltas)
         {
             if(map.in_bounds(x+dx, y+dy) && !map.tags(x+dx, y+dy).test(MtlTag::Solid))

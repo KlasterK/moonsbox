@@ -33,9 +33,6 @@ public:
 
     inline void static_update_point(GameMap &map, size_t x, size_t y) override
     {
-        if(map.material_ctls(x, y) != this)
-            return;
-
         if(float temp = map.temps(x, y); temp < 370.f)
         {
             m_water->init_point(map, x, y);

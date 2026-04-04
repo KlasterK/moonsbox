@@ -40,9 +40,6 @@ public:
 
     inline void static_update_point(GameMap &map, size_t x, size_t y) override
     {
-        if(map.material_ctls(x, y) != this)
-            return;
-
         auto temp = static_cast<int32_t>(map.temps(x, y));
         if(temp > 250)
         {

@@ -71,9 +71,6 @@ public:
 
     inline void dynamic_update_point(GameMap &map, size_t x, size_t y) override
     {
-        if(map.material_ctls(x, y) != this)
-            return;
-
         auto *aux = std::any_cast<MaterialController *>(&map.auxs(x, y));
         if(aux == nullptr)
         {

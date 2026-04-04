@@ -57,9 +57,6 @@ public:
 
     inline void static_update_point(GameMap &map, size_t x, size_t y) override
     {
-        if(map.material_ctls(x, y) != this)
-            return;
-
         auto *aux = std::any_cast<Aux>(&map.auxs(x, y));
         if(aux == nullptr)
             return;
