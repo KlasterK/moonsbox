@@ -7,6 +7,7 @@
 #include <cstdint>
 #include <optional>
 #include <array>
+#include <variant>
 
 class GameMap;
 
@@ -28,9 +29,8 @@ private:
     uint32_t m_bg_color{};
     Mode m_mode{Mode::Normal};
 
-    SDL2pp::Surface m_map_surf;
-    SDL2pp::Texture m_map_tex;
-    std::optional<SDL2pp::Surface> m_thermal_buffer{};
+    std::optional<SDL2pp::Texture> m_map_tex_opt;
+    std::optional<SDL2pp::Surface> m_buffer_surf_opt;
 };
 
 #endif // MOOX_RENDERER_HPP
