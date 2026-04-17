@@ -74,7 +74,8 @@ void Renderer::render(std::array<int, 4> visible_area)
     if(m_mode == Mode::Normal)
     {
         if (!m_buffer_surf_opt.has_value()
-            || m_buffer_surf_opt->GetSize() != SDL2pp::Point{int(m_map.width()), int(m_map.height())})
+            || m_buffer_surf_opt->GetSize() != SDL2pp::Point{int(m_map.width()), int(m_map.height())}
+            || m_buffer_surf_opt->Get()->pixels != m_map.colors.span().data())
         {
             auto *surf = SDL_CreateRGBSurfaceWithFormatFrom(
                 m_map.colors.span().data(),
