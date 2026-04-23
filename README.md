@@ -99,6 +99,10 @@ python -m http.server &
 xdg-open http://127.0.0.1:8000/webmoonsbox/index.html
 ```
 
+## Credits
+
+Carrot -- icons, telegram: @ERIS1476
+
 ## License
 
 This project is licensed under the GPL-3.0 License -- see the [LICENSE](LICENSE) file for details.
