@@ -51,6 +51,7 @@ add_library(simulationengine
     materials/unbreakablewall.hpp
     materials/water.hpp
     materials/dynamite.hpp
+    materials/langtonant.hpp
 )
 target_include_directories(simulationengine PUBLIC ..)
 

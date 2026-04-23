@@ -19,6 +19,7 @@
 #include <simulationengine/materials/steam.hpp>
 #include <simulationengine/materials/unbreakablewall.hpp>
 #include <simulationengine/materials/dynamite.hpp>
+#include <simulationengine/materials/langtonant.hpp>
 
 template<template<typename ...> class Container>
 struct AllMaterials
@@ -26,7 +27,7 @@ struct AllMaterials
     using Type = Container<
         Space, Sand, Plus100K, Minus100K, Water, Ice, Steam,
         Tap, UnbreakableWall, BlackHole, Propane, Fire, PureGlass,
-        Lava, Absorbent, Aerogel, DryIce, Dynamite
+        Lava, Absorbent, Aerogel, DryIce, Dynamite, LangtonAnt
     >;
 };
 
@@ -54,6 +55,7 @@ constexpr void register_all_materials(T &container, MaterialRegistry &registry)
     registry.register_controller(std::get<Aerogel>(container),          "Aerogel");
     registry.register_controller(std::get<DryIce>(container),           "Dry Ice");
     registry.register_controller(std::get<Dynamite>(container),         "Dynamite");
+    registry.register_controller(std::get<LangtonAnt>(container),       "Langton's Ant");
 }
 
 #endif // MOOX_ALLMATERIALS_HPP
