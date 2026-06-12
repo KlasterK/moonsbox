@@ -34,6 +34,7 @@ add_library(simulationengine
     materials/common.hpp
     materials/allmaterials.hpp
     materials/absorbent.hpp
+    materials/acid.hpp
     materials/aerogel.hpp
     materials/blackhole.hpp
     materials/dryice.hpp

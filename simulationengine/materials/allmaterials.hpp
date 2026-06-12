@@ -2,6 +2,7 @@
 #define MOOX_ALLMATERIALS_HPP
 
 #include <simulationengine/materials/absorbent.hpp>
+#include <simulationengine/materials/acid.hpp>
 #include <simulationengine/materials/fire.hpp>
 #include <simulationengine/materials/lava.hpp>
 #include <simulationengine/materials/plus100k.hpp>
@@ -27,7 +28,9 @@ struct AllMaterials
     using Type = Container<
         Space, Sand, Plus100K, Minus100K, Water, Ice, Steam,
         Tap, UnbreakableWall, BlackHole, Propane, Fire, PureGlass,
-        Lava, Absorbent, Aerogel, DryIce, Dynamite, LangtonAnt
+        Lava, Absorbent, Aerogel, DryIce, Dynamite, LangtonAnt,
+        Acid,
+        hidden_materials::FoxTailNO2
     >;
 };
 
@@ -56,6 +59,9 @@ constexpr void register_all_materials(T &container, MaterialRegistry &registry)
     registry.register_controller(std::get<DryIce>(container),           "Dry Ice");
     registry.register_controller(std::get<Dynamite>(container),         "Dynamite");
     registry.register_controller(std::get<LangtonAnt>(container),       "Langton's Ant");
+    registry.register_controller(std::get<Acid>(container),             "Acid");
+
+    registry.register_controller(std::get<hidden_materials::FoxTailNO2>(container), "--fox-tail-NO2");
 }
 
 #endif // MOOX_ALLMATERIALS_HPP

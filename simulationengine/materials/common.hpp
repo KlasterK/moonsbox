@@ -10,6 +10,7 @@
 #include <simulationengine/core/materialregistry.hpp>
 #include <simulationengine/algorithms/fastprng.hpp>
 #include <simulationengine/algorithms/drawing.hpp>
+#include <simulationengine/algorithms/elementwise.hpp>
 
 
 template<typename T>

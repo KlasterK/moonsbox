@@ -51,7 +51,14 @@ MaterialPalette::MaterialPalette(SDL2pp::Renderer &rnd, MaterialRegistry &regist
             throw SDL2pp::Exception("TTF_RenderText_Blended_Wrapped");
 
         SDL2pp::Surface label_surf{label_surf_raw};
-        SDL2pp::Surface icon_surf{std::format("assets/materials/{}", it->first)};
+
+        std::optional<SDL2pp::Surface> icon_surf_opt;
+        try
+        {
+            icon_surf_opt.emplace(std::format("assets/materials/{}", it->first));
+        }
+        catch(const SDL2pp::Exception &)
+        {}
 
         auto *merged_surf_raw = SDL_CreateRGBSurfaceWithFormat(
             0, IconWidth, IconHeight + label_surf.GetHeight(), 32, SDL_PIXELFORMAT_RGBA8888
@@ -60,10 +67,15 @@ MaterialPalette::MaterialPalette(SDL2pp::Renderer &rnd, MaterialRegistry &regist
             throw SDL2pp::Exception("SDL_CreateRGBSurfaceWithFormat");
         
         SDL2pp::Surface merged_surf{merged_surf_raw};
-        icon_surf.Blit(SDL2pp::NullOpt, merged_surf, {0, 0, IconWidth, IconHeight});
+        if(icon_surf_opt)
+        {
+            icon_surf_opt->Blit(SDL2pp::NullOpt, 
+                                merged_surf, {0, 0, IconWidth, IconHeight});
+        }
 
         int label_x = IconWidth / 2 - label_surf.GetWidth() / 2;
-        label_surf.Blit(SDL2pp::NullOpt, merged_surf, {{label_x, IconHeight}, label_surf.GetSize()});
+        label_surf.Blit(SDL2pp::NullOpt, 
+                        merged_surf, {{label_x, IconHeight}, label_surf.GetSize()});
 
         m_slot_texs.emplace_back(rnd, merged_surf);
     }

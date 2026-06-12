@@ -97,7 +97,7 @@ public:
             return;
         
         static auto moore_deltas = g_moore_deltas;
-        fastprng::shuffle(moore_deltas.begin(), moore_deltas.end());
+        fastprng::shuffle(moore_deltas);
 
         for(auto [dx, dy] : moore_deltas)
         {

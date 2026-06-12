@@ -32,13 +32,22 @@ public:
         assert(x < m_width && y < m_height);
         return m_data[y * m_width + x];
     }
-    const T& operator()(size_t x, size_t y) const { return m_data[y * m_width + x]; }
+
+    const T& operator()(size_t x, size_t y) const 
+    { 
+        assert(x < m_width && y < m_height);
+        return m_data[y * m_width + x]; 
+    }
 
     std::span<T> span()
     { 
         return {m_data.get(), m_width * m_height};
     }
-    std::span<const T> span() const { return {m_data.get(), m_width * m_height}; }
+
+    std::span<const T> span() const 
+    { 
+        return {m_data.get(), m_width * m_height}; 
+    }
 
 private:
     std::unique_ptr<T[]> m_data;

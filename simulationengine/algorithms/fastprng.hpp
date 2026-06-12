@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <iterator>
 #include <limits>
+#include <ranges>
 #include <utility>
 
 namespace fastprng
@@ -43,9 +44,10 @@ namespace fastprng
         return get_u64() < numerator * (std::numeric_limits<uint64_t>::max() / denominator);
     }
 
-    template<std::random_access_iterator Iter>
-    inline void shuffle(const Iter begin, const Iter end)
+    template<std::ranges::random_access_range Range>
+    inline void shuffle(Range &range)
     {
+        auto begin = std::ranges::begin(range), end = std::ranges::end(range);
         if(begin == end)
             return;
 
@@ -55,6 +57,18 @@ namespace fastprng
             using std::swap;
             swap(*i, *j);
         }
+    }
+
+    template<std::ranges::forward_range Range>
+    inline std::ranges::iterator_t<Range> choice(Range &&range)
+    {
+        auto size = std::ranges::size(range);
+        if (size == 0)
+            return std::ranges::end(range);
+        
+        auto it = std::ranges::begin(range);
+        std::ranges::advance(it, get_u64() % size);
+        return it;
     }
 }
 

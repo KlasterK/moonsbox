@@ -120,7 +120,7 @@ void _fall_heavy_gas(GameMap &map, size_t x, size_t y)
         std::array{1,  0},
         std::array{1,  -1},
     });
-    fastprng::shuffle(deltas.begin(), deltas.end());
+    fastprng::shuffle(deltas);
 
     for(size_t i{}; i < deltas.size(); ++i)
     {
