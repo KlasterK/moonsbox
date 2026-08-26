@@ -2,6 +2,7 @@
 #define MOOX_FASTPRNG_HPP
 
 #include <cstdint>
+#include <initializer_list>
 #include <iterator>
 #include <limits>
 #include <ranges>
@@ -69,6 +70,12 @@ namespace fastprng
         auto it = std::ranges::begin(range);
         std::ranges::advance(it, get_u64() % size);
         return it;
+    }
+
+    template<typename T, typename... Args>
+    inline T choice_va(Args &&...args)
+    {
+        return *choice(std::initializer_list<T>{std::forward<Args>(args)...});
     }
 }
 

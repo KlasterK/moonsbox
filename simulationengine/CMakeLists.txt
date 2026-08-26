@@ -50,13 +50,14 @@ add_library(simulationengine
     materials/steam.hpp
     materials/tap.hpp
     materials/unbreakablewall.hpp
+    materials/nuclearsystem.hpp
     materials/water.hpp
     materials/dynamite.hpp
     materials/langtonant.hpp
 )
 target_include_directories(simulationengine PUBLIC ..)
 
-if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")   
+if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
     target_compile_options(simulationengine PRIVATE -Wall -Wextra)
 endif()
 

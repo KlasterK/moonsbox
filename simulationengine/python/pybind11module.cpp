@@ -19,15 +19,6 @@
 
 namespace py = pybind11;
 
-struct DotCopy
-{
-    float temp{}, heat_capacity{}, thermal_conductivity{};
-    uint32_t color{};
-    MaterialTags tags{};
-    MaterialPhysicalBehavior physical_behavior{};
-    MaterialController &material_controller;
-};
-
 AllMaterialsT<std::tuple> g_materials_tuple{};
 MaterialRegistry g_material_registry;
 
@@ -44,16 +35,16 @@ PYBIND11_MODULE(pysimulationengine, m)
 {
     register_all_materials(g_materials_tuple, g_material_registry);
 
-    py::class_<DotCopy>(m, "DotCopy")
-        .def_readwrite("temp", &DotCopy::temp)
-        .def_readwrite("heat_capacity", &DotCopy::heat_capacity)
-        .def_readwrite("thermal_conductivity", &DotCopy::thermal_conductivity)
-        .def_readwrite("color", &DotCopy::color)
-        .def_readwrite("tags", &DotCopy::tags)
-        .def_readwrite("physical_behavior", &DotCopy::physical_behavior)
+    py::class_<drawing::DotCopy>(m, "drawing::DotCopy")
+        .def_readwrite("temp", &drawing::DotCopy::temp)
+        .def_readwrite("heat_capacity", &drawing::DotCopy::heat_capacity)
+        .def_readwrite("thermal_conductivity", &drawing::DotCopy::thermal_conductivity)
+        .def_readwrite("color", &drawing::DotCopy::color)
+        .def_readwrite("tags", &drawing::DotCopy::tags)
+        .def_readwrite("physical_behavior", &drawing::DotCopy::physical_behavior)
         .def_property_readonly(
             "material_controller", 
-            [](DotCopy &self) { return self.material_controller; },
+            [](drawing::DotCopy &self) { return self.material_controller; },
             py::return_value_policy::reference
         )
     ;
@@ -76,28 +67,14 @@ PYBIND11_MODULE(pysimulationengine, m)
             if(!map.in_bounds(pos[0], pos[1]))
                 return py::none();
 
-            return py::cast(DotCopy{
-                .temp=map.temps(pos[0], pos[1]),
-                .heat_capacity=map.heat_capacities(pos[0], pos[1]),
-                .thermal_conductivity=map.thermal_conductivities(pos[0], pos[1]),
-                .color=map.colors(pos[0], pos[1]),
-                .tags=map.tags(pos[0], pos[1]),
-                .physical_behavior=map.physical_behaviors(pos[0], pos[1]),
-                .material_controller=*map.material_ctls(pos[0], pos[1]),
-            });
+            return py::cast(drawing::DotCopy::clone(map, pos[0], pos[1]));
         })
-        .def("__setitem__", [](GameMap &map, std::array<int, 2> pos, DotCopy copy)
+        .def("__setitem__", [](GameMap &map, std::array<int, 2> pos, drawing::DotCopy copy)
         {
             if(!map.in_bounds(pos[0], pos[1]))
                 return;
 
-            map.temps(pos[0], pos[1]) = copy.temp;
-            map.heat_capacities(pos[0], pos[1]) = copy.heat_capacity;
-            map.thermal_conductivities(pos[0], pos[1]) = copy.thermal_conductivity;
-            map.colors(pos[0], pos[1]) = copy.color;
-            map.tags(pos[0], pos[1]) = copy.tags;
-            map.physical_behaviors(pos[0], pos[1]) = copy.physical_behavior;
-            map.material_ctls(pos[0], pos[1]) = &copy.material_controller;
+            copy.restore(map, pos[0], pos[1]);
         })
         .def("in_bounds", [](GameMap &map, std::array<int, 2> pos) 
         { 
@@ -117,9 +94,11 @@ PYBIND11_MODULE(pysimulationengine, m)
 
     py::class_<MaterialController>(m, "MaterialController")
         .def("init_point", &MaterialController::init_point)
-        .def("static_update", &MaterialController::static_update)
-        .def("dynamic_update", &MaterialController::dynamic_update)
         .def("is_placeable_on", &MaterialController::is_placeable_on)
+        .def("pre_static_update", &MaterialController::pre_static_update)
+        .def("pre_dynamic_update", &MaterialController::pre_dynamic_update)
+        .def("static_update_point", &MaterialController::static_update_point)
+        .def("dynamic_update_point", &MaterialController::dynamic_update_point)
         .def("set_play_sound_callback", [](MaterialController &self, py::function func)
         {
             self.set_play_sound_callback([func](        

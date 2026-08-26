@@ -21,6 +21,7 @@
 #include <simulationengine/materials/unbreakablewall.hpp>
 #include <simulationengine/materials/dynamite.hpp>
 #include <simulationengine/materials/langtonant.hpp>
+#include <simulationengine/materials/nuclearsystem.hpp>
 
 template<template<typename ...> class Container>
 struct AllMaterials
@@ -29,8 +30,8 @@ struct AllMaterials
         Space, Sand, Plus100K, Minus100K, Water, Ice, Steam,
         Tap, UnbreakableWall, BlackHole, Propane, Fire, PureGlass,
         Lava, Absorbent, Aerogel, DryIce, Dynamite, LangtonAnt,
-        Acid,
-        hidden_materials::FoxTailNO2
+        Acid, Uranium,
+        hidden_materials::FoxTailNO2, hidden_materials::NuclearNeutron
     >;
 };
 
@@ -60,8 +61,10 @@ constexpr void register_all_materials(T &container, MaterialRegistry &registry)
     registry.register_controller(std::get<Dynamite>(container),         "Dynamite");
     registry.register_controller(std::get<LangtonAnt>(container),       "Langton's Ant");
     registry.register_controller(std::get<Acid>(container),             "Acid");
+    registry.register_controller(std::get<Uranium>(container),          "Uranium");
 
-    registry.register_controller(std::get<hidden_materials::FoxTailNO2>(container), "--fox-tail-NO2");
+    registry.register_controller(std::get<hidden_materials::FoxTailNO2>(container),     "--fox-tail-NO2");
+    registry.register_controller(std::get<hidden_materials::NuclearNeutron>(container), "--nuclear-neutron");
 }
 
 #endif // MOOX_ALLMATERIALS_HPP

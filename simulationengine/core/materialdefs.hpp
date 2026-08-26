@@ -12,7 +12,8 @@ namespace MtlTag
     constexpr size_t Space          = 4;
     constexpr size_t Float          = 5;
     constexpr size_t Unbreakable    = 6;
-    constexpr size_t N              = 7;
+    constexpr size_t NonCopyable    = 7;
+    constexpr size_t N              = 8;
 }
 using MaterialTags = std::bitset<MtlTag::N>;
 

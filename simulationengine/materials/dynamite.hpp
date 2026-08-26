@@ -2,6 +2,7 @@
 #define MOOX_DYNAMITE_HPP
 
 #include "simulationengine/algorithms/fastprng.hpp"
+#include "simulationengine/core/materialdefs.hpp"
 #include <cstddef>
 #include <cstring>
 #include <simulationengine/materials/common.hpp>
@@ -22,7 +23,7 @@ private:
         map.heat_capacities(x, y) = 0.8f;
         map.thermal_conductivities(x, y) = 0.3f;
         map.colors(x, y) = 0xFF0000FF | ((fastprng::get_u32() & 0xFF) << 16);
-        map.tags(x, y).reset().set(MtlTag::Solid);
+        map.tags(x, y).reset().set(MtlTag::Solid).set(MtlTag::NonCopyable);
         map.auxs(x, y) = ShotData{.dir_x=direction_x, .dir_y=direction_y,
                                   .time_to_live=int8_t(25u + fastprng::get_u8() % 40u),
                                   .already_updated_in_tick_num=m_current_tick_num};

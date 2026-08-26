@@ -18,7 +18,7 @@
 namespace
 {
     constexpr std::array<int, 2> ScreenSize{1520, 890};
-    constexpr std::array<size_t, 2> MapSize{720, 405};
+    constexpr std::array<size_t, 2> MapSize{300, 200};
     constexpr std::array<int, 4> VisibleArea{-20, -20, 760, 445}; // x,y,w,h
     constexpr uint32_t MapInnerColor{0x000000FF};
     constexpr uint32_t MapOuterColor{0x113311FF};
@@ -34,7 +34,7 @@ GameApp::GameApp()
         register_all_materials(m_materials_tuple, registry);
         for(auto &pair : registry)
             pair.second->set_play_sound_callback(
-                [](std::string_view name, std::optional<std::string_view> category, 
+                [](std::string_view name, std::optional<std::string_view> category,
                    bool do_override)
                 {
                     sfx::play_sound(name, category, do_override);

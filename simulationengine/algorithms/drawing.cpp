@@ -145,12 +145,12 @@ void drawing::line(GameMap &map, SignedPoint begin, SignedPoint end, int width,
     else
     {
         float half_width = static_cast<float>(width) / 2.0f;
-        
+
         // Calculate direction vector
         float dir_x = static_cast<float>(end[0] - begin[0]);
         float dir_y = static_cast<float>(end[1] - begin[1]);
         float length = std::sqrt(dir_x * dir_x + dir_y * dir_y);
-        
+
         if (length < 1.f) 
         {
             if(ends == LineEnds::Round)
@@ -163,15 +163,15 @@ void drawing::line(GameMap &map, SignedPoint begin, SignedPoint end, int width,
                 material_factory(begin[0], begin[1]);
             return;
         }
-        
+
         // Normalise the vector
         dir_x /= length;
         dir_y /= length;
-        
+
         // Perpendicular vector
         float per_x = -dir_y * half_width;
         float per_y = dir_x * half_width;
-        
+
         // Calculating 4 corners of polygon describing this line
         std::array<SignedPoint, 4> corners{
             SignedPoint{
@@ -196,7 +196,7 @@ void drawing::line(GameMap &map, SignedPoint begin, SignedPoint end, int width,
         int maxX = std::max({corners[0][0], corners[1][0], corners[2][0], corners[3][0]});
         int minY = std::min({corners[0][1], corners[1][1], corners[2][1], corners[3][1]});
         int maxY = std::max({corners[0][1], corners[1][1], corners[2][1], corners[3][1]});
-        
+
         // Fill the polygon
         for (int y = minY; y <= maxY; ++y) 
         {
@@ -221,7 +221,7 @@ void drawing::line(GameMap &map, SignedPoint begin, SignedPoint end, int width,
                     material_factory(x, y);
             }
         }
-        
+
         if(ends == LineEnds::Square) 
         {
             drawing::rect(map, {begin[0] - width/2, begin[1] - width/2, width, width}, 
@@ -237,4 +237,29 @@ void drawing::line(GameMap &map, SignedPoint begin, SignedPoint end, int width,
                              material_factory);
         }
     }
+}
+
+drawing::DotCopy drawing::DotCopy::clone(GameMap &map, size_t x, size_t y)
+{
+    return DotCopy{
+        .temp=map.temps(x, y),
+        .heat_capacity=map.heat_capacities(x, y),
+        .thermal_conductivity=map.thermal_conductivities(x, y),
+        .color=map.colors(x, y),
+        .tags=map.tags(x, y),
+        .physical_behavior=map.physical_behaviors(x, y),
+        .aux=map.auxs(x, y),
+        .material_controller=*map.material_ctls(x, y),
+    };
+}
+
+void drawing::DotCopy::restore(GameMap &map, size_t x, size_t y) const
+{
+    map.temps(x, y) = temp;
+    map.heat_capacities(x, y) = heat_capacity;
+    map.thermal_conductivities(x, y) = thermal_conductivity;
+    map.colors(x, y) = color;
+    map.tags(x, y) = tags;
+    map.physical_behaviors(x, y) = physical_behavior;
+    map.material_ctls(x, y) = &material_controller;
 }

@@ -1,6 +1,7 @@
 #ifndef MOOX_DRAWING_HPP
 #define MOOX_DRAWING_HPP
 
+#include <any>
 #include <cstddef>
 #include <array>
 #include <simulationengine/core/materialcontroller.hpp>
@@ -26,31 +27,44 @@ namespace drawing
 
     void ellipse(GameMap &map, Rect area, MaterialFactory &material_factory);
 
-    void line(GameMap &map, SignedPoint begin, SignedPoint end, int width, 
+    void line(GameMap &map, SignedPoint begin, SignedPoint end, int width,
               MaterialFactory &material_factory, LineEnds ends);
-    
+
     inline MaterialFactory make_controller_init_point_factory(GameMap &map, MaterialController &ctl)
     {
         return [&](size_t x, size_t y) { ctl.init_point(map, x, y); };
     }
 
+    struct DotCopy
+    {
+        float temp{}, heat_capacity{}, thermal_conductivity{};
+        uint32_t color{};
+        MaterialTags tags{};
+        MaterialPhysicalBehavior physical_behavior{};
+        std::any aux;
+        MaterialController &material_controller;
+
+        static DotCopy clone(GameMap &map, size_t x, size_t y);
+        void restore(GameMap &map, size_t x, size_t y) const;
+    };
+
     // rvalue overloads since you can't pass a prvalue as lvalue non-const reference
 
     inline void fill(GameMap &map, MaterialFactory &&material_factory) 
-    { 
+    {
         fill(map, material_factory); 
     }
     inline void rect(GameMap &map, Rect area, MaterialFactory &&material_factory) 
-    { 
+    {
         rect(map, area, material_factory); 
     }
     inline void ellipse(GameMap &map, Rect area, MaterialFactory &&material_factory) 
-    { 
+    {
         ellipse(map, area, material_factory); 
     }
     inline void line(GameMap &map, SignedPoint begin, SignedPoint end, int width, 
                      MaterialFactory &&material_factory, LineEnds ends) 
-    { 
+    {
         line(map, begin, end, width, material_factory, ends); 
     }
 }
