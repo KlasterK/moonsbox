@@ -3,8 +3,6 @@
 #include "simulationengine/materials/allmaterials.hpp"
 #include "soundsystem.hpp"
 #include "renderer.hpp"
-#include <SDL2pp/SDL2pp.hh>
-#include <SDL2/SDL_messagebox.h>
 #include <stdexcept>
 #include <array>
 #include <cstddef>
@@ -20,9 +18,9 @@ namespace
     constexpr std::array<int, 2> ScreenSize{1520, 890};
     constexpr std::array<size_t, 2> MapSize{720, 405};
     constexpr std::array<int, 4> VisibleArea{-20, -20, 760, 445}; // x,y,w,h
-    constexpr uint32_t MapInnerColor{0x000000FF};
-    constexpr uint32_t MapOuterColor{0x113311FF};
-    constexpr std::string_view WindowTitle{"moonsbox"};
+    constexpr SDL_Color MapInnerColor{0x00, 0x00, 0x00, 0xFF};
+    constexpr SDL_Color MapOuterColor{0x11, 0x33, 0x11, 0xFF};
+    constexpr std::string_view WindowTitleCStr{"moonsbox\0"};
     constexpr bool VSync{true};
 }
 
@@ -51,27 +49,36 @@ GameApp::GameApp()
         drawing::fill(map, std::move(factory));
         return map;
     }())
-    , m_window(
-        WindowTitle.data(), 
-        SDL_WINDOWPOS_UNDEFINED, 
-        SDL_WINDOWPOS_UNDEFINED,
-        ScreenSize[0],
-        ScreenSize[1],
-        SDL_WINDOW_RESIZABLE | SDL_WINDOW_SHOWN
-    )
-    , m_sdl_renderer(
-        m_window, 
-        -1, 
-        SDL_RENDERER_ACCELERATED | (VSync ? SDL_RENDERER_PRESENTVSYNC : 0)
-    )
-    , m_font("assets/NotoSans-Regular.ttf", 16)
+    , m_window(nullptr, SDL_DestroyWindow)
+    , m_sdl_renderer([this] -> decltype(m_sdl_renderer)
+    {
+        SDL_Window *w{};
+        SDL_Renderer *r{};
+        if(!SDL_CreateWindowAndRenderer(WindowTitleCStr.data(),
+                                        ScreenSize[0],
+                                        ScreenSize[1],
+                                        SDL_WINDOW_RESIZABLE,
+                                        &w,
+                                        &r))
+            throw std::runtime_error("GameApp::GameApp: SDL_CreateWindowAndRenderer failed");
+
+        m_window.reset(w);
+        return {r, SDL_DestroyRenderer};
+    }())
+    , m_font([] -> decltype(m_font)
+    {
+        auto *f = TTF_OpenFont("assets/NotoSans-Regular.ttf", 16);
+        if(!f)
+            throw std::runtime_error("GameApp::GameApp: TTF_OpenFont returned nullptr");
+        return {f, TTF_CloseFont};
+    }())
     , m_sim(m_map, m_registry)
-    , m_renderer(m_map, m_sdl_renderer, MapInnerColor)
+    , m_renderer(m_map, m_sdl_renderer.get(), MapInnerColor)
     , m_camera(VisibleArea, ScreenSize)
-    , m_palette(m_sdl_renderer, m_registry, m_font)
+    , m_palette(m_sdl_renderer.get(), m_registry, m_font.get())
     , m_ui{
-        m_sdl_renderer, 
-        m_font, 
+        m_sdl_renderer.get(),
+        m_font.get(),
         m_palette,
         [this](std::filesystem::path path) { load_save(path); },
         [this](std::filesystem::path path) { store_save(path); },
@@ -87,7 +94,14 @@ GameApp::GameApp()
         RendererEventHandler{m_renderer},
     }
 {
-    m_window.SetIcon(SDL2pp::Surface{"assets/window_icon"});
+    if(VSync)
+        SDL_SetRenderVSync(m_sdl_renderer.get(), 1);
+
+    auto *s = SDL_LoadSurface("assets/window_icon");
+    if(!s)
+        throw std::runtime_error("GameApp::GameApp: failed to load window icon");
+    SDL_SetWindowIcon(m_window.get(), s);
+    SDL_DestroySurface(s);
 }
 
 void GameApp::run()
@@ -112,21 +126,21 @@ void GameApp::run()
         std::get<DrawingEventHandler>(m_event_handlers_tuple).update_drawing();
         m_sim.tick();
 
-        m_sdl_renderer.SetDrawColor(
-            MapOuterColor >> 24 & 0xFF,
-            MapOuterColor >> 16 & 0xFF,
-            MapOuterColor >> 8 & 0xFF
+        SDL_SetRenderDrawColor(
+            m_sdl_renderer.get(),
+            MapOuterColor.r,
+            MapOuterColor.g,
+            MapOuterColor.b,
+            MapOuterColor.a
         );
-        m_sdl_renderer.Clear();
-        m_renderer.render(
-            m_camera.get_map_area(
-                {m_window.GetWidth(), m_window.GetHeight()}
-            )
-        );
+        SDL_RenderClear(m_sdl_renderer.get());
+        int screen_w{}, screen_h{};
+        SDL_GetRenderOutputSize(m_sdl_renderer.get(), &screen_w, &screen_h);
+        m_renderer.render(m_camera.get_map_area({screen_w, screen_h}));
 
         m_ui.render();
         m_palette.render();
-        m_sdl_renderer.Present();
+        SDL_RenderPresent(m_sdl_renderer.get());
     }
 }
 
@@ -145,7 +159,7 @@ void GameApp::load_save(std::filesystem::path path)
             SDL_MESSAGEBOX_WARNING,
             "Save Loading Error",
             map_result.error().c_str(),
-            m_window.Get()
+            m_window.get()
         );
     }
     else
@@ -164,7 +178,7 @@ void GameApp::store_save(std::filesystem::path path)
             SDL_MESSAGEBOX_WARNING,
             "Save Storing Error",
             error_result.error().c_str(),
-            m_window.Get()
+            m_window.get()
         );
     }
 

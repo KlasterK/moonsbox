@@ -11,9 +11,7 @@
 #include "mainwindowui.hpp"
 #include <simulationengine/core/materialcontroller.hpp>
 #include "windowevents.hpp"
-#include <SDL2pp/Window.hh>
-#include <SDL2pp/Renderer.hh>
-#include <SDL2pp/Font.hh>
+#include <SDL3/SDL_render.h>
 #include <functional>
 #include <filesystem>
 #include <tuple>
@@ -35,9 +33,9 @@ private:
     MaterialRegistry m_registry;
     GameMap m_map;
 
-    SDL2pp::Window m_window;
-    SDL2pp::Renderer m_sdl_renderer;
-    SDL2pp::Font m_font;
+    std::unique_ptr<SDL_Window, void (&)(SDL_Window *)> m_window;
+    std::unique_ptr<SDL_Renderer, void (&)(SDL_Renderer *)> m_sdl_renderer;
+    std::unique_ptr<TTF_Font, void (&)(TTF_Font *)> m_font;
 
     SimulationManager m_sim;
     Renderer m_renderer;

@@ -1,9 +1,7 @@
 project(moonsbox LANGUAGES C CXX VERSION 2.0.0)
 
-find_package(SDL2 REQUIRED)
-find_package(SDL2pp REQUIRED)
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(SDL2GFX REQUIRED SDL2_gfx IMPORTED_TARGET)
+find_package(SDL3 REQUIRED)
+find_package(SDL3_ttf REQUIRED)
 
 add_executable(moonsbox
     main.cpp
@@ -19,12 +17,10 @@ add_executable(moonsbox
     ext/portable-file-dialogs.h
 )
 
-target_link_libraries(moonsbox PUBLIC 
-    SDL2::SDL2 SDL2pp::SDL2pp PkgConfig::SDL2GFX simulationengine
-)
+target_link_libraries(moonsbox PUBLIC SDL3::SDL3 SDL3_ttf::SDL3_ttf simulationengine)
 
 target_include_directories(moonsbox PRIVATE ..)
 
-if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")   
+if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
     target_compile_options(moonsbox PRIVATE -Wall -Wextra)
 endif()

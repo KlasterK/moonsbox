@@ -3,12 +3,8 @@
 
 #include "fpscounter.hpp"
 #include "windowevents.hpp"
-#include <SDL2pp/Renderer.hh>
-#include <SDL2pp/Font.hh>
-#include <SDL2pp/Texture.hh>
-#include <SDL2pp/Point.hh>
-#include <SDL2pp/Rect.hh>
-#include <SDL2/SDL_events.h>
+#include <SDL3/SDL_render.h>
+#include <SDL3_ttf/SDL_ttf.h>
 #include <filesystem>
 #include <array>
 #include <simulationengine/core/compat.hpp>
@@ -22,44 +18,57 @@ public:
 
 public:
     MainWindowUI(
-        SDL2pp::Renderer &renderer, SDL2pp::Font &font, MaterialPalette &palette,
-        FileCallback load_save_cb, FileCallback store_save_cb
+        SDL_Renderer *nonown_renderer,
+        TTF_Font *nonown_font,
+        MaterialPalette &palette,
+        FileCallback load_save_cb,
+        FileCallback store_save_cb
     );
     bool process_event(const SDL_Event &e);
     void render();
 
 private:
-    struct Button 
-    { 
-        SDL2pp::Texture content_tex;
-        SDL2pp::Point content_point{-1, -1};
-        SDL2pp::Rect total_rect{-1, -1, 0, 0};
+    struct Button
+    {
+        std::unique_ptr<SDL_Texture, void (&)(SDL_Texture *)> content_tex;
+        SDL_FRect content_rect{};
+        SDL_FRect total_rect{};
         bool is_holded{false};
 
-        static Button expanded_from_texture(SDL2pp::Texture &&tex, SDL2pp::Point topleft);
-        void render(SDL2pp::Renderer &renderer, int mx, int my);
-        void move(SDL2pp::Point rel);
-        bool do_act_on_release(int mx, int my) const;
+        static Button default_from_surface(
+            SDL_Renderer *nonown_renderer,
+            SDL_Surface *takeown_surf,
+            std::string error_ctx_if_nullptr
+        );
+        static Button expanded_from_surface(
+            SDL_Renderer *nonown_renderer,
+            SDL_Surface *takeown_surf,
+            const SDL_FPoint &topleft,
+            std::string error_ctx_if_nullptr
+        );
+        void render(SDL_Renderer *nonown_renderer, std::optional<SDL_FPoint> mouse_point);
+        void move(const SDL_FPoint &rel);
+        bool do_act_on_release(const SDL_FPoint &mouse_point) const;
     };
 
     struct SavingSubwindow
     {
         Button title_btn, x_btn, load_btn, save_btn;
-        SDL2pp::Rect inner_rect{-1, -1, 0, 0}, total_rect{-1, -1, 0, 0};
+        SDL_FRect inner_rect{};
+        SDL_FRect total_rect{};
 
-        void render(SDL2pp::Renderer &renderer, int mx, int my);
-        void move(SDL2pp::Point rel);
+        void render(SDL_Renderer *nonown_renderer, const SDL_FPoint &mouse_point);
+        void move(const SDL_FPoint &rel);
         std::array<Button *, 4> buttons();
     };
 
     void center_saving_subwindow();
 
-    SDL2pp::Renderer &m_renderer;
-    SDL2pp::Font &m_font;
+    SDL_Renderer *m_renderer;
+    TTF_Font *m_font;
     MaterialPalette &m_palette;
 
     Button m_palette_btn, m_saving_btn;
-    SDL2pp::Point m_fps_point;
     SavingSubwindow m_saving_subwindow;
 
     FileCallback m_load_save_cb, m_store_save_cb;

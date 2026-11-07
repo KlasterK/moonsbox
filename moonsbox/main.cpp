@@ -1,16 +1,16 @@
 #include "gameapp.hpp"
 #include "soundsystem.hpp"
-#include <SDL2pp/SDL.hh>
-#include <SDL2pp/SDLTTF.hh>
-#include <SDL2pp/Exception.hh>
+#include <SDL3/SDL_main.h>
+#include <SDL3/SDL_error.h>
+#include <SDL3_ttf/SDL_ttf.h>
 #include <new>
 #include <stdexcept>
 #include <exception>
-#include <format>
+#include <cstdio>
 #include <string>
 
-static std::string _format_error(std::string_view prolog, std::string_view exc_type, 
-                                 std::string_view exc_what)
+static std::string format_exception(std::string_view prolog, std::string_view exc_type,
+                                    std::string_view exc_what)
 {
     return std::format(
         "{} Moonsbox will terminate.\n\nTechnical info:\nException: {}\nWhat: {}",
@@ -18,90 +18,89 @@ static std::string _format_error(std::string_view prolog, std::string_view exc_t
     );
 }
 
+static int show_error(const char *title, const char *message)
+{
+    // Not std::cout or std::println because they might allocate which is dangerous on std::bad_alloc
+    printf("======== %s =========\n%s\n", title, message);
+    if(!SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, title, message, nullptr))
+        puts("(failed to display a message box)");
+    return 1;
+}
+
 int main(int, char *[])
 {
+    SDL_SetAppMetadata("moonsbox", "2.0.0", "io.github.klasterk.moonsbox");
+
+    if(!SDL_Init(SDL_INIT_VIDEO))
+        return show_error(
+            "SDL failed to init",
+            std::format("Could not init SDL.\n\nTechnical info:\n{}", SDL_GetError()).c_str()
+        );
+
+    if(!TTF_Init())
+        return show_error(
+            "SDL_ttf failed to init",
+            std::format("Could not init SDL_ttf.\n\nTechnical info:\n{}", SDL_GetError()).c_str()
+        );
+
     try
     {
-        SDL2pp::SDL sdl(SDL_INIT_VIDEO | SDL_INIT_EVENTS | SDL_INIT_TIMER);
-        SDL2pp::SDLTTF ttf;
         sfx::init();
-
         GameApp app;
         app.run();
     }
-    catch(const SDL2pp::Exception &e)
-    {
-        SDL_ShowSimpleMessageBox(
-            SDL_MESSAGEBOX_ERROR, 
-            "moonsbox SDL2 Error", 
-            _format_error("An SDL2 error has occured.", "SDL2pp::Exception", e.what()).c_str(), 
-            nullptr
-        );
-        return 1;
-    }
     catch(const std::bad_alloc &e)
     {
-        SDL_ShowSimpleMessageBox(
-            SDL_MESSAGEBOX_ERROR, 
-            "moonsbox Out of Memory", 
+        return show_error(
+            "moonsbox Out of Memory",
             "A memory allocation error has occured. Moonsbox will terminate."
-            "\n\nTechnical info:"
-            "\nException: std::bad_alloc",
-            nullptr
+                "\n\nTechnical info:"
+                "\nException: std::bad_alloc"
         );
-        return 1;
     }
     catch(const std::runtime_error &e)
     {
-        SDL_ShowSimpleMessageBox(
-            SDL_MESSAGEBOX_ERROR, 
-            "moonsbox Runtime Error", 
-            _format_error("A runtime error has occured.", "std::runtime_error", e.what()).c_str(), 
-            nullptr
+        return show_error(
+            "moonsbox Runtime Error",
+            (
+                format_exception("A runtime error has occured.", "std::runtime_error", e.what())
+                + "\n\nSDL_GetError (should be useless and might be contradictory if it's not an SDL error):\n"
+                + SDL_GetError()
+            ).c_str()
         );
-        return 1;
     }
     catch(const std::logic_error &e)
     {
-        SDL_ShowSimpleMessageBox(
-            SDL_MESSAGEBOX_ERROR, 
-            "moonsbox Logic Error", 
-            _format_error(
-                "A logic error has occured. It's a bug, contact devs.", 
-                "std::logic_error", 
+        return show_error(
+            "moonsbox Logic Error",
+            format_exception(
+                "A logic error has occured. It's a bug, contact devs.",
+                "std::logic_error",
                 e.what()
-            ).c_str(), 
-            nullptr
+            ).c_str()
         );
-        return 1;
     }
     catch(const std::exception &e)
     {
-        SDL_ShowSimpleMessageBox(
-            SDL_MESSAGEBOX_ERROR, 
-            "moonsbox Unidentified Exception Error", 
-            _format_error(
-                "An unidentified exception was thrown.", 
+        return show_error(
+            "moonsbox Unidentified Exception Error",
+            format_exception(
+                "An unidentified exception was thrown.",
                 std::string(typeid(e).name()) + " (mangled)",
                 e.what()
-            ).c_str(), 
-            nullptr
+            ).c_str()
         );
-        return 1;
     }
     catch(...)
     {
-        SDL_ShowSimpleMessageBox(
-            SDL_MESSAGEBOX_ERROR, 
-            "moonsbox Unknown Error", 
-            _format_error(
-                "Some non-exception object was thrown. It may be a bug, contact devs.", 
+        return show_error(
+            "moonsbox Unknown Error",
+            format_exception(
+                "Some non-exception object was thrown. It might be a bug, contact devs.",
                 "(catched as ...)",
                 "-"
-            ).c_str(), 
-            nullptr
+            ).c_str()
         );
-        return 1;
     }
     return 0;
 }

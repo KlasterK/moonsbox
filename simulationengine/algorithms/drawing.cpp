@@ -5,32 +5,14 @@
 
 void drawing::swap(GameMap &map, size_t ax, size_t ay, size_t bx, size_t by)
 {
-    auto a_temp = map.temps(ax, ay);
-    auto a_heat_capacity = map.heat_capacities(ax, ay);
-    auto a_thermal_conductivity = map.thermal_conductivities(ax, ay);
-    auto a_color = map.colors(ax, ay);
-    auto a_tag = map.tags(ax, ay);
-    auto a_physical_behavior = map.physical_behaviors(ax, ay);
-    auto a_aux = map.auxs(ax, ay);
-    auto a_material_ctl = map.material_ctls(ax, ay);
-
-    map.temps(ax, ay) = map.temps(bx, by);
-    map.heat_capacities(ax, ay) = map.heat_capacities(bx, by);
-    map.thermal_conductivities(ax, ay) = map.thermal_conductivities(bx, by);
-    map.colors(ax, ay) = map.colors(bx, by);
-    map.tags(ax, ay) = map.tags(bx, by);
-    map.physical_behaviors(ax, ay) = map.physical_behaviors(bx, by);
-    map.auxs(ax, ay) = std::move(map.auxs(bx, by));
-    map.material_ctls(ax, ay) = map.material_ctls(bx, by);
-
-    map.temps(bx, by) = a_temp;
-    map.heat_capacities(bx, by) = a_heat_capacity;
-    map.thermal_conductivities(bx, by) = a_thermal_conductivity;
-    map.colors(bx, by) = a_color;
-    map.tags(bx, by) = a_tag;
-    map.physical_behaviors(bx, by) = a_physical_behavior;
-    map.auxs(bx, by) = std::move(a_aux);
-    map.material_ctls(bx, by) = a_material_ctl;
+    std::swap(map.temps(ax, ay),                    map.temps(bx, by));
+    std::swap(map.heat_capacities(ax, ay),          map.heat_capacities(bx, by));
+    std::swap(map.thermal_conductivities(ax, ay),   map.thermal_conductivities(bx, by));
+    std::swap(map.colors(ax, ay),                   map.colors(bx, by));
+    std::swap(map.tags(ax, ay),                     map.tags(bx, by));
+    std::swap(map.physical_behaviors(ax, ay),       map.physical_behaviors(bx, by));
+    std::swap(map.auxs(ax, ay),                     map.auxs(bx, by));
+    std::swap(map.material_ctls(ax, ay),            map.material_ctls(bx, by));
 }
 
 void drawing::copy(GameMap &map, size_t src_x, size_t src_y, size_t dst_x, size_t dst_y)

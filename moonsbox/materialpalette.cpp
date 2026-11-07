@@ -1,10 +1,6 @@
 #include "materialpalette.hpp"
+#include <cmath>
 #include <simulationengine/core/materialregistry.hpp>
-#include <SDL2pp/Exception.hh>
-#include <SDL2pp/Color.hh>
-#include <SDL2pp/Surface.hh>
-#include <SDL2pp/Optional.hh>
-#include <SDL2pp/Renderer.hh>
 #include <concepts>
 #include <iterator>
 #include <optional>
@@ -13,59 +9,215 @@
 #include <array>
 #include <cstddef>
 #include <vector>
-#include <SDL2/SDL_blendmode.h>
-#include <SDL2/SDL_pixels.h>
-#include <SDL2/SDL_ttf.h>
-#include <SDL2/SDL2_gfxPrimitives.h>
 
 namespace
 {
-    constexpr int IconWidth = 64;
-    constexpr int IconHeight = 64;
-    constexpr int Margin = 20;
-    constexpr SDL2pp::Color BgColor{0x00, 0x00, 0x00, 0xCC};
-    constexpr SDL2pp::Color FgColor{0xFF, 0xFF, 0xFF, 0xFF};
-    constexpr SDL2pp::Color SelectionInnerColor = {0x00, 0x20, 0x40};
-    constexpr SDL2pp::Color SelectionOuterColor = {0x00, 0x60, 0x80};
+    constexpr int IconWidth{64};
+    constexpr int IconHeight{64};
+    constexpr int Margin{20};
+    constexpr SDL_Color BgColor{0x00, 0x00, 0x00, 0xCC};
+    constexpr SDL_Color FgColor{0xFF, 0xFF, 0xFF, 0xFF};
+    constexpr SDL_Color SelectionInnerColor{0x00, 0x8C, 0xFF, 0x20};
+    constexpr SDL_Color SelectionOuterColor{0x00, 0xC3, 0xFF, 0x40};
+    constexpr int OutlineWidth{3};
+    constexpr int OutlineRadius{8};
 
     template<std::integral T>
     T ceildiv(T a, T b)
     {
         return (a + b - 1) / b;
     }
+
+    struct Arc
+    {
+        SDL_FPoint centre{};
+        SDL_FPoint topleft{};
+
+        Arc(float origin_x, float origin_y, float x_offset_to_centre, float y_offset_to_centre)
+            : centre{origin_x + OutlineRadius * x_offset_to_centre,
+                     origin_y + OutlineRadius * y_offset_to_centre}
+            , topleft{x_offset_to_centre > 0.f ? origin_x : origin_x - OutlineRadius,
+                      y_offset_to_centre > 0.f ? origin_y : origin_y - OutlineRadius}
+        {}
+    };
+
+    constexpr size_t ArcFillPixelsApproximateCount = static_cast<size_t>(
+        6.2831f * (OutlineRadius - OutlineWidth) * (OutlineRadius - OutlineWidth) / 8.f + 4.f
+    );
+
+    constexpr size_t ArcOutlinePixelsApproximateCount = static_cast<size_t>(
+        6.2831f * OutlineWidth * (2 * OutlineRadius - OutlineWidth) / 8.f + 4.f
+    );
+
+    void draw_selection(SDL_Renderer *renderer, const SDL_FRect *full_rect)
+    {
+        const std::array<Arc, 4> arcs({
+            {full_rect->x,                full_rect->y,                 1.f,  1.f},
+            {full_rect->x + full_rect->w, full_rect->y,                -1.f,  1.f},
+            {full_rect->x,                full_rect->y + full_rect->h,  1.f, -1.f},
+            {full_rect->x + full_rect->w, full_rect->y + full_rect->h, -1.f, -1.f},
+        });
+
+        std::vector<SDL_FPoint> fill_points, outline_points;
+        fill_points.reserve(ArcFillPixelsApproximateCount);
+        outline_points.reserve(ArcOutlinePixelsApproximateCount);
+
+        for(const auto &[centre, topleft] : arcs)
+        {
+            for(float x = topleft.x; x < topleft.x + OutlineRadius; ++x)
+            {
+                for(float y = topleft.y; y < topleft.y + OutlineRadius; ++y)
+                {
+                    float left_cmp = (x - centre.x) * (x - centre.x) + (y - centre.y) * (y - centre.y);
+                    if(left_cmp <= (OutlineRadius - OutlineWidth) * (OutlineRadius - OutlineWidth))
+                    {
+                        fill_points.emplace_back(x, y);
+                    }
+                    else if(left_cmp <= OutlineRadius * OutlineRadius)
+                    {
+                        outline_points.emplace_back(x, y);
+                    }
+                }
+            }
+
+            SDL_SetRenderDrawColor(
+                renderer, SelectionInnerColor.r, SelectionInnerColor.g,
+                SelectionInnerColor.b, SelectionInnerColor.a
+            );
+            SDL_RenderPoints(renderer, fill_points.data(), fill_points.size());
+
+            SDL_SetRenderDrawColor(
+                renderer, SelectionOuterColor.r, SelectionOuterColor.g,
+                SelectionOuterColor.b, SelectionOuterColor.a
+            );
+            SDL_RenderPoints(renderer, outline_points.data(), outline_points.size());
+
+            fill_points.clear();
+            outline_points.clear();
+        }
+
+        std::array<SDL_FRect, 4> outline_rects({
+            {
+                full_rect->x + OutlineRadius,
+                full_rect->y,
+                full_rect->w - OutlineRadius*2,
+                OutlineWidth
+            },
+            {
+                full_rect->x,
+                full_rect->y + OutlineRadius,
+                OutlineWidth,
+                full_rect->h - OutlineRadius*2
+            },
+            {
+                full_rect->x + OutlineRadius,
+                full_rect->y + full_rect->h - OutlineWidth,
+                full_rect->w - OutlineRadius*2,
+                OutlineWidth
+            },
+            {
+                full_rect->x + full_rect->w - OutlineWidth,
+                full_rect->y + OutlineRadius,
+                OutlineWidth,
+                full_rect->h - OutlineRadius*2
+            },
+        });
+        SDL_SetRenderDrawColor(
+            renderer, SelectionOuterColor.r, SelectionOuterColor.g,
+            SelectionOuterColor.b, SelectionOuterColor.a
+        );
+        SDL_RenderFillRects(renderer, outline_rects.data(), outline_rects.size());
+
+        std::array<SDL_FRect, 3> fill_rects({
+            {
+                full_rect->x + OutlineRadius,
+                full_rect->y + OutlineWidth,
+                full_rect->w - OutlineRadius*2,
+                full_rect->h - OutlineWidth*2,
+            },
+            {
+                full_rect->x + OutlineWidth,
+                full_rect->y + OutlineRadius,
+                OutlineRadius - OutlineWidth,
+                full_rect->h - OutlineRadius*2,
+            },
+            {
+                full_rect->x + full_rect->w - OutlineRadius,
+                full_rect->y + OutlineRadius,
+                OutlineRadius - OutlineWidth,
+                full_rect->h - OutlineRadius*2,
+            },
+        });
+        SDL_SetRenderDrawColor(
+            renderer, SelectionInnerColor.r, SelectionInnerColor.g,
+            SelectionInnerColor.b, SelectionInnerColor.a
+        );
+        SDL_RenderFillRects(renderer, fill_rects.data(), fill_rects.size());
+    }
 }
 
-MaterialPalette::MaterialPalette(SDL2pp::Renderer &rnd, MaterialRegistry &registry, 
-                                 SDL2pp::Font &font)
+MaterialPalette::MaterialPalette(SDL_Renderer *nonown_sdl_renderer,
+                                 MaterialRegistry &registry,
+                                 TTF_Font *nonown_font)
     : m_registry(registry)
-    , m_rnd(rnd)
+    , m_rnd(nonown_sdl_renderer)
 {
-    TTF_SetFontWrappedAlign(font.Get(), TTF_WRAPPED_ALIGN_CENTER);
+    TTF_SetFontWrapAlignment(nonown_font, TTF_HORIZONTAL_ALIGN_CENTER);
     m_slot_texs.reserve(std::distance(registry.begin(), registry.end()));
-    for(auto it = registry.begin(); it != registry.end(); std::advance(it, 1))
+    for(const auto &pair : registry)
     {
-        auto *label_surf_raw = TTF_RenderText_Blended_Wrapped(
-            font.Get(), it->first.c_str(), FgColor, IconWidth
+        std::unique_ptr<SDL_Surface, void (&)(SDL_Surface *)> label_surf{
+            TTF_RenderText_Blended_Wrapped(
+                nonown_font,
+                pair.first.data(),
+                pair.first.size(),
+                FgColor,
+                IconWidth
+            ),
+            SDL_DestroySurface
+        };
+        if(!label_surf)
+            throw std::runtime_error("MaterialPalette::MaterialPalette: TTF_RenderText_Blended_Wrapped returned nullptr");
+
+        std::unique_ptr<SDL_Surface, void (&)(SDL_Surface *)> merged_surf{
+            SDL_CreateSurface(IconWidth, IconHeight + label_surf->h, SDL_PIXELFORMAT_RGBA8888),
+            SDL_DestroySurface
+        };
+        if(!merged_surf)
+            throw std::runtime_error("MaterialPalette::MaterialPalette: SDL_CreateSurface returned nullptr");
+
+        std::string icon_path = "assets/materials/" + pair.first;
+        std::unique_ptr<SDL_Surface, void (&)(SDL_Surface *)> icon_surf{
+            SDL_LoadSurface(icon_path.c_str()),
+            SDL_DestroySurface
+        };
+        if(icon_surf)
+        {
+            SDL_Rect dst_rect{0, 0, IconWidth, IconHeight};
+            if(icon_surf->w == IconWidth && icon_surf->h == IconHeight)
+            {
+                SDL_BlitSurface(icon_surf.get(), nullptr, merged_surf.get(), &dst_rect);
+            }
+            else
+            {
+                SDL_BlitSurfaceScaled(icon_surf.get(), nullptr, merged_surf.get(), &dst_rect, SDL_SCALEMODE_LINEAR);
+            }
+        }
+
+        SDL_Rect dst_rect{
+            IconWidth / 2 - label_surf->w / 2,
+            IconHeight,
+            label_surf->w,
+            label_surf->h,
+        };
+        SDL_BlitSurface(label_surf.get(), nullptr, merged_surf.get(), &dst_rect);
+
+        m_slot_texs.emplace_back(
+            SDL_CreateTextureFromSurface(m_rnd, merged_surf.get()),
+            SDL_DestroyTexture
         );
-        if(label_surf_raw == nullptr)
-            throw SDL2pp::Exception("TTF_RenderText_Blended_Wrapped");
-
-        SDL2pp::Surface label_surf{label_surf_raw};
-        SDL2pp::Surface icon_surf{std::format("assets/materials/{}", it->first)};
-
-        auto *merged_surf_raw = SDL_CreateRGBSurfaceWithFormat(
-            0, IconWidth, IconHeight + label_surf.GetHeight(), 32, SDL_PIXELFORMAT_RGBA8888
-        );
-        if(merged_surf_raw == nullptr)
-            throw SDL2pp::Exception("SDL_CreateRGBSurfaceWithFormat");
-        
-        SDL2pp::Surface merged_surf{merged_surf_raw};
-        icon_surf.Blit(SDL2pp::NullOpt, merged_surf, {0, 0, IconWidth, IconHeight});
-
-        int label_x = IconWidth / 2 - label_surf.GetWidth() / 2;
-        label_surf.Blit(SDL2pp::NullOpt, merged_surf, {{label_x, IconHeight}, label_surf.GetSize()});
-
-        m_slot_texs.emplace_back(rnd, merged_surf);
+        if(!m_slot_texs.back())
+            throw std::runtime_error("MaterialPalette::MaterialPalette: SDL_CreateTextureFromSurface returned nullptr");
     }
 }
 
@@ -90,8 +242,9 @@ void MaterialPalette::set_current_selection_idx(size_t idx)
 
 bool MaterialPalette::move_selection(int columns_right, int rows_down)
 {
-    auto screen_size = m_rnd.GetOutputSize();
-    int columns_count = screen_size.x / (IconWidth + Margin);
+    int screen_w{};
+    SDL_GetRenderOutputSize(m_rnd, &screen_w, nullptr);
+    int columns_count = screen_w / (IconWidth + Margin);
     int current_column = m_selection_idx % columns_count;
 
     int new_column = current_column + columns_right;
@@ -121,24 +274,25 @@ std::optional<size_t> MaterialPalette::match_click_to_idx(int mx, int my) const
     if(mx < 0 || my < 0)
         return std::nullopt;
 
-    auto screen_size = m_rnd.GetOutputSize();
-    if(mx >= screen_size.x || my >= screen_size.y)
+    int screen_w{}, screen_h{};
+    SDL_GetRenderOutputSize(m_rnd, &screen_w, &screen_h);
+    if(mx >= screen_w || my >= screen_h)
         return std::nullopt;
 
-    auto highest_tex = std::ranges::max_element(m_slot_texs, {}, &SDL2pp::Texture::GetHeight);
-    int max_slot_height = highest_tex->GetHeight();
+    auto max_slot_it = std::ranges::max_element(m_slot_texs, {}, &SDL_Texture::h);
+    int max_slot_height = (*max_slot_it)->h;
+    size_t columns_count = static_cast<size_t>(screen_w / (IconWidth + Margin));
 
-    size_t columns_count = static_cast<size_t>(screen_size.x / (IconWidth + Margin));
-    
     int half_icon_widths  = IconWidth * columns_count / 2;
     int half_hor_margins  = Margin * (columns_count - 1) / 2;
 
-    int initial_x = (screen_size.x / 2) - half_icon_widths - half_hor_margins;
-    SDL2pp::Rect slot_rect{initial_x, initial_x, IconWidth, max_slot_height};
+    int initial_x = (screen_w / 2) - half_icon_widths - half_hor_margins;
+    SDL_Rect slot_rect{initial_x, initial_x, IconWidth, max_slot_height};
+    SDL_Point mouse_point{mx, my};
 
     for(size_t i{}; i < m_slot_texs.size(); ++i)
     {
-        if(slot_rect.Contains(mx, my))
+        if(SDL_PointInRect(&mouse_point, &slot_rect))
         {
             return i;
         }
@@ -177,112 +331,52 @@ bool MaterialPalette::is_visible() const
     return m_is_visible;
 }
 
-static void _draw_rounded_rect_fill_outline_solid(
-    SDL2pp::Renderer &renderer,
-    const SDL2pp::Rect &rect,
-    int width,
-    int radius,
-    SDL2pp::Color fill_color,
-    SDL2pp::Color outline_color
-)
-{
-    for(auto [cx, cy] : std::initializer_list<std::array<int, 2>>{
-        // Top left arc
-        {rect.x - width + radius, rect.y - width + radius}, 
-        // Top right arc
-        {rect.x + rect.w + width - radius - 1, rect.y - width + radius},
-        // Bottom left arc
-        {rect.x - width + radius, rect.y + rect.h + width - radius - 1},
-        // Bottom right arc
-        {rect.x + rect.w + width - radius - 1, rect.y + rect.h + width - radius - 1},
-    })
-    {
-        filledCircleRGBA(
-            renderer.Get(),
-            cx,
-            cy,
-            radius,
-            outline_color.r,
-            outline_color.g,
-            outline_color.b,
-            0xFF
-        );
-    }
-
-    roundedBoxRGBA(
-        renderer.Get(), 
-        rect.x,
-        rect.y,
-        rect.x + rect.w,
-        rect.y + rect.h,
-        radius,
-        fill_color.r,
-        fill_color.g,
-        fill_color.b,
-        0xFF
-    );
-
-    auto line_rects = std::to_array<SDL2pp::Rect>({
-        // Left line
-        {rect.x - width, rect.y + radius, width, rect.h - radius * 2},
-        // Top line
-        {rect.x + radius, rect.y - width, rect.w - radius * 2, width},
-        // Right line
-        {rect.x + rect.w, rect.y + radius, width, rect.h - radius * 2},
-        // Bottom line
-        {rect.x + radius, rect.y + rect.h, rect.w - radius * 2, width},
-    });
-    renderer.SetDrawColor(outline_color);
-    renderer.SetDrawBlendMode(SDL_BLENDMODE_NONE);
-    renderer.FillRects(line_rects.data(), line_rects.size());
-};
-
 void MaterialPalette::render()
 {
     if(!m_is_visible)
         return;
 
-    auto screen_size = m_rnd.GetOutputSize();
-    m_rnd.SetDrawColor(BgColor);
-    m_rnd.SetDrawBlendMode(SDL_BLENDMODE_BLEND);
-    m_rnd.FillRect({0, 0}, screen_size);
+    int screen_w{};
+    SDL_GetRenderOutputSize(m_rnd, &screen_w, nullptr);
+    SDL_SetRenderDrawColor(m_rnd, BgColor.r, BgColor.g, BgColor.b, BgColor.a);
+    SDL_SetRenderDrawBlendMode(m_rnd, SDL_BLENDMODE_BLEND);
+    SDL_RenderFillRect(m_rnd, nullptr);
 
-    auto highest_tex = std::ranges::max_element(m_slot_texs, {}, &SDL2pp::Texture::GetHeight);
-    int max_slot_height = highest_tex->GetHeight();
+    auto max_slot_it = std::ranges::max_element(m_slot_texs, {}, &SDL_Texture::h);
+    int max_slot_height = (*max_slot_it)->h;
+    size_t columns_count = static_cast<size_t>(screen_w / (IconWidth + Margin));
 
-    size_t columns_count = static_cast<size_t>(screen_size.x / (IconWidth + Margin));
-    
     int half_icon_widths  = IconWidth * columns_count / 2;
     int half_hor_margins  = Margin * (columns_count - 1) / 2;
 
-    int initial_x = (screen_size.x / 2) - half_icon_widths - half_hor_margins;
-    SDL2pp::Point dst_point{initial_x, initial_x};
+    int initial_x = (screen_w / 2) - half_icon_widths - half_hor_margins;
+    SDL_FRect dst_rect{float(initial_x), float(initial_x), 0.f, 0.f};
 
     for(size_t i{}; i < m_slot_texs.size(); ++i)
     {
         if(i == m_selection_idx)
         {
-            SDL2pp::Rect sel_rect{
-                dst_point.x - Margin / 4,
-                dst_point.y - Margin / 4,
-                IconWidth + Margin / 2,
-                m_slot_texs[i].GetHeight() + Margin / 2,
+            SDL_FRect full_rect{
+                dst_rect.x - float(Margin) / 4 - OutlineWidth,
+                dst_rect.y - float(Margin) / 4 - OutlineWidth,
+                m_slot_texs[i]->w + OutlineWidth*2 + float(Margin) / 2,
+                m_slot_texs[i]->h + OutlineWidth*2 + float(Margin) / 2,
             };
-            _draw_rounded_rect_fill_outline_solid(
-                m_rnd, sel_rect, 3, 8, SelectionInnerColor, SelectionOuterColor
-            );
+            draw_selection(m_rnd, &full_rect);
         }
 
-        m_rnd.Copy(m_slot_texs[i], SDL2pp::NullOpt, dst_point);
+        dst_rect.w = m_slot_texs[i]->w;
+        dst_rect.h = m_slot_texs[i]->h;
+        SDL_RenderTexture(m_rnd, m_slot_texs[i].get(), nullptr, &dst_rect);
 
-        if(i % columns_count == (columns_count - 1))
+        if(i % columns_count == columns_count - 1)
         {
-            dst_point.x = initial_x;
-            dst_point.y += Margin + max_slot_height;
+            dst_rect.x = initial_x;
+            dst_rect.y += Margin + max_slot_height;
         }
         else
         {
-            dst_point.x += Margin + IconWidth;
+            dst_rect.x += Margin + IconWidth;
         }
     }
 }

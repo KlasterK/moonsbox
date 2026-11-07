@@ -1,16 +1,14 @@
 #include "windowevents.hpp"
-#include <simulationengine/algorithms/drawing.hpp>
 #include "gameapp.hpp"
-#include <simulationengine/core/gamemap.hpp>
-#include <simulationengine/simulation/simulationmanager.hpp>
-#include <simulationengine/core/materialregistry.hpp>
-#include <simulationengine/core/materialcontroller.hpp>
 #include "camera.hpp"
 #include "materialpalette.hpp"
 #include "renderer.hpp"
 #include "soundsystem.hpp"
-#include <SDL2/SDL_keyboard.h>
-#include <SDL2/SDL_keycode.h>
+#include <simulationengine/algorithms/drawing.hpp>
+#include <simulationengine/core/gamemap.hpp>
+#include <simulationengine/simulation/simulationmanager.hpp>
+#include <simulationengine/core/materialregistry.hpp>
+#include <simulationengine/core/materialcontroller.hpp>
 #include <algorithm>
 #include <array>
 #include <cstddef>
@@ -32,7 +30,7 @@ GameAppEventHandler::GameAppEventHandler(GameApp &app)
 
 bool GameAppEventHandler::process_event(const SDL_Event &e)
 {
-    if (e.type == SDL_QUIT || (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_ESCAPE))
+    if (e.type == SDL_EVENT_QUIT || (e.type == SDL_EVENT_KEY_DOWN && e.key.key == SDLK_ESCAPE))
     {
         m_app.stop();
     }
@@ -45,23 +43,23 @@ SimulationEventHandler::SimulationEventHandler(GameMap &map, SimulationManager &
 
 bool SimulationEventHandler::process_event(const SDL_Event &e)
 {
-    if (e.type != SDL_KEYDOWN)
+    if (e.type != SDL_EVENT_KEY_DOWN)
         return false;
     
-    if(e.key.keysym.sym == SDLK_F5)
+    if(e.key.key == SDLK_F5)
     {
         bool was_paused = m_sim.is_paused();
         m_sim.set_paused(false);
         m_sim.tick();
         m_sim.set_paused(was_paused);
     }
-    else if(e.key.keysym.sym == SDLK_F6)
+    else if(e.key.key == SDLK_F6)
     {
         MaterialController *space = m_registry.find_controller_by_name("Space");
         assert(space);
         drawing::fill(m_map, drawing::make_controller_init_point_factory(m_map, *space));
     }
-    else if(e.key.keysym.sym == SDLK_SPACE)
+    else if(e.key.key == SDLK_SPACE)
     {
         m_sim.set_paused(!m_sim.is_paused());
     }
@@ -74,21 +72,19 @@ CameraEventHandler::CameraEventHandler(Camera &camera)
 
 bool CameraEventHandler::process_event(const SDL_Event &e)
 {
-    if (e.type == SDL_MOUSEMOTION)
+    if (e.type == SDL_EVENT_MOUSE_MOTION)
     {
-        if (SDL_GetModState() & KMOD_SHIFT || (e.motion.state & SDL_BUTTON_RMASK))
-        
+        if (SDL_GetModState() & SDL_KMOD_SHIFT || (e.motion.state & SDL_BUTTON_RMASK))
             m_camera.move({-e.motion.xrel, -e.motion.yrel});
+
         return false;
     }
-    if (e.type == SDL_MOUSEWHEEL)
+    if (e.type == SDL_EVENT_MOUSE_WHEEL)
     {
-        if (SDL_GetModState() & KMOD_ALT)
+        if (SDL_GetModState() & SDL_KMOD_ALT)
             return false;
 
-        int mx{}, my{};
-        SDL_GetMouseState(&mx, &my);
-        m_camera.zoom(-e.wheel.preciseY * ZoomFactor, {mx, my});
+        m_camera.zoom(-e.wheel.y * ZoomFactor, {e.wheel.mouse_x, e.wheel.mouse_y});
         return false;
     }
     return false;
@@ -106,13 +102,10 @@ DrawingEventHandler::DrawingEventHandler(
 
 bool DrawingEventHandler::process_event(const SDL_Event &e)
 {
-    if (
-        (e.type == SDL_KEYDOWN && (e.key.keysym.sym == SDLK_LCTRL 
-                                   || e.key.keysym.sym == SDLK_RCTRL))
-        || (e.type == SDL_MOUSEBUTTONDOWN && e.button.button == SDL_BUTTON_LEFT)
-    )
+    if ((e.type == SDL_EVENT_KEY_DOWN && (e.key.key == SDLK_LCTRL || e.key.key == SDLK_RCTRL))
+        || (e.type == SDL_EVENT_MOUSE_BUTTON_DOWN && e.button.button == SDL_BUTTON_LEFT))
     {
-        int mx{}, my{};
+        float mx{}, my{};
         SDL_GetMouseState(&mx, &my);
         auto mouse_map_pos = m_camera.to_map_pos({mx, my});
         mouse_map_pos[1] = int(m_map.height()) - 1 - mouse_map_pos[1];
@@ -130,17 +123,17 @@ bool DrawingEventHandler::process_event(const SDL_Event &e)
             drawing::rect(m_map, area, material_factory());
 
         m_drawing_material.get().play_place_sound(m_map, mouse_map_pos[0], mouse_map_pos[1]);
-        
+
         m_previous_pos = mouse_map_pos;
         m_is_holded = true;
         return false;
     }
 
-    if (e.type == SDL_MOUSEMOTION && m_is_holded)
+    if (e.type == SDL_EVENT_MOUSE_MOTION && m_is_holded)
     {
         auto mouse_map_pos = m_camera.to_map_pos({e.motion.x, e.motion.y});
         mouse_map_pos[1] = int(m_map.height()) - 1 - mouse_map_pos[1];
-        
+
         drawing::line(
             m_map, 
             m_previous_pos, 
@@ -156,32 +149,29 @@ bool DrawingEventHandler::process_event(const SDL_Event &e)
         return false;
     }
 
-    if (
-        (e.type == SDL_KEYUP && (e.key.keysym.sym == SDLK_LCTRL 
-                                 || e.key.keysym.sym == SDLK_RCTRL))
-        || (e.type == SDL_MOUSEBUTTONUP && e.button.button == SDL_BUTTON_LEFT)
-    )
+    if ((e.type == SDL_EVENT_KEY_UP && (e.key.key == SDLK_LCTRL || e.key.key == SDLK_RCTRL))
+        || (e.type == SDL_EVENT_MOUSE_BUTTON_UP && e.button.button == SDL_BUTTON_LEFT))
     {
         m_previous_pos = {-1, -1};
         m_is_holded = false;
         return false;
     }
 
-    if (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_EQUALS)
+    if (e.type == SDL_EVENT_KEY_DOWN && e.key.key == SDLK_EQUALS)
     {
         m_brush_width += DeltaDrawingWidth;
         return false;
     }
 
-    if (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_MINUS)
+    if (e.type == SDL_EVENT_KEY_DOWN && e.key.key == SDLK_MINUS)
     {
         m_brush_width = std::max(1, m_brush_width - DeltaDrawingWidth);
         return false;
     }
 
-    if (e.type == SDL_MOUSEWHEEL && SDL_GetModState() & KMOD_ALT)
+    if (e.type == SDL_EVENT_MOUSE_WHEEL && SDL_GetModState() & SDL_KMOD_ALT)
     {
-        m_brush_width = std::max(1, m_brush_width + e.wheel.y);
+        m_brush_width = std::max(1, m_brush_width + e.wheel.integer_y);
         return false;
     }
 
@@ -202,7 +192,7 @@ bool DrawingEventHandler::process_event(const SDL_Event &e)
     //     MaterialController *ctl = m_map.material_ctls(mouse_map_pos_uz[0], mouse_map_pos_uz[1]);
     //     assert(ctl);
 
-        
+
     //         m_palette->set_selected_material(*ctl);
     //     return false;
     // }
@@ -259,27 +249,27 @@ bool MaterialPaletteEventHandler::process_event(const SDL_Event &e)
 {
     if (m_palette.is_visible())
     {
-        if (e.type == SDL_KEYDOWN)
+        if (e.type == SDL_EVENT_KEY_DOWN)
         {
-            switch (e.key.keysym.sym)
+            switch (e.key.key)
             {
             case SDLK_LEFT:
-            case SDLK_a:
+            case SDLK_A:
                 m_palette.move_selection(-1, 0);
                 sfx::play_sound("palette.move_selection", "ui", true);
                 return true;
             case SDLK_RIGHT:
-            case SDLK_d:
+            case SDLK_D:
                 m_palette.move_selection(1, 0);
                 sfx::play_sound("palette.move_selection", "ui", true);
                 return true;
             case SDLK_UP:
-            case SDLK_w:
+            case SDLK_W:
                 m_palette.move_selection(0, -1);
                 sfx::play_sound("palette.move_selection", "ui", true);
                 return true;
             case SDLK_DOWN:
-            case SDLK_s:
+            case SDLK_S:
                 m_palette.move_selection(0, 1);
                 sfx::play_sound("palette.move_selection", "ui", true);
                 return true;
@@ -298,11 +288,11 @@ bool MaterialPaletteEventHandler::process_event(const SDL_Event &e)
                 sfx::play_sound("palette.hide_no_confirmation", "ui", true);
                 return true;
             default:
-                return true; // consume all keys while palette visible
+                return true; // consume all keys while palette is visible
             }
         }
 
-        if (e.type == SDL_MOUSEBUTTONDOWN)
+        if (e.type == SDL_EVENT_MOUSE_BUTTON_DOWN)
         {
             if(e.button.button == SDL_BUTTON_LEFT)
             {
@@ -330,31 +320,31 @@ bool MaterialPaletteEventHandler::process_event(const SDL_Event &e)
             }
             return true;
         }
-        if (e.type == SDL_MOUSEWHEEL)
+        if (e.type == SDL_EVENT_MOUSE_WHEEL)
         {
-            m_palette.scroll(-e.wheel.y);
+            m_palette.scroll(-e.wheel.integer_y);
             return true;
         }
     }
     else
     {
-        if ((e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_TAB)
-            || (e.type == SDL_MOUSEBUTTONDOWN && e.button.button == SDL_BUTTON_MIDDLE))
+        if ((e.type == SDL_EVENT_KEY_DOWN && e.key.key == SDLK_TAB)
+            || (e.type == SDL_EVENT_MOUSE_BUTTON_DOWN && e.button.button == SDL_BUTTON_MIDDLE))
         {
             m_palette.show();
             sfx::play_sound("palette.show", "ui", true);
             return false;
         }
 
-        if ((e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_u)
-            || (e.type == SDL_MOUSEBUTTONDOWN && e.button.button == SDL_BUTTON_X2))
+        if ((e.type == SDL_EVENT_KEY_DOWN && e.key.key == SDLK_U)
+            || (e.type == SDL_EVENT_MOUSE_BUTTON_DOWN && e.button.button == SDL_BUTTON_X2))
         {
             m_material_stack.push_back(m_drawing_material);
             return false;
         }
-        
-        if ((e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_i)
-            || (e.type == SDL_MOUSEBUTTONDOWN && e.button.button == SDL_BUTTON_X1))
+
+        if ((e.type == SDL_EVENT_KEY_DOWN && e.key.key == SDLK_I)
+            || (e.type == SDL_EVENT_MOUSE_BUTTON_DOWN && e.button.button == SDL_BUTTON_X1))
         {
             m_drawing_material = [this] -> auto &
             {
@@ -384,10 +374,10 @@ RendererEventHandler::RendererEventHandler(Renderer &renderer)
 
 bool RendererEventHandler::process_event(const SDL_Event &e)
 {
-    if (e.type != SDL_KEYDOWN)
+    if (e.type != SDL_EVENT_KEY_DOWN)
         return false;
 
-    if (e.key.keysym.sym == SDLK_v)
+    if (e.key.key == SDLK_V)
     {
         switch(m_renderer.get_mode())
         {

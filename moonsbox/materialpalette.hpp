@@ -2,11 +2,11 @@
 #define MOOX_MATERIALPALETTE_HPP
 
 #include <cstddef>
+#include <memory>
 #include <optional>
 #include <vector>
-#include <SDL2pp/Renderer.hh>
-#include <SDL2pp/Font.hh>
-#include <SDL2pp/Texture.hh>
+#include <SDL3/SDL_render.h>
+#include <SDL3_ttf/SDL_ttf.h>
 
 class MaterialRegistry;
 class MaterialController;
@@ -14,7 +14,7 @@ class MaterialController;
 class MaterialPalette
 {
 public:
-    MaterialPalette(SDL2pp::Renderer &rnd, MaterialRegistry &registry, SDL2pp::Font &font);
+    MaterialPalette(SDL_Renderer *nonown_sdl_renderer, MaterialRegistry &registry, TTF_Font *nonown_font);
 
     MaterialController &get_selected_material() const;
     size_t get_current_selection_idx() const;
@@ -32,8 +32,8 @@ public:
 
 private:
     MaterialRegistry &m_registry;
-    SDL2pp::Renderer &m_rnd;
-    std::vector<SDL2pp::Texture> m_slot_texs;
+    SDL_Renderer *m_rnd;
+    std::vector<std::unique_ptr<SDL_Texture, void (&)(SDL_Texture *)>> m_slot_texs;
 
     size_t m_selection_idx{0};
     bool m_is_visible{false};
